@@ -397,7 +397,6 @@ export const Footer: React.FC = () => {
               <li><Link href="/amc" className="hover:text-[#5ED29C] transition-colors">Annual Maintenance Contract (AMC)</Link></li>
               <li><Link href="/corporate" className="hover:text-[#5ED29C] transition-colors">Business ERP Solutions</Link></li>
               <li><Link href="/services" className="hover:text-[#5ED29C] transition-colors">POS & Billing Counter Solutions</Link></li>
-              <li><Link href="/portal" className="hover:text-[#5ED29C] transition-colors">Customer Tracking Portal</Link></li>
               <li><Link href="/corporate" className="hover:text-[#5ED29C] transition-colors">IT Consulting & Software Setup</Link></li>
             </ul>
           </div>
