@@ -322,23 +322,18 @@ export default function ErpRepairsPage() {
   const [pipelineOptions, setPipelineOptions] = useState<string[]>(
     repairBillingRules?.pipelineOptions || ['RECEIVED', 'DIAGNOSING', 'CHIP_LEVEL_REPAIR', 'OUTSOURCED_LAB', 'TESTING', 'READY_FOR_PICKUP']
   );
-  const [techOptions, setTechOptions] = useState<string[]>(
-    repairBillingRules?.techOptions || ['Vikram Sharma (Lead Tech)', 'Pankaj Mahajan (BGA Specialist)', 'Amit Verma (Cleanroom Specialist)', 'Rajesh Gupta (Junior Tech)']
-  );
-
-  // Effective Technician List incorporating active employee names from Employee Master
+  // Effective Technician List strictly containing ONLY employee names from Employee Master
   const effectiveTechOptions = useMemo(() => {
     const employeeList = (employees || [])
       .filter((emp) => emp.activeStatus !== 'Inactive')
       .map((emp) => emp.name)
       .filter(Boolean);
 
-    const set = new Set<string>();
-    employeeList.forEach((name) => set.add(name));
-    (techOptions || []).forEach((opt) => set.add(opt));
-
-    return Array.from(set);
-  }, [employees, techOptions]);
+    if (employeeList.length > 0) {
+      return Array.from(new Set(employeeList));
+    }
+    return ['Deepak Kumar', 'Rahul Gupta', 'Priya Sharma'];
+  }, [employees]);
   const [deliveryStatusOptions, setDeliveryStatusOptions] = useState<string[]>(
     repairBillingRules?.deliveryStatusOptions || ['IN REPAIR LAB', 'READY FOR PICKUP', 'DELIVERED TO CUSTOMER', 'RETURNED UNREPAIRED', 'DISPATCHED VIA COURIER']
   );
@@ -589,7 +584,7 @@ export default function ErpRepairsPage() {
     purchaseInvoiceNo: '',
     purchaseDate: '',
     jobPipelineStatus: 'RECEIVED',
-    assignedTechnician: 'Vikram Sharma (Lead Tech)',
+    assignedTechnician: employees && employees[0] ? employees[0].name : 'Deepak Kumar',
     estimated_cost: 4000,
     advance_paid: 0,
     deliveryStatus: 'IN REPAIR LAB',

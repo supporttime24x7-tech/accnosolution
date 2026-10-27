@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       priority: 'urgent',
       estimated_cost: 18500,
       advance_paid: 5000,
-      technician_name: 'Vikram Sharma (Lead Tech)',
+      technician_name: 'Deepak Kumar',
       created_at: '2025-05-10 10:30 AM',
     },
     {
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       priority: 'urgent',
       estimated_cost: 14000,
       advance_paid: 3000,
-      technician_name: 'Amit Verma (Cleanroom Specialist)',
+      technician_name: 'Rahul Gupta',
       created_at: '2025-05-11 11:15 AM',
     },
   ];

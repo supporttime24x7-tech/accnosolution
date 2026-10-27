@@ -1748,7 +1748,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         deliveryStatus: 'IN REPAIR LAB',
         afterServiceRemarks: 'Replaced power IC controller and trackpad flex cable.',
 
-        technician_name: 'Vikram Sharma (Lead Tech)',
+        technician_name: 'Deepak Kumar',
         entryDate: '2025-05-10',
         estimatedDeliveryDate: '2025-05-14',
         created_at: '2025-05-10 10:30 AM',
@@ -1802,7 +1802,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         deliveryStatus: 'DIAGNOSING IN CLEANROOM',
         afterServiceRemarks: 'Donor drive head assembly received from Delhi lab.',
 
-        technician_name: 'Amit Verma (Cleanroom Specialist)',
+        technician_name: 'Rahul Gupta',
         entryDate: '2025-05-11',
         estimatedDeliveryDate: '2025-05-16',
         created_at: '2025-05-11 11:15 AM',
@@ -1877,7 +1877,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         deliveryStatus: 'IN REPAIR LAB',
         afterServiceRemarks: 'Replaced power IC controller and trackpad flex cable.',
 
-        technician_name: 'Vikram Sharma (Lead Tech)',
+        technician_name: 'Deepak Kumar',
         entryDate: '2025-05-10',
         estimatedDeliveryDate: '2025-05-14',
         created_at: '2025-05-10 10:30 AM',
@@ -2190,7 +2190,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       priority: 'HIGH',
       symptoms: 'CLICKING HEAD NOISE',
       status: 'Completed / Delivered',
-      technician: 'Senior Forensic Eng. Vikram',
+      technician: 'Rahul Gupta',
       storageLocation: 'Safe Vault Locker 01',
       estimateCost: 16000,
       advance: 1500,
@@ -2239,7 +2239,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       priority: 'NORMAL',
       symptoms: 'NOT DETECTED / BUSY STATE',
       status: 'Imaging in Cleanroom',
-      technician: 'Cleanroom Specialist Rajesh',
+      technician: 'Deepak Kumar',
       storageLocation: 'Cleanroom Bench 03',
       estimateCost: 19500,
       advance: 5000,
@@ -2300,7 +2300,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       serviceType: 'Hardware + Software On-site Support',
       numberOfDevices: 5,
       totalServiceVisits: 4,
-      assignedTechnician: 'Senior Tech Vikram',
+      assignedTechnician: 'Rahul Gupta',
       priority: 'High',
       deviceType: 'Server',
       issueFound: 'Server RAID array fan noise & high thermal load.',
@@ -2317,13 +2317,13 @@ export const useErpStore = create<ErpState>((set, get) => ({
         { id: 'ast-2', assetName: 'Accounts Desktop', category: 'Desktop PC', brand: 'HP', model: 'ProDesk 400 G7', serialNumber: 'HPP400-1120', location: 'Accounts Dept' }
       ],
       pmVisits: [
-        { id: 'pm-1', visitNumber: 1, visitDate: '2025-06-15', completedDate: '2025-06-14', status: 'Completed', technician: 'Senior Tech Vikram', visitPurpose: 'Quarterly Hardware Cleaning & Thermal Paste', serviceActionsPerformed: 'Dust cleaned, thermal paste refreshed on CPU.' },
-        { id: 'pm-2', visitNumber: 2, visitDate: '2025-09-15', completedDate: '2025-09-15', status: 'Completed', technician: 'Lab Specialist Rajesh', visitPurpose: 'RAID Array Health & OS Patch Update', serviceActionsPerformed: 'RAID 5 verified, OS security patches installed.' },
-        { id: 'pm-3', visitNumber: 3, visitDate: '2025-12-15', status: 'Scheduled', technician: 'Senior Tech Vikram', visitPurpose: 'Q3 Preventive Maintenance Visit' },
-        { id: 'pm-4', visitNumber: 4, visitDate: '2026-03-15', status: 'Scheduled', technician: 'Senior Tech Vikram', visitPurpose: 'Q4 Final Contract Audit & PM Visit' },
+        { id: 'pm-1', visitNumber: 1, visitDate: '2025-06-15', completedDate: '2025-06-14', status: 'Completed', technician: 'Rahul Gupta', visitPurpose: 'Quarterly Hardware Cleaning & Thermal Paste', serviceActionsPerformed: 'Dust cleaned, thermal paste refreshed on CPU.' },
+        { id: 'pm-2', visitNumber: 2, visitDate: '2025-09-15', completedDate: '2025-09-15', status: 'Completed', technician: 'Deepak Kumar', visitPurpose: 'RAID Array Health & OS Patch Update', serviceActionsPerformed: 'RAID 5 verified, OS security patches installed.' },
+        { id: 'pm-3', visitNumber: 3, visitDate: '2025-12-15', status: 'Scheduled', technician: 'Rahul Gupta', visitPurpose: 'Q3 Preventive Maintenance Visit' },
+        { id: 'pm-4', visitNumber: 4, visitDate: '2026-03-15', status: 'Scheduled', technician: 'Rahul Gupta', visitPurpose: 'Q4 Final Contract Audit & PM Visit' },
       ],
       complaints: [
-        { id: 'cmp-1', complaintNumber: 'CMP-1001', logDate: '2025-07-10', description: 'Server overheating warning alarm in server room.', status: 'Resolved', technician: 'Senior Tech Vikram', internalNotes: 'Replaced faulty chassis fan unit.', resolvedDate: '2025-07-11' }
+        { id: 'cmp-1', complaintNumber: 'CMP-1001', logDate: '2025-07-10', description: 'Server overheating warning alarm in server room.', status: 'Resolved', technician: 'Rahul Gupta', internalNotes: 'Replaced faulty chassis fan unit.', resolvedDate: '2025-07-11' }
       ],
       retailProducts: [
         { id: 'rp-1', productId: 'inv-1', name: 'Kingston NV2 1TB NVMe PCIe 4.0 SSD', sku: 'KNG-NV2-1TB', unitPrice: 5200, quantity: 1, gstRate: 18, totalPrice: 6136 }
@@ -2348,7 +2348,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     amc_sources: ['Direct', 'Referral', 'Website', 'Phone Inquiry', 'Walk-in Client'],
     amc_device_types: ['Desktop PC', 'Laptop', 'Server', 'Printer', 'CCTV DVR', 'Router / Switch'],
     amc_priorities: ['Low', 'Normal', 'High', 'Emergency'],
-    amc_technicians: ['Senior Tech Vikram', 'Lab Specialist Rajesh', 'Field Tech Amit', 'Network Tech Rahul'],
+    amc_technicians: ['Deepak Kumar', 'Rahul Gupta', 'Priya Sharma', 'Sonia Mahajan'],
     amc_service_checklists: [
       'Dusting & Cleaning',
       'OS & Antivirus Update',

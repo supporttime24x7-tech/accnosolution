@@ -79,7 +79,7 @@ export default function BookRepairPage() {
       paymentStatus: 'UNPAID',
       warrantyStatement: '30 Days Parts & Labor Warranty',
       deliveryStatus: 'IN REPAIR LAB',
-      technician_name: 'Vikram Sharma (Lead Tech)',
+      technician_name: 'Deepak Kumar',
       entryDate: new Date().toISOString().split('T')[0],
       estimatedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     });

@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
       totalGstLiability: 111960,
     },
     technicianProductivity: [
-      { name: 'Vikram Sharma (Lead Tech)', completedJobs: 24, revenueGenerated: 198000 },
-      { name: 'Amit Verma (Cleanroom Tech)', completedJobs: 14, revenueGenerated: 142000 },
-      { name: 'Rahul Gupta (Desktop Tech)', completedJobs: 18, revenueGenerated: 86000 },
+      { name: 'Deepak Kumar (Lead Tech)', completedJobs: 24, revenueGenerated: 198000 },
+      { name: 'Rahul Gupta (Hardware Specialist)', completedJobs: 18, revenueGenerated: 142000 },
+      { name: 'Priya Sharma (Billing & Operations)', completedJobs: 14, revenueGenerated: 86000 },
     ],
   };
 

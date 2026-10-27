@@ -12,7 +12,7 @@ export default function ErpLeadsPage() {
   const {
     supportLeads, updateSupportLead, deleteSupportLead, addSupportLead,
     bookRepairLeads, updateBookRepairLead, deleteBookRepairLead, addBookRepairLead,
-    addTicket
+    addTicket, employees
   } = useErpStore();
 
   type TabCategory = 'all' | 'shop_order' | 'erp_quote' | 'book_repair' | 'contact_form' | 'data_recovery' | 'corporate_amc';
@@ -277,7 +277,7 @@ export default function ErpLeadsPage() {
       paymentStatus: 'UNPAID',
       warrantyStatement: '30 Days Parts & Labor Warranty',
       deliveryStatus: 'IN REPAIR LAB',
-      technician_name: 'Vikram Sharma (Lead Tech)',
+      technician_name: employees?.[0]?.name || 'Deepak Kumar',
       entryDate: new Date().toISOString().split('T')[0],
       estimatedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     });

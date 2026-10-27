@@ -121,6 +121,7 @@ export default function AmcSoftwareSuitePage() {
     customers,
     inventory,
     companyDetails,
+    employees,
     addAmcContract,
     updateAmcContract,
     deleteAmcContract,
@@ -167,9 +168,21 @@ export default function AmcSoftwareSuitePage() {
   const [prioritiesList, setPrioritiesList] = useState<string[]>(
     amcRules?.amc_priorities || ['Low', 'Normal', 'High', 'Emergency']
   );
-  const [techniciansList, setTechniciansList] = useState<string[]>(
-    amcRules?.amc_technicians || ['Senior Tech Vikram', 'Lab Specialist Rajesh', 'Field Tech Amit', 'Network Tech Rahul']
-  );
+  const employeeNames = React.useMemo(() => {
+    const list = (employees || [])
+      .filter((e) => e.activeStatus !== 'Inactive')
+      .map((e) => e.name)
+      .filter(Boolean);
+    return list.length > 0 ? Array.from(new Set(list)) : ['Deepak Kumar', 'Rahul Gupta', 'Priya Sharma'];
+  }, [employees]);
+
+  const [techniciansList, setTechniciansList] = useState<string[]>(employeeNames);
+
+  React.useEffect(() => {
+    if (employeeNames.length > 0) {
+      setTechniciansList(employeeNames);
+    }
+  }, [employeeNames]);
   const [serviceChecklists, setServiceChecklists] = useState<string[]>(
     amcRules?.amc_service_checklists || [
       'Dusting & Cleaning',
@@ -216,7 +229,7 @@ export default function AmcSoftwareSuitePage() {
     serviceType: 'Hardware + Software On-site Support',
     numberOfDevices: 5,
     totalServiceVisits: 4,
-    assignedTechnician: 'Senior Tech Vikram',
+    assignedTechnician: employeeNames[0] || 'Deepak Kumar',
     priority: 'High',
     deviceType: 'Server',
     issueFound: '',
@@ -262,7 +275,7 @@ export default function AmcSoftwareSuitePage() {
   const [newPmVisit, setNewPmVisit] = useState({
     visitDate: new Date().toISOString().split('T')[0],
     status: 'Scheduled',
-    technician: 'Senior Tech Vikram',
+    technician: employeeNames[0] || 'Deepak Kumar',
     visitPurpose: 'Quarterly Preventive Maintenance Check',
     serviceActionsPerformed: '',
   });
@@ -271,7 +284,7 @@ export default function AmcSoftwareSuitePage() {
   const [newComplaint, setNewComplaint] = useState({
     description: '',
     status: 'Open',
-    technician: 'Senior Tech Vikram',
+    technician: employeeNames[0] || 'Deepak Kumar',
     internalNotes: '',
     resolvedDate: '',
   });
@@ -617,7 +630,7 @@ export default function AmcSoftwareSuitePage() {
       visitNumber: idx + 1,
       visitDate: new Date(Date.parse(newStart) + idx * 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'Scheduled',
-      technician: contract.assignedTechnician || 'Senior Tech Vikram',
+      technician: contract.assignedTechnician || employeeNames[0] || 'Deepak Kumar',
       visitPurpose: `Renewed Year PM Visit #${idx + 1}`,
     }));
 
@@ -703,7 +716,7 @@ export default function AmcSoftwareSuitePage() {
       serviceType: contract.serviceType || 'Hardware + Software On-site Support',
       numberOfDevices: contract.numberOfDevices || 5,
       totalServiceVisits: contract.totalServiceVisits || 4,
-      assignedTechnician: contract.assignedTechnician || 'Senior Tech Vikram',
+      assignedTechnician: contract.assignedTechnician || employeeNames[0] || 'Deepak Kumar',
       priority: contract.priority || 'High',
       deviceType: contract.deviceType || 'Server',
       issueFound: contract.issueFound || '',

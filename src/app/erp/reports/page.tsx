@@ -726,7 +726,7 @@ export default function ErpReportsPage() {
                       <div className="text-white/90 font-bold">{tkt.device_type}</div>
                       <div className="text-[10px] text-white/40 font-mono">{tkt.brand}</div>
                     </td>
-                    <td className="p-4 text-white/70">{tkt.technician_name || 'Vikram Sharma'}</td>
+                    <td className="p-4 text-white/70">{tkt.technician_name || 'Deepak Kumar'}</td>
                     <td className="p-4">
                       <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border bg-amber-500/20 text-amber-300 border-amber-500/30">
                         {tkt.status}

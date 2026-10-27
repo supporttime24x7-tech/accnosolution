@@ -37,7 +37,7 @@ let mockLeads: LeadItem[] = [
     service_interested: 'RAID 10 Server Data Recovery Lab Case',
     estimated_value: 65000,
     status: 'contacted',
-    assigned_to: 'Amit Verma (Data Recovery Specialist)',
+    assigned_to: 'Rahul Gupta',
     created_at: '2025-05-11',
   },
   {
@@ -49,7 +49,7 @@ let mockLeads: LeadItem[] = [
     service_interested: 'Computer Lab Maintenance AMC (60 PCs)',
     estimated_value: 210000,
     status: 'won',
-    assigned_to: 'Vikram Sharma (Lead Engineer)',
+    assigned_to: 'Deepak Kumar',
     created_at: '2025-05-08',
   },
 ];

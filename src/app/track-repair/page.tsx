@@ -78,7 +78,7 @@ export default function TrackRepairPage() {
             priority: 'high',
             estimated_cost: 9500,
             advance_paid: 2000,
-            technician_name: 'Vikram Sharma (Senior Chip Tech)',
+            technician_name: 'Deepak Kumar',
             created_at: '2026-08-15 11:30 AM',
             entryDate: '2026-08-15',
           });
@@ -329,7 +329,7 @@ export default function TrackRepairPage() {
 
                 <div className="space-y-1">
                   <span className="text-white/50 font-bold uppercase text-[10px] block">Assigned Engineer</span>
-                  <p className="text-[#5ED29C] font-extrabold">{searchedTicket.technician_name || 'Vikram Sharma'}</p>
+                  <p className="text-[#5ED29C] font-extrabold">{searchedTicket.technician_name || 'Deepak Kumar'}</p>
                 </div>
 
                 <div className="space-y-1">

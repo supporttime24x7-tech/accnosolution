@@ -270,8 +270,8 @@ export default function ErpDataRecoveryPage() {
   const [damageTypeOptions, setDamageTypeOptions] = useState<string[]>(DEFAULT_DAMAGE_TYPES);
   const [priorityOptions, setPriorityOptions] = useState<string[]>(DEFAULT_PRIORITIES);
   const [statusOptions, setStatusOptions] = useState<string[]>(DEFAULT_STATUSES);
-  const empListNames = (employees || []).map((e) => e.name).filter(Boolean);
-  const technicianOptionsList = empListNames.length > 0 ? empListNames : ['Unassigned Staff'];
+  const empListNames = (employees || []).filter((e) => e.activeStatus !== 'Inactive').map((e) => e.name).filter(Boolean);
+  const technicianOptionsList = empListNames.length > 0 ? Array.from(new Set(empListNames)) : ['Deepak Kumar', 'Rahul Gupta'];
   const [storageLocationOptions, setStorageLocationOptions] = useState<string[]>(DEFAULT_STORAGE_LOCATIONS);
   const [outsourceDestinationOptions, setOutsourceDestinationOptions] = useState<string[]>(DEFAULT_OUTSOURCE_DESTS);
   const [outsourceStatusOptions, setOutsourceStatusOptions] = useState<string[]>(DEFAULT_OUTSOURCE_STATUSES);
@@ -365,7 +365,7 @@ export default function ErpDataRecoveryPage() {
     priority: 'NORMAL',
     symptoms: 'Clicking head sound, drive not detected in BIOS',
     status: 'Intake Registered',
-    technician: 'Senior Forensic Eng. Vikram',
+    technician: technicianOptionsList[0] || 'Deepak Kumar',
     storageLocation: 'Safe Vault Locker 01',
 
     isOutsourced: false,
@@ -489,7 +489,7 @@ export default function ErpDataRecoveryPage() {
       priority: item.priority || 'NORMAL',
       symptoms: item.symptoms || (item as any).mediaCondition || '',
       status: item.status || 'Intake Registered',
-      technician: item.technician || 'Senior Forensic Eng. Vikram',
+      technician: item.technician || technicianOptionsList[0] || 'Deepak Kumar',
       storageLocation: item.storageLocation || item.rackLocation || 'Safe Vault Locker 01',
 
       isOutsourced: !!item.isOutsourced,
@@ -771,7 +771,7 @@ export default function ErpDataRecoveryPage() {
           </tr>
           <tr>
             <td><strong>DAMAGE / SYMPTOMS:</strong> ${c.damageType || c.symptoms || (c as any).mediaCondition}</td>
-            <td><strong>PRIORITY / TECHNICIAN:</strong> ${c.priority || 'NORMAL'} | ${c.technician || 'Eng. Vikram'}</td>
+            <td><strong>PRIORITY / TECHNICIAN:</strong> ${c.priority || 'NORMAL'} | ${c.technician || 'Deepak Kumar'}</td>
           </tr>
           <tr>
             <td><strong>STORAGE VAULT LOCATION:</strong> ${c.storageLocation || c.rackLocation}</td>
@@ -1181,7 +1181,7 @@ export default function ErpDataRecoveryPage() {
                       </td>
 
                       <td className="p-4">
-                        <div className="text-xs text-slate-300 font-bold">{item.technician || 'Senior Eng. Vikram'}</div>
+                        <div className="text-xs text-slate-300 font-bold">{item.technician || 'Deepak Kumar'}</div>
                         <div className="text-[10px] text-[#5ED29C] font-mono">{item.storageLocation || item.rackLocation}</div>
                       </td>
 
