@@ -1808,10 +1808,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
         created_at: '2025-05-11 11:15 AM',
       }
     ]);
-    let foundTkt1001 = false;
     const sanitized = loaded.map((t: any) => {
       if (t.id === 't-1001' || t.ticket_number === 'TKT-1001' || t.ticket_number === 'ACC-8801') {
-        foundTkt1001 = true;
         return {
           ...t,
           ticket_number: 'TKT-1001',
@@ -1825,64 +1823,6 @@ export const useErpStore = create<ErpState>((set, get) => ({
       }
       return t;
     });
-
-    if (!foundTkt1001) {
-      sanitized.unshift({
-        id: 't-1001',
-        ticket_number: 'TKT-1001',
-        barcode_data: 'TKT1001',
-        customer_name: 'Rajesh Kumar (Tech Logics)',
-        customer_phone: '+91 98765-43210',
-        customerAlternatePhone: '+91 94191-88776',
-        customerEmail: 'rajesh@techlogics.in',
-        customerGstin: '01AAAAA0000A1Z5',
-        customerAddress: 'Plot 42, Sector 3, Industrial Area, Jammu',
-        customerType: 'CORPORATE',
-
-        device_type: 'MacBook Pro M2',
-        brand: 'Apple',
-        model: 'A2442 (14-inch 2022)',
-        serial_or_imei: 'C02G1234MD6R',
-        passwordLock: 'mac2025@pass',
-        patternLockSequence: [0, 1, 2, 5, 8],
-        rackLocation: 'Shelf A-3, Bin 04',
-        problem_reported: 'MacBook Pro M2 Motherboard Repair - Logic Board Micro-soldering',
-        physicalCondition: 'Minor bezel scratches. Moisture indicator turned pink near USB-C port.',
-
-        status: 'in_progress',
-        priority: 'urgent',
-
-        lineItems: [
-          { id: 'li-1', description: 'MacBook M2 Motherboard Liquid Damage Micro-soldering', hsnCode: '998713', quantity: 1, unitPrice: 12500, total: 12500, itemType: 'service' },
-          { id: 'li-2', description: 'Apple OEM Force Touch Trackpad Assembly', hsnCode: '84733020', quantity: 1, unitPrice: 6000, total: 6000, itemType: 'part' },
-        ],
-        outsourceCharges: 0,
-        freightCharges: 0,
-        estimated_cost: 18500,
-        advance_paid: 5000,
-        discountAmount: 500,
-        gstTaxRate: 18,
-        subtotal: 18000,
-        taxableAmount: 18000,
-        cgstAmount: 1620,
-        sgstAmount: 1620,
-        roundOffAdjustment: -0.24,
-        grandTotal: 21239,
-        netDueBalance: 16239,
-
-        paymentMethod: 'UPI',
-        paymentStatus: 'PARTIAL',
-        warrantyStatement: '30 Days Parts & Labor Warranty',
-        deliveredTo: '',
-        deliveryStatus: 'IN REPAIR LAB',
-        afterServiceRemarks: 'Replaced power IC controller and trackpad flex cable.',
-
-        technician_name: 'Deepak Kumar',
-        entryDate: '2025-05-10',
-        estimatedDeliveryDate: '2025-05-14',
-        created_at: '2025-05-10 10:30 AM',
-      });
-    }
 
     return sanitized;
   })(),
@@ -2006,7 +1946,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
   deleteTicket: (id: string) =>
     set((state: ErpState) => {
-      const updatedTickets = state.tickets.filter((t: RepairTicket) => t.id !== id);
+      const updatedTickets = state.tickets.filter((t: RepairTicket) => t.id !== id && t.ticket_number !== id);
       saveToStorage('accno_erp_tickets', updatedTickets);
       return { tickets: updatedTickets };
     }),

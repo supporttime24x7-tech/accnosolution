@@ -3541,24 +3541,44 @@ export default function ErpRepairsPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setShowEditModal(false);
-                    setEditingTicket(null);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-bold uppercase"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-3 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20"
-                >
-                  {showEditModal ? 'Save Ticket Modifications' : '+ Create Repair Ticket (TKT-1001)'}
-                </button>
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-white/10">
+                <div>
+                  {showEditModal && editingTicket && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Delete Repair Ticket ${editingTicket.ticket_number}?`)) {
+                          deleteTicket(editingTicket.id);
+                          setShowEditModal(false);
+                          setEditingTicket(null);
+                        }
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-bold uppercase border border-rose-500/20 flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete Ticket
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setShowEditModal(false);
+                      setEditingTicket(null);
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-bold uppercase"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-8 py-3 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20"
+                  >
+                    {showEditModal ? 'Save Ticket Modifications' : '+ Create Repair Ticket (TKT-1001)'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
