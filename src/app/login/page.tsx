@@ -461,11 +461,8 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
               {/* Employee ID or Work Email Input */}
               <div>
-                <label className="block text-slate-200 font-semibold mb-1.5 flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <KeyRound className="w-3.5 h-3.5 text-[#28D08B]" /> Employee ID or Work Email *
-                  </span>
-                  <span className="text-[10px] text-[#28D08B] font-mono font-medium">EMP-1001</span>
+                <label className="block text-slate-200 font-semibold mb-1.5 flex items-center gap-1.5 text-xs">
+                  <KeyRound className="w-3.5 h-3.5 text-[#28D08B]" /> Employee ID or Work Email *
                 </label>
                 <input
                   type="text"
@@ -476,7 +473,7 @@ export default function LoginPage() {
                     setEmployeeId(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  placeholder="e.g. EMP-1001 or admin@accnosolution.com"
+                  placeholder="Enter your Employee ID or Work Email"
                   className="w-full p-3.5 rounded-xl bg-[#06120E] border border-slate-700/80 focus:border-[#28D08B] text-white text-xs placeholder-slate-500 focus:outline-none transition-all font-sans"
                 />
               </div>
@@ -553,17 +550,6 @@ export default function LoginPage() {
                 )}
               </motion.button>
             </form>
-
-            {/* Enterprise Security Notice */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5 text-[11px]">
-              <div className="flex items-center gap-1.5 text-[#28D08B] font-bold uppercase tracking-wider text-[10px]">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Enterprise Credential Protection Active</span>
-              </div>
-              <p className="text-[11px] text-white/50 leading-relaxed font-sans">
-                Portal access is strictly limited to verified employees. All login attempts are rate-limited, cryptographically verified, and monitored against brute-force attacks.
-              </p>
-            </div>
 
             {/* Separator OR */}
             <div className="relative flex items-center justify-center pt-1">
