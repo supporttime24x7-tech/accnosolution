@@ -1,0 +1,266 @@
+[
+  {
+    "id": "emp-1001",
+    "empCode": "EMP-1001",
+    "name": "Deepak Kumar",
+    "email": "admin@accnosolution.com",
+    "role": "Lead Technician",
+    "department": "Admin",
+    "designation": "Admin",
+    "activeStatus": "Active",
+    "passwordHashOrPlain": "Admin@123",
+    "phone": "+91 9468781166",
+    "alternatePhone": "+91 9587781166",
+    "joiningDate": "2020-06-15",
+    "baseSalary": 45000,
+    "address": "Sanchore",
+    "emergencyContactName": "",
+    "emergencyContactPhone": "",
+    "govtIdType": "Aadhaar Card",
+    "govtIdNumber": "",
+    "idAttachment": "",
+    "bankAccountName": "Deepak Kumar",
+    "bankAccountNumber": "29450100022394",
+    "bankName": "Bank of Baroda",
+    "bankBranch": "Sanchore",
+    "bankBranchCode": "BARB0SANCHO",
+    "bankIfscCode": "BARB0SANCHO",
+    "permissions": {
+      "repairTickets": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "repairBilling": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "salesBilling": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "accountingVouchers": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "inventory": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "customers": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "vendors": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "outsource": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "dataRecovery": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "amc": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "reports": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "settings": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      }
+    },
+    "created_at": "2026-09-07T06:30:40.842Z",
+    "password": "Admin@123"
+  },
+  {
+    "id": "emp-1002",
+    "empCode": "EMP-1002",
+    "name": "Priya Sharma",
+    "email": "priya.sharma@accnosolution.com",
+    "role": "Billing Specialist",
+    "department": "Billing & POS",
+    "designation": "Store Manager & Billing Lead",
+    "activeStatus": "Active",
+    "passwordHashOrPlain": "3QmRJRvEt3",
+    "phone": "+91 98765-11003",
+    "alternatePhone": "+91 94191-22003",
+    "joiningDate": "2023-01-10",
+    "baseSalary": 32000,
+    "address": "Lane 4, Channi Himmat, Jammu",
+    "emergencyContactName": "Rajesh Sharma (Father)",
+    "emergencyContactPhone": "+91 98765-11004",
+    "govtIdType": "PAN Card",
+    "govtIdNumber": "BPRPS9182K",
+    "idAttachment": "https://accnosolution.com/docs/emp1002_pan.pdf",
+    "bankAccountName": "Priya Sharma",
+    "bankAccountNumber": "001201589342",
+    "bankName": "ICICI Bank",
+    "bankBranch": "Channi Branch",
+    "bankBranchCode": "ICIC0000120",
+    "bankIfscCode": "ICIC0000120",
+    "created_at": "2026-09-07T06:30:40.842Z",
+    "password": "3QmRJRvEt3",
+    "permissions": {
+      "repairTickets": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "repairBilling": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "salesBilling": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "accountingVouchers": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "inventory": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "customers": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "vendors": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "outsource": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "dataRecovery": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "amc": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "reports": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "settings": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      }
+    }
+  },
+  {
+    "id": "emp-1003",
+    "empCode": "EMP-1003",
+    "name": "Rahul Gupta",
+    "email": "rahul.gupta@accnosolution.com",
+    "role": "Technician",
+    "department": "Technical Lab",
+    "designation": "Hardware Diagnostic Specialist",
+    "activeStatus": "Active",
+    "passwordHashOrPlain": "Rahul@Accno2026#",
+    "phone": "+91 98765-11005",
+    "alternatePhone": "+91 94191-22005",
+    "joiningDate": "2023-06-01",
+    "baseSalary": 38000,
+    "address": "Trikuta Nagar, Jammu",
+    "emergencyContactName": "Karan Gupta (Brother)",
+    "emergencyContactPhone": "+91 98765-11006",
+    "govtIdType": "Driving License",
+    "govtIdNumber": "JK02202100984",
+    "idAttachment": "",
+    "bankAccountName": "Rahul Gupta",
+    "bankAccountNumber": "39482710492",
+    "bankName": "State Bank of India",
+    "bankBranch": "Trikuta Nagar",
+    "bankBranchCode": "SBIN0002194",
+    "bankIfscCode": "SBIN0002194",
+    "created_at": "2026-09-07T06:30:40.842Z",
+    "password": "Rahul@Accno2026#"
+  },
+  {
+    "id": "emp-1004",
+    "empCode": "EMP-1004",
+    "name": "Sonia Mahajan",
+    "email": "sonia.m@accnosolution.com",
+    "role": "Desk Manager",
+    "department": "Customer Support",
+    "designation": "Customer Support Executive",
+    "activeStatus": "On Leave",
+    "passwordHashOrPlain": "Sonia@Accno2026#",
+    "phone": "+91 98765-11007",
+    "alternatePhone": "+91 94191-22007",
+    "joiningDate": "2023-09-15",
+    "baseSalary": 35000,
+    "address": "Sainik Colony, Jammu",
+    "emergencyContactName": "Vikram Mahajan (Husband)",
+    "emergencyContactPhone": "+91 98765-11008",
+    "govtIdType": "Aadhaar Card",
+    "govtIdNumber": "9912-3847-1092",
+    "idAttachment": "",
+    "bankAccountName": "Sonia Mahajan",
+    "bankAccountNumber": "918273645019",
+    "bankName": "Axis Bank",
+    "bankBranch": "Sainik Colony",
+    "bankBranchCode": "UTIB0001092",
+    "bankIfscCode": "UTIB0001092",
+    "created_at": "2026-09-07T06:30:40.842Z",
+    "password": "Sonia@Accno2026#"
+  }
+]

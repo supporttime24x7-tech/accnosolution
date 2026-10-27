@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 200" fill="none">
+  <!-- Dotted Globe Graphic -->
+  <g id="globe-dots">
+    <!-- Blue Dots (Outer & Inner Curves) -->
+    <circle cx="65" cy="48" r="8" fill="#0088CE"/>
+    <circle cx="95" cy="32" r="10" fill="#0088CE"/>
+    <circle cx="132" cy="40" r="12" fill="#0088CE"/>
+    <circle cx="160" cy="65" r="10" fill="#0088CE"/>
+    <circle cx="172" cy="98" r="9" fill="#0088CE"/>
+    <circle cx="162" cy="128" r="8" fill="#0088CE"/>
+    <circle cx="65" cy="100" r="11" fill="#0088CE"/>
+    <circle cx="75" cy="140" r="10" fill="#0088CE"/>
+    <circle cx="98" cy="168" r="9" fill="#0088CE"/>
+    
+    <!-- Orange Dots (Interleaved Curve) -->
+    <circle cx="118" cy="45" r="9" fill="#F37021"/>
+    <circle cx="145" cy="48" r="10" fill="#F37021"/>
+    <circle cx="100" cy="72" r="13" fill="#F37021"/>
+    <circle cx="135" cy="78" r="14" fill="#F37021"/>
+    <circle cx="168" cy="85" r="10" fill="#F37021"/>
+    <circle cx="112" cy="110" r="14" fill="#F37021"/>
+    <circle cx="148" cy="115" r="12" fill="#F37021"/>
+    <circle cx="102" cy="142" r="12" fill="#F37021"/>
+    <circle cx="138" cy="148" r="10" fill="#F37021"/>
+    <circle cx="152" cy="170" r="8" fill="#F37021"/>
+  </g>
+
+  <!-- Red Stylized 'A' Icon -->
+  <g id="red-a">
+    <path d="M 235 40 L 285 40 L 245 160 L 200 160 Z" fill="#E31B23" />
+    <path d="M 245 120 L 310 102 L 320 125 L 240 145 Z" fill="#E31B23" />
+  </g>
+
+  <!-- Text: ACCNO SOLUTION & Tagline -->
+  <g id="text-brand">
+    <!-- "CCNO" in Bold White Font next to Red 'A' -->
+    <text x="325" y="112" font-family="System-UI, Inter, 'Plus Jakarta Sans', sans-serif" font-size="76" font-weight="900" fill="#FFFFFF" letter-spacing="2">CCNO</text>
+    
+    <!-- "SOLUTION" in Medium White Font below -->
+    <text x="330" y="152" font-family="System-UI, Inter, 'Plus Jakarta Sans', sans-serif" font-size="36" font-weight="600" fill="#FFFFFF" letter-spacing="8">SOLUTION</text>
+    
+    <!-- "I.T. Done Right" Tagline -->
+    <text x="210" y="188" font-family="System-UI, Inter, 'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="500" fill="rgba(255,255,255,0.75)" letter-spacing="6">I.T. Done Right</text>
+  </g>
+</svg>
