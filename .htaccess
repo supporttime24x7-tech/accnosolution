@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Handle WebSockets
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/?(.*) "ws://127.0.0.1:3000/$1" [P,L]
+
+    # Forward all traffic to internal Next.js server on port 3000
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+    ProxyPassReverse / http://127.0.0.1:3000/
+</IfModule>
