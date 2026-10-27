@@ -6,7 +6,8 @@
     "dev": "next dev -p 5000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync": "powershell -ExecutionPolicy Bypass -File ./auto-sync.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
