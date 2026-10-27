@@ -817,6 +817,7 @@ export default function ErpRepairsPage() {
 
     const combinedLineItems = [...intakeServiceParts, ...intakeRetailParts];
     const totalEst = combinedLineItems.reduce((sum, item) => sum + item.total, 0) || Number(newTicket.estimated_cost);
+    const normalizedStatus = (newTicket.jobPipelineStatus?.toLowerCase().replace(/\s+/g, '_') as any) || editingTicket.status || 'received';
 
     updateTicket(editingTicket.id, {
       ticket_number: newTicket.manualTicketNo || editingTicket.ticket_number,
@@ -850,6 +851,7 @@ export default function ErpRepairsPage() {
       placeOfPurchase: newTicket.placeOfPurchase,
       purchaseInvoiceNo: newTicket.purchaseInvoiceNo,
       purchaseDate: newTicket.purchaseDate,
+      status: normalizedStatus,
       jobPipelineStatus: newTicket.jobPipelineStatus,
       assignedTechnician: newTicket.assignedTechnician,
       warrantyStatus: newTicket.warrantyStatus,

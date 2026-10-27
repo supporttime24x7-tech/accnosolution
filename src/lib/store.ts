@@ -1808,23 +1808,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         created_at: '2025-05-11 11:15 AM',
       }
     ]);
-    const sanitized = loaded.map((t: any) => {
-      if (t.id === 't-1001' || t.ticket_number === 'TKT-1001' || t.ticket_number === 'ACC-8801') {
-        return {
-          ...t,
-          ticket_number: 'TKT-1001',
-          barcode_data: 'TKT1001',
-          device_type: 'MacBook Pro M2',
-          brand: 'Apple',
-          model: 'A2442 (14-inch 2022)',
-          problem_reported: 'MacBook Pro M2 Motherboard Repair - Logic Board Micro-soldering',
-          status: 'in_progress',
-        };
-      }
-      return t;
-    });
-
-    return sanitized;
+    return loaded;
   })(),
   repairInvoices: loadFromStorage('accno_erp_repair_invoices', [
     {
@@ -1940,7 +1924,11 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
   updateTicket: (id: string, updatedData: Partial<RepairTicket>) =>
     set((state: ErpState) => {
-      const updatedTickets = state.tickets.map((t: RepairTicket) => (t.id === id ? { ...t, ...updatedData } : t));
+      const updatedTickets = state.tickets.map((t: RepairTicket) =>
+        t.id === id || (t.ticket_number && (t.ticket_number === id || t.ticket_number === updatedData.ticket_number))
+          ? { ...t, ...updatedData }
+          : t
+      );
       saveToStorage('accno_erp_tickets', updatedTickets);
       return { tickets: updatedTickets };
     }),
@@ -1952,7 +1940,9 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
   updateTicketStatus: (id: string, status: RepairTicket['status']) =>
     set((state: ErpState) => {
-      const updatedTickets = state.tickets.map((t: RepairTicket) => (t.id === id ? { ...t, status } : t));
+      const updatedTickets = state.tickets.map((t: RepairTicket) =>
+        t.id === id || t.ticket_number === id ? { ...t, status } : t
+      );
       saveToStorage('accno_erp_tickets', updatedTickets);
       return { tickets: updatedTickets };
     }),
