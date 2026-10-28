@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Building2, Plus, Search, Trash2, Edit3, X, Check, Phone, Mail, Globe,
   Shield, MapPin, UserCheck, AlertCircle, MessageSquare, CheckCircle2, ShieldAlert, Truck, Wrench, Landmark, QrCode,
-  List, LayoutGrid, BookOpen, CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, RefreshCcw, Printer, Filter, Calendar
+  List, LayoutGrid, BookOpen, CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, RefreshCcw, Printer, Filter, Calendar, RefreshCw
 } from 'lucide-react';
 import { useErpStore, VendorItem, AccountLedgerItem, AccountingVoucher } from '@/lib/store';
+import { fetchVendorsFromSupabase } from '@/lib/supabase-sync';
 
 const DEFAULT_VENDOR_CATEGORIES = [
   'Hardware & Components Supplier',
@@ -25,6 +26,7 @@ const DEFAULT_VENDOR_ACCOUNT_GROUPS = [
 export default function VendorsPage() {
   const {
     vendors,
+    setVendors,
     vendorRules,
     addVendor,
     updateVendor,
@@ -36,6 +38,35 @@ export default function VendorsPage() {
     accountingVouchers,
     companyDetails
   } = useErpStore();
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const syncVendorsFromCloud = async () => {
+    setIsSyncing(true);
+    setSyncStatusMsg('Syncing Cloud...');
+    try {
+      const cloudData = await fetchVendorsFromSupabase();
+      if (cloudData && Array.isArray(cloudData)) {
+        setVendors(cloudData);
+        setSyncStatusMsg(`Synced ${cloudData.length} from Supabase Cloud`);
+        setTimeout(() => setSyncStatusMsg(null), 3000);
+      } else {
+        setSyncStatusMsg('Sync completed');
+        setTimeout(() => setSyncStatusMsg(null), 3000);
+      }
+    } catch (e) {
+      console.warn('Vendor sync error:', e);
+      setSyncStatusMsg('Offline / Retrying');
+      setTimeout(() => setSyncStatusMsg(null), 3000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    syncVendorsFromCloud();
+  }, []);
 
   const [activeMainTab, setActiveMainTab] = useState<'VENDORS' | 'LEDGERS'>('VENDORS');
   const [search, setSearch] = useState('');
@@ -618,6 +649,26 @@ export default function VendorsPage() {
                   <LayoutGrid className="w-4 h-4" />
                 </button>
               </div>
+
+              {syncStatusMsg && (
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#5ED29C]/10 border border-[#5ED29C]/30 text-[#5ED29C] font-semibold animate-pulse">
+                  {syncStatusMsg}
+                </span>
+              )}
+
+              <button
+                onClick={syncVendorsFromCloud}
+                disabled={isSyncing}
+                className={`px-3.5 py-2 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isSyncing
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : 'bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border-white/15'
+                }`}
+                title="Synchronize vendors with Supabase Cloud"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-amber-400' : 'text-[#5ED29C]'}`} />
+                <span>{isSyncing ? 'Syncing...' : 'Sync Cloud'}</span>
+              </button>
 
               <button
                 onClick={() => handleOpenNewModal('Standard Vendor')}

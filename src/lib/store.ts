@@ -12,6 +12,18 @@ import {
   deleteCustomerFromSupabase,
   pushInventoryToSupabase,
   deleteInventoryFromSupabase,
+  pushVendorToSupabase,
+  deleteVendorFromSupabase,
+  pushOutsourceVoucherToSupabase,
+  deleteOutsourceVoucherFromSupabase,
+  pushDataRecoveryToSupabase,
+  deleteDataRecoveryFromSupabase,
+  pushAmcContractToSupabase,
+  deleteAmcContractFromSupabase,
+  pushSalesInvoiceToSupabase,
+  deleteSalesInvoiceFromSupabase,
+  pushPurchaseInvoiceToSupabase,
+  deletePurchaseInvoiceFromSupabase,
 } from './supabase-sync';
 
 export interface LineItemBilling {
@@ -2147,6 +2159,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       if (updatedTickets !== state.tickets) {
         saveToStorage('accno_erp_tickets', updatedTickets);
       }
+      pushOutsourceVoucherToSupabase(newVoucher).catch(() => {});
 
       return {
         outsourceVouchers: updatedVouchers,
@@ -2186,6 +2199,9 @@ export const useErpStore = create<ErpState>((set, get) => ({
       if (updatedTickets !== state.tickets) {
         saveToStorage('accno_erp_tickets', updatedTickets);
       }
+      if (updatedVoucher) {
+        pushOutsourceVoucherToSupabase(updatedVoucher).catch(() => {});
+      }
 
       return {
         outsourceVouchers: updatedVouchers,
@@ -2197,6 +2213,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.outsourceVouchers.filter((v: OutsourceVoucher) => v.id !== id);
       saveToStorage('accno_erp_outsource_vouchers', updated);
+      deleteOutsourceVoucherFromSupabase(id).catch(() => {});
       return { outsourceVouchers: updated };
     }),
 
@@ -2224,6 +2241,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newCase, ...state.dataRecoveryCases];
       saveToStorage('accno_erp_data_recovery_cases', updated);
+      pushDataRecoveryToSupabase(newCase).catch(() => {});
       return { dataRecoveryCases: updated };
     }),
 
@@ -2239,6 +2257,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newContract, ...state.amcContracts];
       saveToStorage('accno_erp_amc_contracts', updated);
+      pushAmcContractToSupabase(newContract).catch(() => {});
       return { amcContracts: updated };
     }),
 
@@ -2246,6 +2265,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.amcContracts.map((c) => (c.id === id ? { ...c, ...updatedData } : c));
       saveToStorage('accno_erp_amc_contracts', updated);
+      const target = updated.find((c) => c.id === id);
+      if (target) pushAmcContractToSupabase(target).catch(() => {});
       return { amcContracts: updated };
     }),
 
@@ -2253,6 +2274,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.amcContracts.filter((c) => c.id !== id);
       saveToStorage('accno_erp_amc_contracts', updated);
+      deleteAmcContractFromSupabase(id).catch(() => {});
       return { amcContracts: updated };
     }),
 
@@ -2305,6 +2327,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.dataRecoveryCases.map((c) => (c.id === id ? { ...c, ...updatedData } : c));
       saveToStorage('accno_erp_data_recovery_cases', updated);
+      const target = updated.find((c) => c.id === id);
+      if (target) pushDataRecoveryToSupabase(target).catch(() => {});
       return { dataRecoveryCases: updated };
     }),
 
@@ -2312,6 +2336,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.dataRecoveryCases.filter((c) => c.id !== id);
       saveToStorage('accno_erp_data_recovery_cases', updated);
+      deleteDataRecoveryFromSupabase(id).catch(() => {});
       return { dataRecoveryCases: updated };
     }),
 
@@ -2768,18 +2793,29 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newVendor, ...state.vendors];
       saveToStorage('accno_erp_vendors', updated);
+      pushVendorToSupabase(newVendor).catch(() => {});
       return { vendors: updated };
     }),
   updateVendor: (id: string, vendorData: Partial<VendorItem>) =>
     set((state: ErpState) => {
-      const updated = state.vendors.map((v: VendorItem) => (v.id === id ? { ...v, ...vendorData } : v));
+      let updatedTarget: VendorItem | null = null;
+      const updated = state.vendors.map((v: VendorItem) => {
+        if (v.id === id || v.code === id) {
+          const merged = { ...v, ...vendorData };
+          updatedTarget = merged;
+          return merged;
+        }
+        return v;
+      });
       saveToStorage('accno_erp_vendors', updated);
+      if (updatedTarget) pushVendorToSupabase(updatedTarget).catch(() => {});
       return { vendors: updated };
     }),
   deleteVendor: (id: string) =>
     set((state: ErpState) => {
-      const updated = state.vendors.filter((v: VendorItem) => v.id !== id);
+      const updated = state.vendors.filter((v: VendorItem) => v.id !== id && v.code !== id);
       saveToStorage('accno_erp_vendors', updated);
+      deleteVendorFromSupabase(id).catch(() => {});
       return { vendors: updated };
     }),
   updateVendorRules: (rules: Partial<VendorRulesConfig>) =>
@@ -2981,6 +3017,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newInv, ...state.salesInvoices];
       saveToStorage('accno_erp_sales_invoices', updated);
+      pushSalesInvoiceToSupabase(newInv).catch(() => {});
       return { salesInvoices: updated };
     }),
 
@@ -2988,6 +3025,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.salesInvoices.map((inv: SalesInvoiceItem) => (inv.id === id ? { ...inv, ...updatedData } : inv));
       saveToStorage('accno_erp_sales_invoices', updated);
+      const target = updated.find((inv) => inv.id === id);
+      if (target) pushSalesInvoiceToSupabase(target).catch(() => {});
       return { salesInvoices: updated };
     }),
 
@@ -2995,6 +3034,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.salesInvoices.filter((inv: SalesInvoiceItem) => inv.id !== id);
       saveToStorage('accno_erp_sales_invoices', updated);
+      deleteSalesInvoiceFromSupabase(id).catch(() => {});
       return { salesInvoices: updated };
     }),
 
@@ -3026,6 +3066,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         }
       });
       saveToStorage('accno_erp_inventory', updatedInventory);
+      pushPurchaseInvoiceToSupabase(newBill).catch(() => {});
 
       return { purchaseInvoices: updated, inventory: updatedInventory };
     }),
@@ -3034,6 +3075,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.purchaseInvoices.map((b: PurchaseInvoiceItem) => (b.id === id ? { ...b, ...updatedData } : b));
       saveToStorage('accno_erp_purchase_invoices', updated);
+      const target = updated.find((b) => b.id === id);
+      if (target) pushPurchaseInvoiceToSupabase(target).catch(() => {});
       return { purchaseInvoices: updated };
     }),
 
@@ -3041,6 +3084,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.purchaseInvoices.filter((b: PurchaseInvoiceItem) => b.id !== id);
       saveToStorage('accno_erp_purchase_invoices', updated);
+      deletePurchaseInvoiceFromSupabase(id).catch(() => {});
       return { purchaseInvoices: updated };
     }),
 

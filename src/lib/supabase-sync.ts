@@ -14,6 +14,7 @@ import type {
   BlogPostItem,
   MilestoneItem,
   EmployeeItem,
+  VendorItem,
 } from './store';
 import { adminEmployeePermissions } from './store';
 
@@ -229,24 +230,27 @@ export function mapInvoiceToRow(inv: RepairInvoice): Record<string, any> {
  * Fetch all tickets live from Supabase
  */
 export async function fetchTicketsFromSupabase(): Promise<RepairTicket[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase
-      .from('repair_tickets')
-      .select('*')
-      .order('created_at', { ascending: false });
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('repair_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('Error fetching tickets from Supabase:', error.message);
-      return null;
+      if (!error && Array.isArray(data)) {
+        return data.map(mapRowToTicket);
+      }
+    } catch (err) {
+      console.warn('Network exception while fetching Supabase tickets:', err);
     }
-
-    if (Array.isArray(data)) {
-      return data.map(mapRowToTicket);
-    }
-  } catch (err) {
-    console.warn('Network exception while fetching Supabase tickets:', err);
   }
+  try {
+    const res = await fetch('/api/erp/repairs');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
   return null;
 }
 
@@ -254,24 +258,27 @@ export async function fetchTicketsFromSupabase(): Promise<RepairTicket[] | null>
  * Fetch all repair invoices live from Supabase
  */
 export async function fetchInvoicesFromSupabase(): Promise<RepairInvoice[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase
-      .from('repair_invoices')
-      .select('*')
-      .order('created_at', { ascending: false });
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('repair_invoices')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('Error fetching invoices from Supabase:', error.message);
-      return null;
+      if (!error && Array.isArray(data)) {
+        return data.map(mapRowToInvoice);
+      }
+    } catch (err) {
+      console.warn('Network exception while fetching Supabase invoices:', err);
     }
-
-    if (Array.isArray(data)) {
-      return data.map(mapRowToInvoice);
-    }
-  } catch (err) {
-    console.warn('Network exception while fetching Supabase invoices:', err);
   }
+  try {
+    const res = await fetch('/api/erp/invoices');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
   return null;
 }
 
@@ -279,94 +286,106 @@ export async function fetchInvoicesFromSupabase(): Promise<RepairInvoice[] | nul
  * Push single ticket to Supabase Cloud
  */
 export async function pushTicketToSupabase(ticket: RepairTicket): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const row = mapTicketToRow(ticket);
-    const { error } = await supabase
-      .from('repair_tickets')
-      .upsert(row, { onConflict: 'ticket_number' });
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const row = mapTicketToRow(ticket);
+      const { error } = await supabase
+        .from('repair_tickets')
+        .upsert(row, { onConflict: 'ticket_number' });
 
-    if (error) {
-      console.error('Failed to sync ticket to Supabase:', error.message);
-      return false;
+      if (!error) saved = true;
+    } catch (err) {
+      console.error('Exception syncing ticket to Supabase:', err);
     }
-    return true;
-  } catch (err) {
-    console.error('Exception syncing ticket to Supabase:', err);
-    return false;
   }
+  try {
+    const res = await fetch('/api/erp/repairs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ticket),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
 }
 
 /**
  * Delete ticket from Supabase Cloud
  */
 export async function deleteTicketFromSupabase(id: string, ticketNumber?: string): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    let query = supabase.from('repair_tickets').delete();
-    if (ticketNumber) {
-      query = query.or(`id.eq.${id},ticket_number.eq.${ticketNumber}`);
-    } else {
-      query = query.or(`id.eq.${id},ticket_number.eq.${id}`);
-    }
-
-    const { error } = await query;
-    if (error) {
-      console.error('Failed to delete ticket from Supabase:', error.message);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('Exception deleting ticket from Supabase:', err);
-    return false;
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      let query = supabase.from('repair_tickets').delete();
+      if (ticketNumber) {
+        query = query.or(`id.eq.${id},ticket_number.eq.${ticketNumber}`);
+      } else {
+        query = query.or(`id.eq.${id},ticket_number.eq.${id}`);
+      }
+      const { error } = await query;
+      if (!error) deleted = true;
+    } catch (err) {}
   }
+  try {
+    const numParam = ticketNumber ? `&ticketNumber=${encodeURIComponent(ticketNumber)}` : '';
+    const res = await fetch(`/api/erp/repairs?id=${encodeURIComponent(id)}${numParam}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
 }
 
 /**
  * Push repair invoice to Supabase Cloud
  */
 export async function pushInvoiceToSupabase(inv: RepairInvoice): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const row = mapInvoiceToRow(inv);
-    const { error } = await supabase
-      .from('repair_invoices')
-      .upsert(row, { onConflict: 'invoice_number' });
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const row = mapInvoiceToRow(inv);
+      const { error } = await supabase
+        .from('repair_invoices')
+        .upsert(row, { onConflict: 'invoice_number' });
 
-    if (error) {
-      console.error('Failed to sync invoice to Supabase:', error.message);
-      return false;
+      if (!error) saved = true;
+    } catch (err) {
+      console.error('Exception syncing invoice to Supabase:', err);
     }
-    return true;
-  } catch (err) {
-    console.error('Exception syncing invoice to Supabase:', err);
-    return false;
   }
+  try {
+    const res = await fetch('/api/erp/invoices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inv),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
 }
 
 /**
  * Delete repair invoice from Supabase Cloud
  */
 export async function deleteInvoiceFromSupabase(id: string, invoiceNumber?: string): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    let query = supabase.from('repair_invoices').delete();
-    if (invoiceNumber) {
-      query = query.or(`id.eq.${id},invoice_number.eq.${invoiceNumber}`);
-    } else {
-      query = query.or(`id.eq.${id},invoice_number.eq.${id}`);
-    }
-
-    const { error } = await query;
-    if (error) {
-      console.error('Failed to delete invoice from Supabase:', error.message);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('Exception deleting invoice from Supabase:', err);
-    return false;
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      let query = supabase.from('repair_invoices').delete();
+      if (invoiceNumber) {
+        query = query.or(`id.eq.${id},invoice_number.eq.${invoiceNumber}`);
+      } else {
+        query = query.or(`id.eq.${id},invoice_number.eq.${id}`);
+      }
+      const { error } = await query;
+      if (!error) deleted = true;
+    } catch (err) {}
   }
+  try {
+    const numParam = invoiceNumber ? `&invoiceNumber=${encodeURIComponent(invoiceNumber)}` : '';
+    const res = await fetch(`/api/erp/invoices?id=${encodeURIComponent(id)}${numParam}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
 }
 
 /**
@@ -586,52 +605,60 @@ export async function deleteCustomerFromSupabase(id: string): Promise<boolean> {
 }
 
 export async function pushInventoryToSupabase(item: InventoryItem): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const payload = {
-      id: item.id,
-      sku: item.code || '',
-      name: item.name || '',
-      category: item.category || 'General Hardware',
-      item_type: item.itemType === 'Retail Part' ? 'retail_product' : 'service_part',
-      unit: item.uom || 'Pcs',
-      cost_price: Number(item.costPrice) || 0,
-      selling_price: Number(item.sellingPrice) || 0,
-      mrp: Number(item.mrp) || 0,
-      stock_quantity: Number(item.currentStock) || 0,
-      min_stock_alert: Number(item.lowStockAlert) || 2,
-      hsn_code: item.hsnCode || '84733020',
-      gst_rate: Number(item.gstRate) || 18,
-      location: (item as any).location || 'Shop Shelf',
-      description: item.description || null,
-      is_active: item.activeStatus === 'Active',
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await supabase.from('inventory_items').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      console.warn('pushInventoryToSupabase error:', error);
-      return false;
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: item.id,
+        sku: item.code || '',
+        name: item.name || '',
+        category: item.category || 'General Hardware',
+        item_type: item.itemType === 'Retail Part' ? 'retail_product' : 'service_part',
+        unit: item.uom || 'Pcs',
+        cost_price: Number(item.costPrice) || 0,
+        selling_price: Number(item.sellingPrice) || 0,
+        mrp: Number(item.mrp) || 0,
+        stock_quantity: Number(item.currentStock) || 0,
+        min_stock_alert: Number(item.lowStockAlert) || 2,
+        hsn_code: item.hsnCode || '84733020',
+        gst_rate: Number(item.gstRate) || 18,
+        location: (item as any).location || item.storageLocation || 'Shop Shelf',
+        description: item.description || null,
+        is_active: item.activeStatus === 'Active',
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('inventory_items').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch (err) {
+      console.warn('pushInventoryToSupabase error:', err);
     }
-    return true;
-  } catch (err) {
-    console.warn('pushInventoryToSupabase exception:', err);
-    return false;
   }
+
+  try {
+    const res = await fetch('/api/erp/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+
+  return saved;
 }
 
 export async function deleteInventoryFromSupabase(id: string): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const { error } = await supabase.from('inventory_items').delete().eq('id', id);
-    if (error) {
-      console.warn('deleteInventoryFromSupabase error:', error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.warn('deleteInventoryFromSupabase exception:', err);
-    return false;
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase.from('inventory_items').delete().eq('id', id);
+      if (!error) deleted = true;
+    } catch {}
   }
+  try {
+    const res = await fetch(`/api/erp/inventory?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
 }
 
 export function mapRowToInventory(row: any): InventoryItem {
@@ -655,54 +682,554 @@ export function mapRowToInventory(row: any): InventoryItem {
     productGroup: row.brand || '',
     description: row.model || '',
     supplierVendor: '',
-    storageLocation: '',
+    storageLocation: row.location || 'Shop Shelf',
     openingBalance: Number(row.stock_quantity) || 0,
   };
 }
 
 export async function fetchInventoryFromSupabase(): Promise<InventoryItem[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('inventory_items').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data.map(mapRowToInventory) : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('inventory_items').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToInventory);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/inventory');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export function mapRowToVendor(row: any): VendorItem {
+  return {
+    id: row.id,
+    vendorType: (row.category || '').toLowerCase().includes('outsource') ? 'Outsource Vendor' : 'Standard Vendor',
+    code: row.vendor_code || '',
+    companyName: row.vendor_name || 'Vendor',
+    name: row.vendor_name || 'Vendor',
+    contactPerson: row.contact_person || '',
+    category: row.category || 'Components',
+    activeStatus: row.is_active ? 'Active' : 'Inactive',
+    phone: row.phone || '',
+    alternatePhone: row.alternate_phone || '',
+    email: row.email || '',
+    station: row.city || '',
+    state: row.state || '',
+    fullAddress: row.address || '',
+    gstin: row.gstin || '',
+    pan: row.pan_number || '',
+    openingBalance: Number(row.opening_balance) || 0,
+    outstandingBalance: Number(row.current_balance) || 0,
+    maxCreditLimit: 0,
+    bankName: row.bank_name || '',
+    bankAccountNumber: row.bank_account_number || '',
+    bankIfscCode: row.bank_ifsc || '',
+  };
+}
+
+export async function fetchVendorsFromSupabase(): Promise<VendorItem[] | null> {
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToVendor);
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/suppliers');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export async function pushVendorToSupabase(vendor: VendorItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: vendor.id,
+        vendor_code: vendor.code || null,
+        vendor_name: vendor.companyName || vendor.name || 'Vendor',
+        contact_person: vendor.contactPerson || null,
+        phone: vendor.phone || '+91 99999-00000',
+        alternate_phone: vendor.alternatePhone || null,
+        email: vendor.email || null,
+        gstin: vendor.gstin || null,
+        pan_number: vendor.pan || null,
+        address: vendor.fullAddress || vendor.address || null,
+        city: vendor.station || null,
+        state: vendor.state || null,
+        bank_name: vendor.bankName || null,
+        bank_account_number: vendor.bankAccountNumber || null,
+        bank_ifsc: vendor.bankIfscCode || null,
+        opening_balance: Number(vendor.openingBalance) || 0,
+        current_balance: Number(vendor.outstandingBalance) || 0,
+        category: vendor.category || 'Components',
+        is_active: vendor.activeStatus !== 'Inactive',
+      };
+      const { error } = await supabase.from('suppliers').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/suppliers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(vendor),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deleteVendorFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('suppliers').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/suppliers?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
+}
+
+// ----------------------------------------------------------------------
+// OUTSOURCE VOUCHERS DUAL-CHANNEL SYNC
+// ----------------------------------------------------------------------
+
+export function mapRowToOutsource(row: any): OutsourceVoucher {
+  return {
+    id: row.id,
+    voucherNumber: row.voucher_number || '',
+    voucherDate: row.voucher_date || '',
+    linkedTicketNumber: row.linked_ticket_number || '',
+    vendorJobId: row.vendor_job_id || '',
+    vendorId: row.vendor_id || '',
+    vendorName: row.vendor_name || 'Vendor',
+    vendorPhone: row.vendor_phone || '',
+    vendorCity: row.vendor_city || '',
+    vendorAddress: row.vendor_address || '',
+    vendorGstin: row.vendor_gstin || '',
+    serviceType: row.service_type || 'Motherboard Repair',
+    outgoingCourier: row.outgoing_courier || '',
+    outgoingDocket: row.outgoing_docket || '',
+    outgoingDispatchDate: row.outgoing_dispatch_date || '',
+    outgoingFreightCost: Number(row.outgoing_freight_cost) || 0,
+    incomingCourier: row.incoming_courier || '',
+    incomingDocket: row.incoming_docket || '',
+    incomingDispatchDate: row.incoming_dispatch_date || '',
+    incomingFreightCost: Number(row.incoming_freight_cost) || 0,
+    expectedReturnDate: row.expected_return_date || '',
+    receivedDate: row.received_date || '',
+    vendorCostPrice: Number(row.vendor_cost_price) || 0,
+    freightCharges: Number(row.freight_charges) || 0,
+    customerSellingPrice: Number(row.customer_selling_price) || 0,
+    profitMargin: Number(row.profit_margin) || 0,
+    dispatchStatus: row.dispatch_status || 'SHIPPED',
+    technicalInstructions: row.technical_instructions || '',
+    testingNotes: row.testing_notes || '',
+  };
 }
 
 export async function fetchOutsourceVouchersFromSupabase(): Promise<OutsourceVoucher[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('outsource_vouchers').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('outsource_vouchers').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToOutsource);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/outsource');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export async function pushOutsourceVoucherToSupabase(v: OutsourceVoucher): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const outgoingFreight = Number(v.outgoingFreightCost) || 0;
+      const incomingFreight = Number(v.incomingFreightCost) || 0;
+      const totalFreight = outgoingFreight + incomingFreight;
+      const vendorCost = Number(v.vendorCostPrice) || 0;
+      const sellingPrice = Number(v.customerSellingPrice) || 0;
+      const profit = sellingPrice - (vendorCost + totalFreight);
+
+      const payload = {
+        id: v.id,
+        voucher_number: v.voucherNumber || `OUT-${Date.now().toString().slice(-4)}`,
+        voucher_date: v.voucherDate || new Date().toISOString().split('T')[0],
+        linked_ticket_number: v.linkedTicketNumber || null,
+        vendor_job_id: v.vendorJobId || null,
+        vendor_id: v.vendorId || `v-${Date.now()}`,
+        vendor_name: v.vendorName || 'Outsource Vendor',
+        vendor_phone: v.vendorPhone || '+91 99999-00000',
+        vendor_city: v.vendorCity || 'Jodhpur',
+        vendor_address: v.vendorAddress || null,
+        vendor_gstin: v.vendorGstin || null,
+        service_type: v.serviceType || 'Motherboard Repair',
+        outgoing_courier: v.outgoingCourier || 'DTDC Courier',
+        outgoing_docket: v.outgoingDocket || '',
+        outgoing_dispatch_date: v.outgoingDispatchDate || new Date().toISOString().split('T')[0],
+        outgoing_freight_cost: outgoingFreight,
+        incoming_courier: v.incomingCourier || null,
+        incoming_docket: v.incomingDocket || null,
+        incoming_dispatch_date: v.incomingDispatchDate || null,
+        incoming_freight_cost: incomingFreight,
+        expected_return_date: v.expectedReturnDate || null,
+        received_date: v.receivedDate || null,
+        vendor_cost_price: vendorCost,
+        freight_charges: totalFreight,
+        customer_selling_price: sellingPrice,
+        profit_margin: profit,
+        dispatch_status: v.dispatchStatus || 'SHIPPED',
+        technical_instructions: v.technicalInstructions || null,
+        testing_notes: v.testingNotes || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('outsource_vouchers').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/outsource', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(v),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deleteOutsourceVoucherFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('outsource_vouchers').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/outsource?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
+}
+
+// ----------------------------------------------------------------------
+// DATA RECOVERY CASES DUAL-CHANNEL SYNC
+// ----------------------------------------------------------------------
+
+export function mapRowToDataRecovery(row: any): DataRecoveryCase {
+  const quote = Number(row.estimated_quote) || 0;
+  const advance = Number(row.advance_paid) || 0;
+  return {
+    id: row.id,
+    recoveryIdNumber: row.recovery_id_number || '',
+    caseNumber: row.case_number || row.recovery_id_number || '',
+    entryDate: row.entry_date || new Date().toISOString().split('T')[0],
+    customerName: row.customer_name || 'Customer',
+    customerPhone: row.customer_phone || '',
+    customerEmail: row.customer_email || '',
+    customerGst: '',
+    customerAddress: '',
+    deviceBrand: row.media_brand || '',
+    deviceType: row.media_type || 'Hard Drive (HDD)',
+    driveModel: row.media_model || '',
+    driveSerial: row.serial_number || '',
+    capacity: row.capacity || '1 TB',
+    fileSystem: row.file_system || 'NTFS',
+    damageType: row.reported_fault || 'Drive Not Detected',
+    priority: row.priority || 'Normal',
+    symptoms: row.reported_fault || '',
+    status: row.status || 'Received',
+    technician: row.technician_name || 'Deepak Kumar',
+    storageLocation: 'Safe Locker',
+    estimateCost: quote,
+    advance: advance,
+    customerCharge: quote,
+    freight: 0,
+    discount: 0,
+    gstRate: 18,
+    totalInvoice: quote,
+    deposit: advance,
+    balanceDue: Math.max(0, quote - advance),
+    diagnosticFee: 500,
+    recoveryFee: quote,
+    paidAmount: advance,
+    paymentStatus: advance >= quote && quote > 0 ? 'Paid' : advance > 0 ? 'Partial' : 'Unpaid',
+    termsConsentAccepted: true,
+    requestedWork: 'Data Recovery Lab Extraction',
+    additionalInfo: '',
+    confidentialNotes: '',
+    recoveryPhaseStatus: row.cleanroom_status || 'In Inspection',
+    progressPercentage: row.status === 'Completed' ? 100 : 35,
+    estimatedDataGb: 100,
+    recoveredDataGb: Number(row.recovered_data_size_gb) || 0,
+    healthPercentage: 85,
+    rackLocation: 'Rack DR-1',
+    targetDriveDetails: row.target_media_provided || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
 }
 
 export async function fetchDataRecoveryFromSupabase(): Promise<DataRecoveryCase[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('data_recovery_cases').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('data_recovery_cases').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToDataRecovery);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/data-recovery');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export async function pushDataRecoveryToSupabase(c: DataRecoveryCase): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const recId = c.recoveryIdNumber || `REC-${Date.now().toString().slice(-4)}`;
+      const payload = {
+        id: c.id,
+        recovery_id_number: recId,
+        case_number: c.caseNumber || recId,
+        entry_date: c.entryDate || new Date().toISOString().split('T')[0],
+        customer_name: c.customerName || 'Customer',
+        customer_phone: c.customerPhone || '+91 99999-00000',
+        customer_email: c.customerEmail || null,
+        media_type: c.deviceType || 'Hard Drive (HDD)',
+        media_brand: c.deviceBrand || null,
+        media_model: c.driveModel || null,
+        serial_number: c.driveSerial || null,
+        capacity: c.capacity || '1 TB',
+        file_system: c.fileSystem || 'NTFS',
+        reported_fault: c.damageType || c.symptoms || 'Drive Not Detected',
+        cleanroom_status: c.recoveryPhaseStatus || 'Pending Diagnostic',
+        recovery_stage: c.status || 'In Lab Inspection',
+        priority: c.priority || 'Normal',
+        estimated_quote: Number(c.estimateCost) || 0,
+        advance_paid: Number(c.advance) || 0,
+        technician_name: c.technician || 'Deepak Kumar',
+        status: c.status || 'Received',
+        target_media_provided: c.targetDriveDetails || null,
+        recovered_data_size_gb: Number(c.recoveredDataGb) || 0,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('data_recovery_cases').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/data-recovery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(c),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deleteDataRecoveryFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('data_recovery_cases').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/data-recovery?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
+}
+
+// ----------------------------------------------------------------------
+// AMC CONTRACTS DUAL-CHANNEL SYNC
+// ----------------------------------------------------------------------
+
+export function mapRowToAmc(row: any): AmcContract {
+  return {
+    id: row.id,
+    contractNumber: row.contract_number || '',
+    manualEntryDate: row.start_date || new Date().toISOString().split('T')[0],
+    customerName: row.customer_name || 'Customer',
+    companyName: row.company_name || '',
+    customerPhone: row.customer_phone || '',
+    alternatePhone: '',
+    customerEmail: row.customer_email || '',
+    customerGst: row.customer_gstin || '',
+    customerAddress: row.customer_address || '',
+    planOption: row.amc_type || 'Comprehensive Plan',
+    contractCost: Number(row.contract_amount) || 0,
+    amcAmount: Number(row.taxable_amount || row.contract_amount) || 0,
+    gstRate: 18,
+    totalAmount: Number(row.grand_total || row.contract_amount) || 0,
+    advancePaid: Number(row.advance_paid) || 0,
+    balanceDue: Number(row.balance_due) || 0,
+    paymentStatus: row.payment_status || 'Unpaid',
+    startDate: row.start_date || new Date().toISOString().split('T')[0],
+    endDate: row.end_date || new Date().toISOString().split('T')[0],
+    renewalDate: row.end_date || new Date().toISOString().split('T')[0],
+    contractStatus: row.status || 'Active',
+    coverageScopeDetails: row.terms_and_conditions || '',
+    source: 'Direct Customer',
+    serviceType: row.billing_cycle || 'On-site Support',
+    numberOfDevices: Number(row.total_devices_covered) || 1,
+    totalServiceVisits: 4,
+    assignedTechnician: row.assigned_technician || 'Deepak Kumar',
+    priority: 'Normal',
+    deviceType: row.devices_covered || 'Desktop PC / Laptop',
+    serviceIncludedChecklist: ['Quarterly Maintenance', 'OS Tuning', 'Antivirus Updates'],
+    retailProducts: [],
+    coveredAssets: [],
+    pmVisits: [],
+    complaints: [],
+    invoiceGenerated: false,
+    created_at: row.created_at || new Date().toISOString(),
+  };
 }
 
 export async function fetchAmcContractsFromSupabase(): Promise<AmcContract[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('amc_contracts').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('amc_contracts').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToAmc);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/amc');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
 }
+
+export async function pushAmcContractToSupabase(a: AmcContract): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const contractNum = a.contractNumber || `AMC-${Date.now().toString().slice(-4)}`;
+      const startDate = a.startDate || a.manualEntryDate || new Date().toISOString().split('T')[0];
+      const endDate = a.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const payload = {
+        id: a.id,
+        contract_number: contractNum,
+        customer_name: a.customerName || 'Customer',
+        customer_phone: a.customerPhone || '+91 99999-00000',
+        customer_email: a.customerEmail || null,
+        customer_gstin: a.customerGst || null,
+        customer_address: a.customerAddress || null,
+        company_name: a.companyName || null,
+        amc_type: a.planOption || 'Comprehensive AMC',
+        billing_cycle: a.serviceType || 'Yearly',
+        start_date: startDate,
+        end_date: endDate,
+        total_devices_covered: Number(a.numberOfDevices) || 1,
+        contract_amount: Number(a.contractCost || a.amcAmount) || 0,
+        taxable_amount: Number(a.amcAmount || a.contractCost) || 0,
+        gst_amount: Number(a.totalAmount ? a.totalAmount - (a.amcAmount || 0) : 0),
+        grand_total: Number(a.totalAmount || a.contractCost) || 0,
+        advance_paid: Number(a.advancePaid) || 0,
+        balance_due: Number(a.balanceDue) || 0,
+        status: a.contractStatus || 'Active',
+        payment_status: a.paymentStatus || 'Unpaid',
+        payment_mode: 'Cash / UPI / Bank Transfer',
+        assigned_technician: a.assignedTechnician || 'Deepak Kumar',
+        devices_covered: a.deviceType || 'Desktop PC / Laptop',
+        preventative_maintenance_frequency: `${a.totalServiceVisits || 4} Visits/Year`,
+        terms_and_conditions: a.coverageScopeDetails || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('amc_contracts').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/amc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(a),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deleteAmcContractFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('amc_contracts').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/amc?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
+}
+
+// ----------------------------------------------------------------------
+// SALES INVOICES DUAL-CHANNEL SYNC
+// ----------------------------------------------------------------------
+
+export function mapRowToSalesInvoice(row: any): SalesInvoiceItem {
+  return {
+    id: row.id,
+    invoiceNo: row.invoice_number || '',
+    invoiceDate: row.invoice_date || '',
+    customerId: row.customer_id || '',
+    customerName: row.customer_name || 'Retail Customer',
+    customerPhone: row.customer_phone || '',
+    customerGst: row.customer_gstin || '',
+    customerAddress: row.billing_address || '',
+    paymentTerms: 'Immediate',
+    paymentMethod: row.payment_method || 'CASH',
+    items: Array.isArray(row.items) ? row.items : [],
+    subtotal: Number(row.subtotal) || 0,
+    discount: Number(row.discount_amount) || 0,
+    discountType: 'fixed',
+    taxAmount: (Number(row.cgst_amount) || 0) + (Number(row.sgst_amount) || 0),
+    shippingCharges: 0,
+    grandTotal: Number(row.grand_total) || 0,
+    paidAmount: Number(row.paid_amount) || 0,
+    balanceDue: Number(row.due_amount) || 0,
+    paymentStatus: (row.payment_status || 'Paid') as any,
+    remarks: row.notes || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+// ----------------------------------------------------------------------
+// LEADS LIVE FETCHERS
+// ----------------------------------------------------------------------
 
 export async function fetchSupportLeadsFromSupabase(): Promise<SupportLeadItem[] | null> {
   if (!supabase || !isSupabaseConfigured()) return null;
@@ -757,25 +1284,190 @@ export async function fetchBookRepairLeadsFromSupabase(): Promise<BookRepairLead
 }
 
 export async function fetchSalesInvoicesFromSupabase(): Promise<SalesInvoiceItem[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToSalesInvoice);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/sales');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export async function pushSalesInvoiceToSupabase(s: SalesInvoiceItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const sub = Number(s.subtotal) || 0;
+      const tax = Number(s.taxAmount) || 0;
+      const grand = Number(s.grandTotal) || (sub + tax);
+      const paid = Number(s.paidAmount) || 0;
+      const due = Number(s.balanceDue) || Math.max(0, grand - paid);
+
+      const payload = {
+        id: s.id,
+        invoice_number: s.invoiceNo || `INV-${Date.now().toString().slice(-4)}`,
+        invoice_date: s.invoiceDate || new Date().toISOString().split('T')[0],
+        customer_id: s.customerId || null,
+        customer_name: s.customerName || 'Retail Customer',
+        customer_phone: s.customerPhone || '+91 99999-00000',
+        customer_gstin: s.customerGst || null,
+        billing_address: s.customerAddress || null,
+        items: Array.isArray(s.items) ? s.items : [],
+        subtotal: sub,
+        discount_amount: Number(s.discount) || 0,
+        taxable_amount: sub,
+        cgst_amount: Math.round(tax / 2),
+        sgst_amount: Math.round(tax / 2),
+        round_off_adjustment: 0,
+        grand_total: grand,
+        paid_amount: paid,
+        due_amount: due,
+        payment_method: s.paymentMethod || 'CASH',
+        payment_status: s.paymentStatus || 'Paid',
+        sales_rep: 'Accno Solution',
+        notes: s.remarks || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('sales_invoices').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/sales', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(s),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deleteSalesInvoiceFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('sales_invoices').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/sales?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
+}
+
+// ----------------------------------------------------------------------
+// PURCHASE INVOICES DUAL-CHANNEL SYNC
+// ----------------------------------------------------------------------
+
+export function mapRowToPurchaseInvoice(row: any): PurchaseInvoiceItem {
+  return {
+    id: row.id,
+    billNo: row.purchase_number || '',
+    billDate: row.purchase_date || '',
+    vendorId: row.supplier_id || '',
+    vendorName: row.supplier_name || 'Supplier',
+    vendorPhone: '',
+    vendorGst: '',
+    vendorAddress: '',
+    paymentTerms: 'Net 30',
+    paymentMethod: row.payment_method || 'BANK_TRANSFER',
+    items: Array.isArray(row.items) ? row.items : [],
+    subtotal: Number(row.subtotal) || 0,
+    taxAmount: Number(row.tax_amount) || 0,
+    freightCharges: 0,
+    grandTotal: Number(row.grand_total) || 0,
+    paidAmount: Number(row.paid_amount) || 0,
+    balanceDue: Number(row.balance_amount) || 0,
+    paymentStatus: (row.payment_status || 'Paid') as any,
+    remarks: row.notes || '',
+    poRefNo: row.supplier_invoice_no || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
 }
 
 export async function fetchPurchaseInvoicesFromSupabase(): Promise<PurchaseInvoiceItem[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('purchase_invoices').select('*').order('created_at', { ascending: false });
-    if (error) return null;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return null;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('purchase_invoices').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) return data.map(mapRowToPurchaseInvoice);
+    } catch {}
   }
+  try {
+    const res = await fetch('/api/erp/purchases');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) return json.data;
+    }
+  } catch {}
+  return null;
+}
+
+export async function pushPurchaseInvoiceToSupabase(p: PurchaseInvoiceItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const sub = Number(p.subtotal) || 0;
+      const tax = Number(p.taxAmount) || 0;
+      const grand = Number(p.grandTotal) || (sub + tax);
+      const paid = Number(p.paidAmount) || 0;
+      const balance = Number(p.balanceDue) || Math.max(0, grand - paid);
+
+      const payload = {
+        id: p.id,
+        purchase_number: p.billNo || `PUR-${Date.now().toString().slice(-4)}`,
+        supplier_invoice_no: p.poRefNo || null,
+        supplier_id: p.vendorId || null,
+        supplier_name: p.vendorName || 'Supplier Vendor',
+        purchase_date: p.billDate || new Date().toISOString().split('T')[0],
+        items: Array.isArray(p.items) ? p.items : [],
+        subtotal: sub,
+        tax_amount: tax,
+        grand_total: grand,
+        paid_amount: paid,
+        balance_amount: balance,
+        payment_status: p.paymentStatus || 'Paid',
+        payment_method: p.paymentMethod || 'BANK_TRANSFER',
+        notes: p.remarks || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('purchase_invoices').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch('/api/erp/purchases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+  return saved;
+}
+
+export async function deletePurchaseInvoiceFromSupabase(id: string): Promise<boolean> {
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      await supabase.from('purchase_invoices').delete().eq('id', id);
+      deleted = true;
+    } catch {}
+  }
+  try {
+    const res = await fetch(`/api/erp/purchases?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
 }
 
 export async function fetchBlogPostsFromSupabase(): Promise<BlogPostItem[] | null> {

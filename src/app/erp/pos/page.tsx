@@ -5,9 +5,10 @@ import {
   CreditCard, Search, Plus, Minus, Trash2, Printer, QrCode, DollarSign,
   User, CheckCircle2, ShoppingCart, Percent, ArrowRight, X, ShieldCheck, Tag, Package, Cpu,
   Clock, PauseCircle, PlayCircle, FileText, Sparkles, Calculator, Award, Phone, MapPin, Building2,
-  RefreshCw, Filter, Layers, Edit2, Calendar
+  RefreshCw, Filter, Layers, Edit2, Calendar, RotateCw
 } from 'lucide-react';
 import { useErpStore, PosCartItem, CustomerItem, SalesInvoiceItem } from '@/lib/store';
+import { fetchInventoryFromSupabase, fetchCustomersFromSupabase } from '@/lib/supabase-sync';
 
 export default function ErpPosPage() {
   const {
@@ -18,9 +19,11 @@ export default function ErpPosPage() {
     updateUnitPrice,
     clearCart,
     inventory,
+    setInventory,
     updateInventoryItem,
     companyDetails,
     customers,
+    setCustomers,
     addCustomer,
     selectedCustomer,
     setSelectedCustomer,
@@ -29,6 +32,28 @@ export default function ErpPosPage() {
     posRules,
     currentUser,
   } = useErpStore();
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const handleManualSync = async () => {
+    setIsSyncingCloud(true);
+    setSyncStatusMsg('Syncing products & customers with Cloud...');
+    try {
+      const [freshInv, freshCust] = await Promise.all([
+        fetchInventoryFromSupabase(),
+        fetchCustomersFromSupabase(),
+      ]);
+      if (Array.isArray(freshInv)) setInventory(freshInv);
+      if (Array.isArray(freshCust)) setCustomers(freshCust);
+      setSyncStatusMsg('POS Cloud Catalog Synced');
+    } catch {
+      setSyncStatusMsg('Sync error occurred');
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setSyncStatusMsg(null), 4000);
+    }
+  };
 
   const [isMounted, setIsMounted] = React.useState(false);
   const barcodeInputRef = React.useRef<HTMLInputElement>(null);
@@ -839,6 +864,23 @@ export default function ErpPosPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {syncStatusMsg && (
+              <span className="text-[11px] text-[#5ED29C] bg-[#5ED29C]/10 border border-[#5ED29C]/30 px-3 py-1 rounded-lg animate-fade-in font-medium">
+                {syncStatusMsg}
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={isSyncingCloud}
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+              title="Force refresh catalog & customers directly from Supabase Cloud"
+            >
+              <RotateCw className={`w-3.5 h-3.5 text-[#5ED29C] ${isSyncingCloud ? 'animate-spin' : ''}`} />
+              <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
+            </button>
+
             {/* PARKED CARTS BADGE BUTTON */}
             {isHoldParkEnabled && (
               <button

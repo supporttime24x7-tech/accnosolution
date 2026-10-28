@@ -4,9 +4,10 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   ShoppingCart, Plus, Search, Filter, Printer, Trash2, Eye, DollarSign,
   Calendar, CheckCircle, Clock, AlertTriangle, FileText, ChevronRight, ChevronDown, User, Package, X, Check,
-  Building, Phone, MapPin, Tag, ShieldCheck, ArrowRight, RefreshCw, CreditCard, Sparkles, Barcode, Edit2
+  Building, Phone, MapPin, Tag, ShieldCheck, ArrowRight, RefreshCw, CreditCard, Sparkles, Barcode, Edit2, RotateCw
 } from 'lucide-react';
 import { useErpStore, SalesInvoiceItem, TransactionItemLine, CustomerItem, InventoryItem } from '@/lib/store';
+import { fetchSalesInvoicesFromSupabase } from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Line Items
 interface SearchableLineItemSelectProps {
@@ -143,9 +144,40 @@ export default function SalesPage() {
     addSalesInvoice,
     updateSalesInvoice,
     deleteSalesInvoice,
+    setSalesInvoices,
     addCustomer,
     updateCustomer,
   } = useErpStore();
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const handleManualSync = async () => {
+    setIsSyncingCloud(true);
+    setSyncStatusMsg('Syncing with Supabase Cloud...');
+    try {
+      const data = await fetchSalesInvoicesFromSupabase();
+      if (Array.isArray(data)) {
+        setSalesInvoices(data);
+        setSyncStatusMsg(`Synced ${data.length} invoices from Cloud`);
+      } else {
+        setSyncStatusMsg('Cloud sync completed');
+      }
+    } catch {
+      setSyncStatusMsg('Sync error occurred');
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setSyncStatusMsg(null), 4000);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesInvoicesFromSupabase().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setSalesInvoices(data);
+      }
+    }).catch(() => {});
+  }, [setSalesInvoices]);
 
   const [isMounted, setIsMounted] = React.useState(false);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -1260,12 +1292,31 @@ export default function SalesPage() {
           </p>
         </div>
 
-        <button
-          onClick={openCreateInvoiceModal}
-          className="px-6 py-3 rounded-2xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" /> + Create New Sales Invoice
-        </button>
+        <div className="flex items-center gap-2">
+          {syncStatusMsg && (
+            <span className="text-[11px] text-[#5ED29C] bg-[#5ED29C]/10 border border-[#5ED29C]/30 px-3 py-1.5 rounded-lg animate-fade-in font-medium">
+              {syncStatusMsg}
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleManualSync}
+            disabled={isSyncingCloud}
+            className="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50"
+            title="Force refresh data directly from Supabase Cloud Database"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-[#5ED29C] ${isSyncingCloud ? 'animate-spin' : ''}`} />
+            <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
+          <button
+            onClick={openCreateInvoiceModal}
+            className="px-6 py-3 rounded-2xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" /> + Create New Sales Invoice
+          </button>
+        </div>
       </div>
 
       {/* METRIC CARDS */}

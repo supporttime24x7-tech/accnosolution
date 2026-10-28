@@ -6,13 +6,15 @@ import {
   Tag, Shield, AlertTriangle, Layers, ArrowUpRight, Barcode, Layers3,
   Sliders, Settings, Landmark, ShieldCheck, CheckCircle2, FileText,
   List, LayoutGrid, Upload, Wrench, Cpu, Monitor, Zap, HardDrive, Disc,
-  Printer, CheckCircle, AlertCircle as WarningIcon, DollarSign, Truck, ChevronDown
+  Printer, CheckCircle, AlertCircle as WarningIcon, DollarSign, Truck, ChevronDown, RefreshCw
 } from 'lucide-react';
 import { useErpStore, InventoryItem, HsnMasterItem } from '@/lib/store';
+import { fetchInventoryFromSupabase } from '@/lib/supabase-sync';
 
 export default function InventoryPage() {
   const {
     inventory,
+    setInventory,
     inventoryRules,
     hsnCodes,
     companyDetails,
@@ -26,9 +28,34 @@ export default function InventoryPage() {
   } = useErpStore();
   
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const syncInventoryFromCloud = async () => {
+    setIsSyncing(true);
+    setSyncStatusMsg('Syncing Cloud...');
+    try {
+      const cloudData = await fetchInventoryFromSupabase();
+      if (cloudData && Array.isArray(cloudData)) {
+        setInventory(cloudData);
+        setSyncStatusMsg(`Synced ${cloudData.length} from Supabase Cloud`);
+        setTimeout(() => setSyncStatusMsg(null), 3000);
+      } else {
+        setSyncStatusMsg('Sync completed');
+        setTimeout(() => setSyncStatusMsg(null), 3000);
+      }
+    } catch (e) {
+      console.warn('Inventory sync error:', e);
+      setSyncStatusMsg('Offline / Retrying');
+      setTimeout(() => setSyncStatusMsg(null), 3000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   React.useEffect(() => {
     setIsMounted(true);
+    syncInventoryFromCloud();
   }, []);
 
   const [search, setSearch] = useState('');
@@ -864,6 +891,26 @@ export default function InventoryPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {syncStatusMsg && (
+            <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#5ED29C]/10 border border-[#5ED29C]/30 text-[#5ED29C] font-semibold animate-pulse">
+              {syncStatusMsg}
+            </span>
+          )}
+
+          <button
+            onClick={syncInventoryFromCloud}
+            disabled={isSyncing}
+            className={`px-3.5 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+              isSyncing
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border-white/15'
+            }`}
+            title="Synchronize inventory with Supabase Cloud"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-amber-400' : 'text-[#5ED29C]'}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
           <button
             onClick={() => handleOpenNewModal('Retail Part')}
             className="px-4 py-2.5 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-1.5"

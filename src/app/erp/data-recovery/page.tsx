@@ -5,9 +5,10 @@ import {
   HardDrive, Plus, Search, Filter, Printer, Edit, Trash2, ShieldCheck,
   CheckCircle2, AlertTriangle, FileText, Lock, DollarSign, Cpu, Eye, X, Receipt,
   ChevronDown, User, Smartphone, Tag, RefreshCw, Layers, Sliders, CheckSquare,
-  Building, Phone, Mail, MapPin, AlertCircle, ArrowRight
+  Building, Phone, Mail, MapPin, AlertCircle, ArrowRight, RotateCw
 } from 'lucide-react';
 import { useErpStore, DataRecoveryCase } from '@/lib/store';
+import { fetchDataRecoveryFromSupabase } from '@/lib/supabase-sync';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
 import QRCode from 'qrcode';
 
@@ -256,11 +257,42 @@ export default function ErpDataRecoveryPage() {
     addDataRecoveryCase,
     updateDataRecoveryCase,
     deleteDataRecoveryCase,
+    setDataRecoveryCases,
     customers,
     employees,
     companyDetails,
     repairBillingRules,
   } = useErpStore();
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const handleManualSync = async () => {
+    setIsSyncingCloud(true);
+    setSyncStatusMsg('Syncing with Supabase Cloud...');
+    try {
+      const data = await fetchDataRecoveryFromSupabase();
+      if (Array.isArray(data)) {
+        setDataRecoveryCases(data);
+        setSyncStatusMsg(`Synced ${data.length} cases from Cloud`);
+      } else {
+        setSyncStatusMsg('Cloud sync completed');
+      }
+    } catch {
+      setSyncStatusMsg('Sync error occurred');
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setSyncStatusMsg(null), 4000);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataRecoveryFromSupabase().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setDataRecoveryCases(data);
+      }
+    }).catch(() => {});
+  }, [setDataRecoveryCases]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -1043,12 +1075,31 @@ export default function ErpDataRecoveryPage() {
           </p>
         </div>
 
-        <button
-          onClick={openNewCaseModal}
-          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#5ED29C] to-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 hover:scale-[1.02] transition-all flex items-center gap-2 shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" /> REGISTER NEW FORENSIC RECOVERY CASE
-        </button>
+        <div className="flex items-center gap-2">
+          {syncStatusMsg && (
+            <span className="text-[11px] text-[#5ED29C] bg-[#5ED29C]/10 border border-[#5ED29C]/30 px-3 py-1.5 rounded-lg animate-fade-in font-medium">
+              {syncStatusMsg}
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleManualSync}
+            disabled={isSyncingCloud}
+            className="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50"
+            title="Force refresh data directly from Supabase Cloud Database"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-[#5ED29C] ${isSyncingCloud ? 'animate-spin' : ''}`} />
+            <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
+          <button
+            onClick={openNewCaseModal}
+            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#5ED29C] to-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 hover:scale-[1.02] transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" /> REGISTER NEW FORENSIC RECOVERY CASE
+          </button>
+        </div>
       </div>
 
       {/* METRIC SUMMARY CARDS */}

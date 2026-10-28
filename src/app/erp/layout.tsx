@@ -19,6 +19,13 @@ import {
   fetchInvoicesFromSupabase,
   fetchEmployeesFromSupabase,
   fetchCustomersFromSupabase,
+  fetchInventoryFromSupabase,
+  fetchVendorsFromSupabase,
+  fetchOutsourceVouchersFromSupabase,
+  fetchDataRecoveryFromSupabase,
+  fetchAmcContractsFromSupabase,
+  fetchSalesInvoicesFromSupabase,
+  fetchPurchaseInvoicesFromSupabase,
 } from '@/lib/supabase-sync';
 
 interface NavItem {
@@ -68,6 +75,13 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     setRepairInvoices,
     setEmployees,
     setCustomers,
+    setInventory,
+    setVendors,
+    setOutsourceVouchers,
+    setDataRecoveryCases,
+    setAmcContracts,
+    setSalesInvoices,
+    setPurchaseInvoices,
   } = useErpStore();
 
   useEffect(() => {
@@ -177,6 +191,83 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
             }
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'inventory_items' },
+          async () => {
+            const freshInv = await fetchInventoryFromSupabase();
+            if (freshInv && isSubscribed) {
+              setInventory(freshInv);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'suppliers' },
+          async () => {
+            const freshVendors = await fetchVendorsFromSupabase();
+            if (freshVendors && isSubscribed) {
+              setVendors(freshVendors);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'outsource_vouchers' },
+          async () => {
+            const freshOutsource = await fetchOutsourceVouchersFromSupabase();
+            if (freshOutsource && isSubscribed) {
+              setOutsourceVouchers(freshOutsource);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'data_recovery_cases' },
+          async () => {
+            const freshRecovery = await fetchDataRecoveryFromSupabase();
+            if (freshRecovery && isSubscribed) {
+              setDataRecoveryCases(freshRecovery);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'amc_contracts' },
+          async () => {
+            const freshAmc = await fetchAmcContractsFromSupabase();
+            if (freshAmc && isSubscribed) {
+              setAmcContracts(freshAmc);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'sales_invoices' },
+          async () => {
+            const freshSales = await fetchSalesInvoicesFromSupabase();
+            if (freshSales && isSubscribed) {
+              setSalesInvoices(freshSales);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'purchase_invoices' },
+          async () => {
+            const freshPurchases = await fetchPurchaseInvoicesFromSupabase();
+            if (freshPurchases && isSubscribed) {
+              setPurchaseInvoices(freshPurchases);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED' && isSubscribed) {
             setCloudSyncStatus('synced');
@@ -188,7 +279,19 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
         supabase?.removeChannel(channel);
       };
     }
-  }, [setTickets, setRepairInvoices, setEmployees, setCustomers]);
+  }, [
+    setTickets,
+    setRepairInvoices,
+    setEmployees,
+    setCustomers,
+    setInventory,
+    setVendors,
+    setOutsourceVouchers,
+    setDataRecoveryCases,
+    setAmcContracts,
+    setSalesInvoices,
+    setPurchaseInvoices,
+  ]);
 
   // Strict Client-Side Defense-in-Depth Auth Check
   useEffect(() => {

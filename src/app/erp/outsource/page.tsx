@@ -5,9 +5,10 @@ import {
   Truck, Search, Plus, Filter, QrCode, Barcode, Printer, User,
   Smartphone, CheckCircle2, Clock, ChevronDown, Edit, Shield, Eye, X,
   MapPin, FileText, Check, AlertCircle, DollarSign, PackageCheck, ExternalLink, ArrowRight,
-  Trash2, Lock, Tag, Calendar, Building2, Layers, AlertTriangle
+  Trash2, Lock, Tag, Calendar, Building2, Layers, AlertTriangle, RotateCw
 } from 'lucide-react';
 import { useErpStore, OutsourceVoucher } from '@/lib/store';
+import { fetchOutsourceVouchersFromSupabase } from '@/lib/supabase-sync';
 
 export default function ErpOutsourcePage() {
   const {
@@ -19,7 +20,38 @@ export default function ErpOutsourcePage() {
     addOutsourceVoucher,
     updateOutsourceVoucher,
     deleteOutsourceVoucher,
+    setOutsourceVouchers,
   } = useErpStore();
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const handleManualSync = async () => {
+    setIsSyncingCloud(true);
+    setSyncStatusMsg('Syncing with Supabase Cloud...');
+    try {
+      const data = await fetchOutsourceVouchersFromSupabase();
+      if (Array.isArray(data)) {
+        setOutsourceVouchers(data);
+        setSyncStatusMsg(`Synced ${data.length} vouchers from Cloud`);
+      } else {
+        setSyncStatusMsg('Cloud sync completed');
+      }
+    } catch {
+      setSyncStatusMsg('Sync error occurred');
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setSyncStatusMsg(null), 4000);
+    }
+  };
+
+  useEffect(() => {
+    fetchOutsourceVouchersFromSupabase().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setOutsourceVouchers(data);
+      }
+    }).catch(() => {});
+  }, [setOutsourceVouchers]);
 
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
@@ -1219,6 +1251,23 @@ export default function ErpOutsourcePage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {syncStatusMsg && (
+            <span className="text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/30 px-3 py-1.5 rounded-lg animate-fade-in font-medium">
+              {syncStatusMsg}
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleManualSync}
+            disabled={isSyncingCloud}
+            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50"
+            title="Force refresh data directly from Supabase Cloud Database"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-purple-400 ${isSyncingCloud ? 'animate-spin' : ''}`} />
+            <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
           {/* BATCH PRINT BUTTON */}
           <button
             onClick={() => setShowBatchPrintModal(true)}

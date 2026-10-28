@@ -138,3 +138,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+    const ticketNumber = url.searchParams.get('ticketNumber');
+
+    if (!id && !ticketNumber) {
+      return NextResponse.json({ success: false, error: 'Ticket ID or Ticket Number required' }, { status: 400 });
+    }
+
+    if (supabaseAdmin && isSupabaseConfigured()) {
+      let query = supabaseAdmin.from('repair_tickets').delete();
+      if (ticketNumber && id) {
+        query = query.or(`id.eq.${id},ticket_number.eq.${ticketNumber}`);
+      } else if (ticketNumber) {
+        query = query.eq('ticket_number', ticketNumber);
+      } else {
+        query = query.eq('id', id);
+      }
+      const { error } = await query;
+      if (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, id });
+    }
+
+    return NextResponse.json({ success: false, error: 'Supabase admin not configured' }, { status: 503 });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
