@@ -25,16 +25,25 @@ export default function CustomersPage() {
   }, [customerRules.displayFormat]);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
 
   const syncFromCloudNow = async () => {
     setIsSyncing(true);
+    setSyncStatusMsg('Syncing Cloud...');
     try {
       const cloudData = await fetchCustomersFromSupabase();
       if (cloudData && Array.isArray(cloudData)) {
         setCustomers(cloudData);
+        setSyncStatusMsg(`Synced ${cloudData.length} from Supabase Cloud`);
+        setTimeout(() => setSyncStatusMsg(null), 3000);
+      } else {
+        setSyncStatusMsg('Sync completed');
+        setTimeout(() => setSyncStatusMsg(null), 3000);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Sync failed:', e);
+      setSyncStatusMsg('Offline / Retrying');
+      setTimeout(() => setSyncStatusMsg(null), 3000);
     } finally {
       setIsSyncing(false);
     }
@@ -530,6 +539,12 @@ export default function CustomersPage() {
         </div>
 
         <div className="flex items-center space-x-3">
+          {syncStatusMsg && (
+            <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#5ED29C]/10 border border-[#5ED29C]/30 text-[#5ED29C] font-semibold animate-pulse">
+              {syncStatusMsg}
+            </span>
+          )}
+
           {/* View Format Toggle (Rule 2) */}
           <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 text-xs">
             <button

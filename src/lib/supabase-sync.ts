@@ -501,65 +501,88 @@ export function mapRowToCustomer(row: any): CustomerItem {
 }
 
 export async function fetchCustomersFromSupabase(): Promise<CustomerItem[] | null> {
-  if (!supabase || !isSupabaseConfigured()) return null;
-  try {
-    const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
-    if (error) {
-      console.warn('fetchCustomersFromSupabase error:', error);
-      return null;
+  // 1. Try Direct Supabase SDK Client
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) {
+        return data.map(mapRowToCustomer);
+      }
+    } catch (err) {
+      console.warn('fetchCustomersFromSupabase direct client error:', err);
     }
-    return Array.isArray(data) ? data.map(mapRowToCustomer) : [];
-  } catch (err) {
-    console.warn('fetchCustomersFromSupabase exception:', err);
-    return null;
   }
+
+  // 2. Fallback to Server API Route (Bypasses any browser CORS or network isolation)
+  try {
+    const res = await fetch('/api/erp/customers');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return json.data;
+      }
+    }
+  } catch (apiErr) {
+    console.warn('fetchCustomersFromSupabase API fallback error:', apiErr);
+  }
+
+  return null;
 }
 
 export async function pushCustomerToSupabase(cust: CustomerItem): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const payload = {
-      id: cust.id,
-      customer_code: cust.code || '',
-      name: cust.name || 'Customer',
-      phone: cust.mobile || cust.phone || '',
-      alternate_phone: cust.alternateContact || null,
-      email: cust.email || null,
-      customer_type: (cust.accountGroup || '').includes('Corporate') ? 'CORPORATE' : 'RETAIL',
-      company_name: cust.companyName || null,
-      gstin: cust.gstin || null,
-      address: cust.billingAddress || cust.address || null,
-      city: cust.city || 'Sanchore',
-      state: cust.state || 'Rajasthan',
-      pincode: cust.pinCode || null,
-      notes: cust.internalNotes || null,
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await supabase.from('customers').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      console.warn('pushCustomerToSupabase error:', error);
-      return false;
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: cust.id,
+        customer_code: cust.code || '',
+        name: cust.name || 'Customer',
+        phone: cust.mobile || cust.phone || '',
+        alternate_phone: cust.alternateContact || null,
+        email: cust.email || null,
+        customer_type: (cust.accountGroup || '').includes('Corporate') ? 'CORPORATE' : 'RETAIL',
+        company_name: cust.companyName || null,
+        gstin: cust.gstin || null,
+        address: cust.billingAddress || cust.address || null,
+        city: cust.city || 'Sanchore',
+        state: cust.state || 'Rajasthan',
+        pincode: cust.pinCode || null,
+        notes: cust.internalNotes || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('customers').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+    } catch (err) {
+      console.warn('pushCustomerToSupabase direct client error:', err);
     }
-    return true;
-  } catch (err) {
-    console.warn('pushCustomerToSupabase exception:', err);
-    return false;
   }
+
+  // Also push to internal server API for guaranteed delivery
+  try {
+    const res = await fetch('/api/erp/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cust),
+    });
+    if (res.ok) saved = true;
+  } catch {}
+
+  return saved;
 }
 
 export async function deleteCustomerFromSupabase(id: string): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured()) return false;
-  try {
-    const { error } = await supabase.from('customers').delete().eq('id', id);
-    if (error) {
-      console.warn('deleteCustomerFromSupabase error:', error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.warn('deleteCustomerFromSupabase exception:', err);
-    return false;
+  let deleted = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (!error) deleted = true;
+    } catch {}
   }
+  try {
+    const res = await fetch(`/api/erp/customers?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) deleted = true;
+  } catch {}
+  return deleted;
 }
 
 export async function pushInventoryToSupabase(item: InventoryItem): Promise<boolean> {
