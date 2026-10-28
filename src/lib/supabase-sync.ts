@@ -13,7 +13,9 @@ import type {
   PurchaseInvoiceItem,
   BlogPostItem,
   MilestoneItem,
+  EmployeeItem,
 } from './store';
+import { adminEmployeePermissions } from './store';
 
 // Helper to convert snake_case Supabase row to camelCase RepairTicket
 export function mapRowToTicket(row: any): RepairTicket {
@@ -672,6 +674,121 @@ export async function fetchMilestonesFromSupabase(): Promise<MilestoneItem[] | n
   }
 }
 
+export function mapRowToEmployee(row: any): EmployeeItem {
+  return {
+    id: row.id || `emp-${Date.now()}`,
+    empCode: row.emp_code || '',
+    name: row.name || '',
+    phone: row.phone || '',
+    alternatePhone: row.alternate_phone || '',
+    email: row.email || '',
+    password: row.password_hash_or_plain || '',
+    address: row.address || '',
+    department: row.department || 'Admin',
+    designation: row.designation || 'Admin',
+    baseSalary: Number(row.base_salary) || 0,
+    joiningDate: row.joining_date || new Date().toISOString().split('T')[0],
+    emergencyContactName: row.emergency_contact_name || '',
+    emergencyContactPhone: row.emergency_contact_phone || '',
+    govtIdType: row.govt_id_type || 'Aadhaar Card',
+    govtIdNumber: row.govt_id_number || '',
+    idAttachment: row.id_attachment || '',
+    activeStatus: row.active_status || 'Active',
+    role: row.role || 'Admin',
+    permissions: row.permissions || adminEmployeePermissions,
+    bankAccountName: row.bank_account_name || '',
+    bankAccountNumber: row.bank_account_number || '',
+    bankName: row.bank_name || '',
+    bankBranch: row.bank_branch || '',
+    bankBranchCode: row.bank_branch_code || '',
+    bankIfscCode: row.bank_ifsc_code || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function fetchEmployeesFromSupabase(): Promise<EmployeeItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .order('emp_code', { ascending: true });
+    if (error) {
+      console.warn('fetchEmployeesFromSupabase error:', error);
+      return null;
+    }
+    return Array.isArray(data) ? data.map(mapRowToEmployee) : [];
+  } catch (err) {
+    console.warn('fetchEmployeesFromSupabase exception:', err);
+    return null;
+  }
+}
+
+export async function pushEmployeeToSupabase(emp: EmployeeItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: emp.id || `emp-${Date.now()}`,
+      emp_code: emp.empCode.trim().toUpperCase(),
+      name: emp.name.trim(),
+      phone: emp.phone || '',
+      alternate_phone: emp.alternatePhone || '',
+      email: emp.email || '',
+      password_hash_or_plain: emp.password || '',
+      address: emp.address || '',
+      department: emp.department || 'Admin',
+      designation: emp.designation || 'Admin',
+      base_salary: Number(emp.baseSalary) || 0,
+      joining_date: emp.joiningDate || new Date().toISOString().split('T')[0],
+      active_status: emp.activeStatus || 'Active',
+      govt_id_type: emp.govtIdType || 'Aadhaar Card',
+      govt_id_number: emp.govtIdNumber || '',
+      id_attachment: emp.idAttachment || '',
+      bank_account_name: emp.bankAccountName || '',
+      bank_account_number: emp.bankAccountNumber || '',
+      bank_name: emp.bankName || '',
+      bank_branch: emp.bankBranch || '',
+      bank_branch_code: emp.bankBranchCode || '',
+      bank_ifsc_code: emp.bankIfscCode || '',
+      role: emp.role || 'Admin',
+      permissions: emp.permissions || {},
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('employees').upsert(payload, { onConflict: 'emp_code' });
+    if (error) {
+      console.warn('pushEmployeeToSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('pushEmployeeToSupabase exception:', err);
+    return false;
+  }
+}
+
+export async function deleteEmployeeFromSupabase(id: string, empCode?: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    let query = supabase.from('employees').delete();
+    if (empCode && id) {
+      query = query.or(`id.eq.${id},emp_code.eq.${empCode.trim().toUpperCase()}`);
+    } else if (empCode) {
+      query = query.eq('emp_code', empCode.trim().toUpperCase());
+    } else {
+      query = query.eq('id', id);
+    }
+    const { error } = await query;
+    if (error) {
+      console.warn('deleteEmployeeFromSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('deleteEmployeeFromSupabase exception:', err);
+    return false;
+  }
+}
+
 /**
  * Sync entire ERP state exclusively from Supabase Cloud
  */
@@ -692,6 +809,7 @@ export async function syncEntireErpWithSupabase(store: any) {
       purchaseInvoices,
       blogs,
       milestones,
+      employees,
     ] = await Promise.all([
       fetchTicketsFromSupabase(),
       fetchInvoicesFromSupabase(),
@@ -706,6 +824,7 @@ export async function syncEntireErpWithSupabase(store: any) {
       fetchPurchaseInvoicesFromSupabase(),
       fetchBlogPostsFromSupabase(),
       fetchMilestonesFromSupabase(),
+      fetchEmployeesFromSupabase(),
     ]);
 
     if (Array.isArray(tickets) && store.setTickets) store.setTickets(tickets);
@@ -721,6 +840,7 @@ export async function syncEntireErpWithSupabase(store: any) {
     if (Array.isArray(purchaseInvoices) && store.setPurchaseInvoices) store.setPurchaseInvoices(purchaseInvoices);
     if (Array.isArray(blogs) && store.setBlogPosts) store.setBlogPosts(blogs);
     if (Array.isArray(milestones) && store.setMilestones) store.setMilestones(milestones);
+    if (Array.isArray(employees) && store.setEmployees) store.setEmployees(employees);
   } catch (err) {
     console.warn('Sync entire ERP with Supabase failed:', err);
   }

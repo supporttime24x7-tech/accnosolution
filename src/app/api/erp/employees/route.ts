@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         .select('*')
         .order('emp_code', { ascending: true });
 
-      if (!error && supaEmployees && supaEmployees.length > 0) {
+      if (!error && supaEmployees) {
         // Strip sensitive password hashes from the client response to prevent any potential theft
         const safeEmployees = supaEmployees.map((e: any) => ({
           id: e.id,

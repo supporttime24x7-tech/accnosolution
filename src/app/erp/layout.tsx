@@ -13,7 +13,12 @@ import {
 import { useErpStore } from '@/lib/store';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { syncEntireErpWithSupabase, fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
+import {
+  syncEntireErpWithSupabase,
+  fetchTicketsFromSupabase,
+  fetchInvoicesFromSupabase,
+  fetchEmployeesFromSupabase,
+} from '@/lib/supabase-sync';
 
 interface NavItem {
   name: string;
@@ -60,6 +65,7 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     outsourceVouchers = [],
     setTickets,
     setRepairInvoices,
+    setEmployees,
   } = useErpStore();
 
   useEffect(() => {
@@ -96,13 +102,14 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
               'accno_erp_blog_posts',
               'accno_erp_milestones',
               'accno_erp_accounting_vouchers',
+              'accno_erp_employees',
             ];
-            const hasCleaned = localStorage.getItem('accno_supabase_pure_cloud_v1');
-            if (!hasCleaned) {
+            const hasCleanedV2 = localStorage.getItem('accno_supabase_pure_cloud_v2');
+            if (!hasCleanedV2) {
               for (const k of legacyKeys) {
                 localStorage.removeItem(k);
               }
-              localStorage.setItem('accno_supabase_pure_cloud_v1', 'true');
+              localStorage.setItem('accno_supabase_pure_cloud_v2', 'true');
             }
           } catch (e) {}
         }
@@ -146,6 +153,17 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
             }
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'employees' },
+          async () => {
+            const freshEmps = await fetchEmployeesFromSupabase();
+            if (freshEmps && isSubscribed) {
+              setEmployees(freshEmps);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED' && isSubscribed) {
             setCloudSyncStatus('synced');
@@ -157,7 +175,7 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
         supabase?.removeChannel(channel);
       };
     }
-  }, [setTickets, setRepairInvoices]);
+  }, [setTickets, setRepairInvoices, setEmployees]);
 
   // Strict Client-Side Defense-in-Depth Auth Check
   useEffect(() => {

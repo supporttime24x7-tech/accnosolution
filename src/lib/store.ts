@@ -6,6 +6,8 @@ import {
   deleteInvoiceFromSupabase,
   pushBookRepairLeadToSupabase,
   pushSupportLeadToSupabase,
+  pushEmployeeToSupabase,
+  deleteEmployeeFromSupabase,
 } from './supabase-sync';
 
 export interface LineItemBilling {
@@ -1456,7 +1458,7 @@ export interface ErpStore {
 
   // Employees State & Actions
   employees: EmployeeItem[];
-  setEmployees?: (employees: EmployeeItem[]) => void;
+  setEmployees: (employees: EmployeeItem[]) => void;
   employeeRules: EmployeeRulesConfig;
   addEmployee: (emp: Omit<EmployeeItem, 'id' | 'empCode' | 'created_at'> & { empCode?: string }) => void;
   updateEmployee: (id: string, emp: Partial<EmployeeItem>) => void;
@@ -2628,121 +2630,11 @@ export const useErpStore = create<ErpState>((set, get) => ({
   }),
 
   // Employees State & Actions Implementation (Sensitive passwords & credentials secured in Supabase Cloud)
-  employees: loadFromStorage<EmployeeItem[]>('accno_erp_employees', [
-    {
-      id: 'emp-1001',
-      empCode: 'EMP-1001',
-      name: 'Deepak Kumar',
-      phone: '+91 9468781166',
-      alternatePhone: '+91 9587781166',
-      email: 'admin@accnosolution.com',
-      designation: 'Admin',
-      department: 'Admin',
-      joiningDate: '2020-06-15',
-      baseSalary: 45000,
-      activeStatus: 'Active',
-      address: 'Sanchore',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      govtIdType: 'Aadhaar Card',
-      govtIdNumber: '',
-      idAttachment: '',
-      bankAccountName: 'Deepak Kumar',
-      bankAccountNumber: '',
-      bankName: 'Bank of Baroda',
-      bankBranch: 'Main Branch',
-      bankBranchCode: '',
-      bankIfscCode: '',
-      role: 'Admin',
-      password: '',
-      permissions: adminEmployeePermissions,
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'emp-1002',
-      empCode: 'EMP-1002',
-      name: 'Priya Sharma',
-      phone: '+91 94191-22334',
-      alternatePhone: '',
-      email: 'priya.sharma@accnosolution.com',
-      designation: 'Store Manager & Billing Lead',
-      department: 'Billing & POS',
-      joiningDate: '2023-01-10',
-      baseSalary: 32000,
-      activeStatus: 'Active',
-      address: 'Jammu',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      govtIdType: 'PAN Card',
-      govtIdNumber: '',
-      idAttachment: '',
-      bankAccountName: 'Priya Sharma',
-      bankAccountNumber: '',
-      bankName: 'ICICI Bank',
-      bankBranch: 'Main Branch',
-      bankBranchCode: '',
-      bankIfscCode: '',
-      role: 'Billing Specialist',
-      password: '',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'emp-1003',
-      empCode: 'EMP-1003',
-      name: 'Rahul Gupta',
-      phone: '+91 94191-33445',
-      alternatePhone: '',
-      email: 'rahul.gupta@accnosolution.com',
-      designation: 'Hardware Diagnostic Specialist',
-      department: 'Technical Lab',
-      joiningDate: '2023-06-01',
-      baseSalary: 38000,
-      activeStatus: 'Active',
-      address: 'Jammu',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      govtIdType: '',
-      govtIdNumber: '',
-      idAttachment: '',
-      bankAccountName: 'Rahul Gupta',
-      bankAccountNumber: '',
-      bankName: 'State Bank of India',
-      bankBranch: '',
-      bankBranchCode: '',
-      bankIfscCode: '',
-      role: 'Technician',
-      password: '',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'emp-1004',
-      empCode: 'EMP-1004',
-      name: 'Sonia Mahajan',
-      phone: '+91 94191-44556',
-      alternatePhone: '',
-      email: 'sonia.m@accnosolution.com',
-      designation: 'Customer Support Executive',
-      department: 'Customer Support',
-      joiningDate: '2023-09-15',
-      baseSalary: 35000,
-      activeStatus: 'On Leave',
-      address: 'Jammu',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      govtIdType: '',
-      govtIdNumber: '',
-      idAttachment: '',
-      bankAccountName: 'Sonia Mahajan',
-      bankAccountNumber: '',
-      bankName: 'Axis Bank',
-      bankBranch: '',
-      bankBranchCode: '',
-      bankIfscCode: '',
-      role: 'Desk Manager',
-      password: '',
-      created_at: new Date().toISOString(),
-    },
-  ]),
+  employees: loadFromStorage<EmployeeItem[]>('accno_erp_employees', []),
+  setEmployees: (employees: EmployeeItem[]) => {
+    saveToStorage('accno_erp_employees', employees);
+    set({ employees });
+  },
   addEmployee: (empData) =>
     set((state: ErpState) => {
       const prefix = state.employeeRules?.employeePrefix || 'EMP-';
@@ -2757,18 +2649,32 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newEmp, ...state.employees];
       saveToStorage('accno_erp_employees', updated);
+      pushEmployeeToSupabase(newEmp).catch(() => {});
       return { employees: updated };
     }),
   updateEmployee: (id: string, empData: Partial<EmployeeItem>) =>
     set((state: ErpState) => {
-      const updated = state.employees.map((e: EmployeeItem) => (e.id === id ? { ...e, ...empData } : e));
+      let updatedTarget: EmployeeItem | null = null;
+      const updated = state.employees.map((e: EmployeeItem) => {
+        if (e.id === id || e.empCode === id) {
+          const merged = { ...e, ...empData };
+          updatedTarget = merged;
+          return merged;
+        }
+        return e;
+      });
       saveToStorage('accno_erp_employees', updated);
+      if (updatedTarget) {
+        pushEmployeeToSupabase(updatedTarget).catch(() => {});
+      }
       return { employees: updated };
     }),
   deleteEmployee: (id: string) =>
     set((state: ErpState) => {
-      const updated = state.employees.filter((e: EmployeeItem) => e.id !== id);
+      const target = state.employees.find((e: EmployeeItem) => e.id === id || e.empCode === id);
+      const updated = state.employees.filter((e: EmployeeItem) => e.id !== id && e.empCode !== id);
       saveToStorage('accno_erp_employees', updated);
+      deleteEmployeeFromSupabase(id, target?.empCode).catch(() => {});
       return { employees: updated };
     }),
   updateEmployeeRules: (rules: Partial<EmployeeRulesConfig>) =>

@@ -7,16 +7,22 @@ import {
   DollarSign, Shield, CheckCircle2, AlertTriangle, Edit3, Trash2,
   X, UserCheck, Briefcase, ChevronRight, Eye, EyeOff, KeyRound, UserPlus, PhoneCall,
   Landmark, FileText, ExternalLink, Settings, Sparkles, Building2,
-  CreditCard, FileCheck, ShieldAlert, ShieldCheck, Upload, AlertCircle
+  CreditCard, FileCheck, ShieldAlert, ShieldCheck, Upload, AlertCircle, RefreshCw
 } from 'lucide-react';
 import {
   useErpStore, EmployeeItem, EmployeePermissions,
   defaultEmployeePermissions, adminEmployeePermissions, viewOnlyPermissions
 } from '@/lib/store';
+import {
+  fetchEmployeesFromSupabase,
+  pushEmployeeToSupabase,
+  deleteEmployeeFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function EmployeesPage() {
   const {
     employees,
+    setEmployees,
     employeeRules,
     currentUser,
     addEmployee,
@@ -48,6 +54,32 @@ export default function EmployeesPage() {
   const [modalTab, setModalTab] = useState<'all' | 'permissions' | 'basic' | 'bank'>('all');
   const [showPassword, setShowPassword] = useState(false);
   const [showViewDrawerPassword, setShowViewDrawerPassword] = useState(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
+  const loadStaffFromCloud = async () => {
+    setIsCloudSyncing(true);
+    try {
+      const cloudEmps = await fetchEmployeesFromSupabase();
+      if (cloudEmps) {
+        setEmployees(cloudEmps);
+      } else {
+        const res = await fetch('/api/erp/employees');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.employees)) {
+          setEmployees(data.employees);
+        }
+      }
+    } catch (err) {
+      console.warn('Staff cloud sync failed:', err);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Immediate Cloud Synchronization on Component Mount
+  useEffect(() => {
+    loadStaffFromCloud();
+  }, []);
 
   const handleGeneratePassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$&';
@@ -461,6 +493,20 @@ export default function EmployeesPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={loadStaffFromCloud}
+            disabled={isCloudSyncing}
+            className={`px-3 py-2 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+              isCloudSyncing
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border-white/15'
+            }`}
+            title="Synchronize employee roster with Supabase Cloud"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isCloudSyncing ? 'animate-spin text-amber-400' : 'text-[#5ED29C]'}`} />
+            <span>{isCloudSyncing ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
           <Link
             href="/erp/settings?tab=employee_rules"
             className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white/80 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all"
