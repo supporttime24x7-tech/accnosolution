@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sync": "powershell -ExecutionPolicy Bypass -File ./auto-sync.ps1"
+    "sync": "powershell -ExecutionPolicy Bypass -File ./auto-sync.ps1",
+    "migrate:supabase": "node scripts/migrate-to-supabase.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
