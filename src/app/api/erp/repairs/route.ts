@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
+import { mapRowToTicket, mapTicketToRow } from '@/lib/supabase-sync';
+import type { RepairTicket } from '@/lib/store';
 
 export async function GET(req: NextRequest) {
   // ROUTE-LEVEL DEFENSE: Strict session verification for customer repair data
@@ -24,6 +27,31 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const statusFilter = url.searchParams.get('status');
+
+  if (supabaseAdmin && isSupabaseConfigured()) {
+    try {
+      let query = supabaseAdmin
+        .from('repair_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (statusFilter && statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+
+      const { data, error } = await query;
+      if (!error && Array.isArray(data)) {
+        const tickets = data.map(mapRowToTicket);
+        return NextResponse.json({
+          success: true,
+          data: tickets,
+          count: tickets.length,
+        });
+      }
+    } catch (e) {
+      console.warn('Supabase repair tickets GET exception:', e);
+    }
+  }
 
   const sampleTickets = [
     {
@@ -99,10 +127,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const createdTicket = {
-      id: `t-${Date.now()}`,
-      ticket_number: `ACC-2025-${Math.floor(8800 + Math.random() * 1000)}`,
-      barcode_data: `ACC${Math.floor(8800 + Math.random() * 1000)}`,
+    const createdTicket: RepairTicket = {
+      id: body.id || `t-${Date.now()}`,
+      ticket_number: body.ticket_number || `ACC-2025-${Math.floor(8800 + Math.random() * 1000)}`,
+      barcode_data: body.barcode_data || body.ticket_number || `ACC${Math.floor(8800 + Math.random() * 1000)}`,
       customer_name: body.customer_name || 'Walk-in Client',
       customer_phone: body.customer_phone || '+91 94191-00000',
       device_type: body.device_type || 'Laptop',
@@ -110,13 +138,40 @@ export async function POST(req: NextRequest) {
       model: body.model || 'Standard',
       serial_or_imei: body.serial_or_imei || 'N/A',
       problem_reported: body.problem_reported || 'Diagnostics required',
-      status: 'received',
+      status: body.status || 'received',
       priority: body.priority || 'normal',
       estimated_cost: Number(body.estimated_cost) || 0,
       advance_paid: Number(body.advance_paid) || 0,
       technician_name: body.technician_name || session.name || 'Unassigned',
-      created_at: new Date().toLocaleString(),
+      created_at: new Date().toISOString(),
+      customerType: body.customerType || 'RETAIL',
+      lineItems: body.lineItems || [],
+      outsourceCharges: Number(body.outsourceCharges) || 0,
+      freightCharges: Number(body.freightCharges) || 0,
+      discountAmount: Number(body.discountAmount) || 0,
+      gstTaxRate: Number(body.gstTaxRate) || 18,
+      subtotal: Number(body.subtotal) || 0,
+      taxableAmount: Number(body.taxableAmount) || 0,
+      cgstAmount: Number(body.cgstAmount) || 0,
+      sgstAmount: Number(body.sgstAmount) || 0,
+      roundOffAdjustment: Number(body.roundOffAdjustment) || 0,
+      grandTotal: Number(body.grandTotal) || 0,
+      netDueBalance: Number(body.netDueBalance) || 0,
+      physicalCondition: body.physicalCondition || '',
+      rackLocation: body.rackLocation || 'Shelf A-1',
+      paymentMethod: body.paymentMethod || 'CASH',
+      paymentStatus: body.paymentStatus || 'UNPAID',
+      warrantyStatement: body.warrantyStatement || '30 Days Parts & Labor Warranty',
+      deliveryStatus: body.deliveryStatus || 'IN REPAIR LAB',
+      deliveredTo: body.deliveredTo || '',
+      entryDate: body.entryDate || new Date().toISOString().split('T')[0],
+      estimatedDeliveryDate: body.estimatedDeliveryDate || '',
     };
+
+    if (supabaseAdmin && isSupabaseConfigured()) {
+      const row = mapTicketToRow(createdTicket);
+      await supabaseAdmin.from('repair_tickets').upsert(row, { onConflict: 'ticket_number' });
+    }
 
     return NextResponse.json({
       success: true,

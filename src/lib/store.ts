@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import {
+  pushTicketToSupabase,
+  deleteTicketFromSupabase,
+  pushInvoiceToSupabase,
+  deleteInvoiceFromSupabase,
+} from './supabase-sync';
 
 export interface LineItemBilling {
   id: string;
@@ -64,7 +70,7 @@ export interface RepairTicket {
 
   technician_name: string;
   entryDate: string;
-  estimatedDeliveryDate: string;
+  estimatedDeliveryDate?: string;
   actualDeliveryDate?: string;
 
   // Extended Intake Fields
@@ -1406,6 +1412,7 @@ export interface ErpStore {
   repairBillingRules: RepairBillingRulesConfig;
   activeFilter: string;
   setTickets: (tickets: RepairTicket[]) => void;
+  setRepairInvoices: (invoices: RepairInvoice[]) => void;
   addTicket: (ticketData: Omit<RepairTicket, 'id' | 'created_at' | 'barcode_data'> & { ticket_number?: string }) => void;
 
   updateTicket: (id: string, updatedData: Partial<RepairTicket>) => void;
@@ -1902,7 +1909,14 @@ export const useErpStore = create<ErpState>((set, get) => ({
   }),
 
   activeFilter: 'all',
-  setTickets: (tickets: RepairTicket[]) => set({ tickets }),
+  setTickets: (tickets: RepairTicket[]) => {
+    saveToStorage('accno_erp_tickets', tickets);
+    set({ tickets });
+  },
+  setRepairInvoices: (repairInvoices: RepairInvoice[]) => {
+    saveToStorage('accno_erp_repair_invoices', repairInvoices);
+    set({ repairInvoices });
+  },
   addTicket: (ticketData: Omit<RepairTicket, 'id' | 'created_at' | 'barcode_data'> & { ticket_number?: string }) =>
     set((state: ErpState) => {
       const prefix = state.repairBillingRules.repair_ticket_prefix || state.repairBillingRules.repair_bill_prefix || 'TKT-';
@@ -1920,6 +1934,11 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updatedTickets = [newTicket, ...state.tickets];
       saveToStorage('accno_erp_tickets', updatedTickets);
+      try {
+        pushTicketToSupabase(newTicket).catch((err) => console.warn('Supabase pushTicket error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
+      }
       return { tickets: updatedTickets };
     }),
   updateTicket: (id: string, updatedData: Partial<RepairTicket>) =>
@@ -1930,12 +1949,26 @@ export const useErpStore = create<ErpState>((set, get) => ({
           : t
       );
       saveToStorage('accno_erp_tickets', updatedTickets);
+      const target = updatedTickets.find((t: RepairTicket) => t.id === id || t.ticket_number === id);
+      if (target) {
+        try {
+          pushTicketToSupabase(target).catch((err) => console.warn('Supabase updateTicket error:', err));
+        } catch (e) {
+          console.warn('Sync failed:', e);
+        }
+      }
       return { tickets: updatedTickets };
     }),
   deleteTicket: (id: string) =>
     set((state: ErpState) => {
+      const target = state.tickets.find((t: RepairTicket) => t.id === id || t.ticket_number === id);
       const updatedTickets = state.tickets.filter((t: RepairTicket) => t.id !== id && t.ticket_number !== id);
       saveToStorage('accno_erp_tickets', updatedTickets);
+      try {
+        deleteTicketFromSupabase(id, target?.ticket_number).catch((err) => console.warn('Supabase deleteTicket error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
+      }
       return { tickets: updatedTickets };
     }),
   updateTicketStatus: (id: string, status: RepairTicket['status']) =>
@@ -1944,6 +1977,14 @@ export const useErpStore = create<ErpState>((set, get) => ({
         t.id === id || t.ticket_number === id ? { ...t, status } : t
       );
       saveToStorage('accno_erp_tickets', updatedTickets);
+      const target = updatedTickets.find((t: RepairTicket) => t.id === id || t.ticket_number === id);
+      if (target) {
+        try {
+          pushTicketToSupabase(target).catch((err) => console.warn('Supabase updateTicketStatus error:', err));
+        } catch (e) {
+          console.warn('Sync failed:', e);
+        }
+      }
       return { tickets: updatedTickets };
     }),
 
@@ -1976,6 +2017,14 @@ export const useErpStore = create<ErpState>((set, get) => ({
             : t
         );
         saveToStorage('accno_erp_tickets', updatedTickets);
+
+        try {
+          pushInvoiceToSupabase(merged).catch((err) => console.warn('Supabase pushInvoice error:', err));
+          const updatedT = updatedTickets.find((t) => t.id === ticketId || t.ticket_number === merged.ticketNumber);
+          if (updatedT) pushTicketToSupabase(updatedT).catch((err) => console.warn('Supabase pushTicket error:', err));
+        } catch (e) {
+          console.warn('Sync failed:', e);
+        }
 
         return { repairInvoices: updatedInvoices, tickets: updatedTickets };
       }
@@ -2014,6 +2063,14 @@ export const useErpStore = create<ErpState>((set, get) => ({
       saveToStorage('accno_erp_repair_invoices', updatedInvoices);
       saveToStorage('accno_erp_tickets', updatedTickets);
 
+      try {
+        pushInvoiceToSupabase(newInvoice).catch((err) => console.warn('Supabase pushInvoice error:', err));
+        const updatedT = updatedTickets.find((t) => t.id === ticketId || (newInvoice.ticketNumber && t.ticket_number === newInvoice.ticketNumber));
+        if (updatedT) pushTicketToSupabase(updatedT).catch((err) => console.warn('Supabase pushTicket error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
+      }
+
       return {
         repairInvoices: updatedInvoices,
         tickets: updatedTickets,
@@ -2024,6 +2081,14 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedInvoices = state.repairInvoices.map((inv: RepairInvoice) => (inv.id === id ? { ...inv, ...updatedData } : inv));
       saveToStorage('accno_erp_repair_invoices', updatedInvoices);
+      const target = updatedInvoices.find((inv) => inv.id === id);
+      if (target) {
+        try {
+          pushInvoiceToSupabase(target).catch((err) => console.warn('Supabase updateRepairInvoice error:', err));
+        } catch (e) {
+          console.warn('Sync failed:', e);
+        }
+      }
       return { repairInvoices: updatedInvoices };
     }),
 
@@ -2045,6 +2110,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
           return t;
         });
         saveToStorage('accno_erp_tickets', updatedTickets);
+      }
+
+      try {
+        deleteInvoiceFromSupabase(id, targetInv?.invoiceNumber).catch((err) => console.warn('Supabase deleteInvoice error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
       }
 
       return { repairInvoices: updatedInvoices, tickets: updatedTickets };

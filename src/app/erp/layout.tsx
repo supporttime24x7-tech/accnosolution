@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useErpStore } from '@/lib/store';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
 
 interface NavItem {
   name: string;
@@ -45,6 +47,7 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
   const [globalSearch, setGlobalSearch] = useState('');
   const [mounted, setMounted] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('syncing');
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -55,11 +58,84 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     inventory = [],
     tickets = [],
     outsourceVouchers = [],
+    setTickets,
+    setRepairInvoices,
   } = useErpStore();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Real-Time Supabase Cloud Sync & Cross-Browser Synchronization
+  useEffect(() => {
+    let isSubscribed = true;
+
+    async function syncFromCloud() {
+      if (!isSupabaseConfigured() || !supabase) {
+        setCloudSyncStatus('offline');
+        return;
+      }
+      try {
+        setCloudSyncStatus('syncing');
+        const [cloudTickets, cloudInvoices] = await Promise.all([
+          fetchTicketsFromSupabase(),
+          fetchInvoicesFromSupabase(),
+        ]);
+        if (isSubscribed) {
+          if (cloudTickets && cloudTickets.length > 0) {
+            setTickets(cloudTickets);
+          }
+          if (cloudInvoices) {
+            setRepairInvoices(cloudInvoices);
+          }
+          setCloudSyncStatus('synced');
+        }
+      } catch (err) {
+        console.warn('Initial cloud sync error:', err);
+        if (isSubscribed) setCloudSyncStatus('offline');
+      }
+    }
+
+    syncFromCloud();
+
+    // Supabase Realtime Channel Subscription
+    if (supabase && isSupabaseConfigured()) {
+      const channel = supabase
+        .channel('accno-erp-realtime-sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'repair_tickets' },
+          async () => {
+            const freshTickets = await fetchTicketsFromSupabase();
+            if (freshTickets && isSubscribed) {
+              setTickets(freshTickets);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'repair_invoices' },
+          async () => {
+            const freshInvoices = await fetchInvoicesFromSupabase();
+            if (freshInvoices && isSubscribed) {
+              setRepairInvoices(freshInvoices);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED' && isSubscribed) {
+            setCloudSyncStatus('synced');
+          }
+        });
+
+      return () => {
+        isSubscribed = false;
+        supabase?.removeChannel(channel);
+      };
+    }
+  }, [setTickets, setRepairInvoices]);
 
   // Strict Client-Side Defense-in-Depth Auth Check
   useEffect(() => {
@@ -491,9 +567,38 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center space-x-3">
-            <span className="hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Local Sync Active</span>
+            <span
+              className={`hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                cloudSyncStatus === 'synced'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : cloudSyncStatus === 'syncing'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+              }`}
+              title={
+                cloudSyncStatus === 'synced'
+                  ? 'Supabase Cloud Sync Active — Real-time bidirectional database synchronization'
+                  : cloudSyncStatus === 'syncing'
+                  ? 'Connecting to Supabase Cloud...'
+                  : 'Local Storage Mode'
+              }
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  cloudSyncStatus === 'synced'
+                    ? 'bg-emerald-400 animate-pulse'
+                    : cloudSyncStatus === 'syncing'
+                    ? 'bg-amber-400 animate-ping'
+                    : 'bg-slate-400'
+                }`}
+              />
+              <span>
+                {cloudSyncStatus === 'synced'
+                  ? 'Cloud Sync Active'
+                  : cloudSyncStatus === 'syncing'
+                  ? 'Syncing Cloud...'
+                  : 'Local Storage'}
+              </span>
             </span>
 
             <Link

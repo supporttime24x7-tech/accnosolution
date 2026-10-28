@@ -6,10 +6,11 @@ import {
   Smartphone, CheckCircle2, Clock, ChevronDown, Edit, Shield, Eye, X,
   Grid, MapPin, KeyRound, Lock, DollarSign, FileText, Check, AlertCircle, Receipt, Trash2,
   Camera, Upload, Image as ImageIcon, Sparkles, Tag, Sliders, Calendar, ArrowRight, Phone, Mail, Building,
-  MinusCircle, PlusCircle, LayoutGrid, List, Layers, Package
+  MinusCircle, PlusCircle, LayoutGrid, List, Layers, Package, Cloud, RotateCw
 } from 'lucide-react';
 import { useErpStore, RepairTicket, RepairInvoice, LineItemBilling, CustomerItem, InventoryItem, RepairBillingRulesConfig, HardwareRepairCatalogItem, RepairProcessStepItem } from '@/lib/store';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
+import { fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
 import QRCode from 'qrcode';
 
 // Interactive 3x3 Smartphone Pattern Lock Picker Component
@@ -247,10 +248,53 @@ export default function ErpRepairsPage() {
 
   const {
     tickets, repairInvoices, customers, inventory, employees = [], repairBillingRules, companyDetails, outsourceVouchers,
+    setTickets, setRepairInvoices,
     addTicket, updateTicket, updateTicketStatus, issueRepairInvoice, updateRepairInvoice, deleteRepairInvoice, deleteTicket, updateRepairBillingRules,
     hardwareRepairCatalog = [], addHardwareRepairCatalogItem, updateHardwareRepairCatalogItem, deleteHardwareRepairCatalogItem,
     repairProcessSteps = [], addRepairProcessStep, updateRepairProcessStep, deleteRepairProcessStep,
   } = useErpStore();
+
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+
+  const handleManualCloudSync = async () => {
+    setIsSyncingCloud(true);
+    try {
+      const [cloudTickets, cloudInvoices] = await Promise.all([
+        fetchTicketsFromSupabase(),
+        fetchInvoicesFromSupabase(),
+      ]);
+      if (cloudTickets && cloudTickets.length > 0) {
+        setTickets(cloudTickets);
+      }
+      if (cloudInvoices) {
+        setRepairInvoices(cloudInvoices);
+      }
+    } catch (e) {
+      console.warn('Manual sync error:', e);
+    } finally {
+      setIsSyncingCloud(false);
+    }
+  };
+
+  useEffect(() => {
+    async function initCloudSync() {
+      try {
+        const [cloudTickets, cloudInvoices] = await Promise.all([
+          fetchTicketsFromSupabase(),
+          fetchInvoicesFromSupabase(),
+        ]);
+        if (cloudTickets && cloudTickets.length > 0) {
+          setTickets(cloudTickets);
+        }
+        if (cloudInvoices) {
+          setRepairInvoices(cloudInvoices);
+        }
+      } catch (err) {
+        console.warn('Initial cloud sync on repairs page failed:', err);
+      }
+    }
+    initCloudSync();
+  }, [setTickets, setRepairInvoices]);
 
   const [activeTab, setActiveTab] = useState<'active_queue' | 'invoices_archive' | 'website_repair_catalog' | 'website_repair_process'>('active_queue');
   
@@ -1715,35 +1759,48 @@ export default function ErpRepairsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            const autoTicketNo = `TKT-${1001 + tickets.length + repairInvoices.length}`;
-            setNewTicket((prev) => ({
-              ...prev,
-              manualTicketNo: autoTicketNo,
-              entryDate: new Date().toISOString().split('T')[0],
-              customer_name: '',
-              customer_phone: '',
-              customerAlternatePhone: '',
-              customerEmail: '',
-              customerGstin: '',
-              customerCompanyName: '',
-              customerAddress: '',
-              problem_reported: '',
-              requestedWork: '',
-              advance_paid: 0,
-              assignedTechnician: prev.assignedTechnician || effectiveTechOptions[0] || '',
-            }));
-            setIntakeServiceParts([]);
-            setIntakeRetailParts([]);
-            setCustomerSearchQuery('');
-            setShowCreateModal(true);
-          }}
-          className="px-5 py-2.5 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          Create Repair Ticket
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleManualCloudSync}
+            disabled={isSyncingCloud}
+            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs transition-all flex items-center gap-2 disabled:opacity-50"
+            title="Force refresh data directly from Supabase Cloud Database"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-[#5ED29C] ${isSyncingCloud ? 'animate-spin' : ''}`} />
+            <span>{isSyncingCloud ? 'Syncing...' : 'Cloud Sync'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              const autoTicketNo = `TKT-${1001 + tickets.length + repairInvoices.length}`;
+              setNewTicket((prev) => ({
+                ...prev,
+                manualTicketNo: autoTicketNo,
+                entryDate: new Date().toISOString().split('T')[0],
+                customer_name: '',
+                customer_phone: '',
+                customerAlternatePhone: '',
+                customerEmail: '',
+                customerGstin: '',
+                customerCompanyName: '',
+                customerAddress: '',
+                problem_reported: '',
+                requestedWork: '',
+                advance_paid: 0,
+                assignedTechnician: prev.assignedTechnician || effectiveTechOptions[0] || '',
+              }));
+              setIntakeServiceParts([]);
+              setIntakeRetailParts([]);
+              setCustomerSearchQuery('');
+              setShowCreateModal(true);
+            }}
+            className="px-5 py-2.5 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Create Repair Ticket
+          </button>
+        </div>
       </div>
 
       {/* Tabs Switcher */}
