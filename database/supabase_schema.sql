@@ -538,40 +538,77 @@ ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_profile ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read & write access for authorized application usage
-CREATE POLICY "Public Read All" ON employees FOR SELECT USING (true);
-CREATE POLICY "Admin Full Access" ON employees FOR ALL USING (true);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "Public Read All" ON employees;
+    CREATE POLICY "Public Read All" ON employees FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Full Access" ON employees;
+    CREATE POLICY "Admin Full Access" ON employees FOR ALL USING (true);
 
-CREATE POLICY "Public Read Customers" ON customers FOR SELECT USING (true);
-CREATE POLICY "Public Manage Customers" ON customers FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Read Customers" ON customers;
+    CREATE POLICY "Public Read Customers" ON customers FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Public Manage Customers" ON customers;
+    CREATE POLICY "Public Manage Customers" ON customers FOR ALL USING (true);
 
-CREATE POLICY "Public Read Tickets" ON repair_tickets FOR SELECT USING (true);
-CREATE POLICY "Public Manage Tickets" ON repair_tickets FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Read Tickets" ON repair_tickets;
+    CREATE POLICY "Public Read Tickets" ON repair_tickets FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Public Manage Tickets" ON repair_tickets;
+    CREATE POLICY "Public Manage Tickets" ON repair_tickets FOR ALL USING (true);
 
-CREATE POLICY "Public Read Invoices" ON repair_invoices FOR SELECT USING (true);
-CREATE POLICY "Public Manage Invoices" ON repair_invoices FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Read Invoices" ON repair_invoices;
+    CREATE POLICY "Public Read Invoices" ON repair_invoices FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Public Manage Invoices" ON repair_invoices;
+    CREATE POLICY "Public Manage Invoices" ON repair_invoices FOR ALL USING (true);
 
-CREATE POLICY "Public Outsource" ON outsource_vouchers FOR ALL USING (true);
-CREATE POLICY "Public Recovery" ON data_recovery_cases FOR ALL USING (true);
-CREATE POLICY "Public AMC" ON amc_contracts FOR ALL USING (true);
-CREATE POLICY "Public Complaints" ON amc_complaint_tickets FOR ALL USING (true);
-CREATE POLICY "Public Inventory" ON inventory_items FOR ALL USING (true);
-CREATE POLICY "Public Suppliers" ON suppliers FOR ALL USING (true);
-CREATE POLICY "Public Sales" ON sales_invoices FOR ALL USING (true);
-CREATE POLICY "Public Purchases" ON purchase_invoices FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Outsource" ON outsource_vouchers;
+    CREATE POLICY "Public Outsource" ON outsource_vouchers FOR ALL USING (true);
 
-CREATE POLICY "Public Read Leads" ON support_leads FOR SELECT USING (true);
-CREATE POLICY "Public Insert Leads" ON support_leads FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admin Manage Leads" ON support_leads FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Recovery" ON data_recovery_cases;
+    CREATE POLICY "Public Recovery" ON data_recovery_cases FOR ALL USING (true);
 
-CREATE POLICY "Public Read Bookings" ON book_repair_leads FOR SELECT USING (true);
-CREATE POLICY "Public Insert Bookings" ON book_repair_leads FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admin Manage Bookings" ON book_repair_leads FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public AMC" ON amc_contracts;
+    CREATE POLICY "Public AMC" ON amc_contracts FOR ALL USING (true);
 
-CREATE POLICY "Public Read Blogs" ON blog_posts FOR SELECT USING (true);
-CREATE POLICY "Admin Manage Blogs" ON blog_posts FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Complaints" ON amc_complaint_tickets;
+    CREATE POLICY "Public Complaints" ON amc_complaint_tickets FOR ALL USING (true);
 
-CREATE POLICY "Public Read Milestones" ON milestones FOR SELECT USING (true);
-CREATE POLICY "Admin Manage Milestones" ON milestones FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Inventory" ON inventory_items;
+    CREATE POLICY "Public Inventory" ON inventory_items FOR ALL USING (true);
 
-CREATE POLICY "Public Read Profile" ON company_profile FOR SELECT USING (true);
-CREATE POLICY "Admin Manage Profile" ON company_profile FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Public Suppliers" ON suppliers;
+    CREATE POLICY "Public Suppliers" ON suppliers FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Sales" ON sales_invoices;
+    CREATE POLICY "Public Sales" ON sales_invoices FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Purchases" ON purchase_invoices;
+    CREATE POLICY "Public Purchases" ON purchase_invoices FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Read Leads" ON support_leads;
+    CREATE POLICY "Public Read Leads" ON support_leads FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Public Insert Leads" ON support_leads;
+    CREATE POLICY "Public Insert Leads" ON support_leads FOR INSERT WITH CHECK (true);
+    DROP POLICY IF EXISTS "Admin Manage Leads" ON support_leads;
+    CREATE POLICY "Admin Manage Leads" ON support_leads FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Read Bookings" ON book_repair_leads;
+    CREATE POLICY "Public Read Bookings" ON book_repair_leads FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Public Insert Bookings" ON book_repair_leads;
+    CREATE POLICY "Public Insert Bookings" ON book_repair_leads FOR INSERT WITH CHECK (true);
+    DROP POLICY IF EXISTS "Admin Manage Bookings" ON book_repair_leads;
+    CREATE POLICY "Admin Manage Bookings" ON book_repair_leads FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Read Blogs" ON blog_posts;
+    CREATE POLICY "Public Read Blogs" ON blog_posts FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Manage Blogs" ON blog_posts;
+    CREATE POLICY "Admin Manage Blogs" ON blog_posts FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Read Milestones" ON milestones;
+    CREATE POLICY "Public Read Milestones" ON milestones FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Manage Milestones" ON milestones;
+    CREATE POLICY "Admin Manage Milestones" ON milestones FOR ALL USING (true);
+
+    DROP POLICY IF EXISTS "Public Read Profile" ON company_profile;
+    CREATE POLICY "Public Read Profile" ON company_profile FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Manage Profile" ON company_profile;
+    CREATE POLICY "Admin Manage Profile" ON company_profile FOR ALL USING (true);
+END $$;
