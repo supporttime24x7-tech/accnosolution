@@ -4,18 +4,31 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Cpu, Sparkles, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { useErpStore } from '@/lib/store';
+import { fetchTicketsFromSupabase } from '@/lib/supabase-sync';
 
 export const Hero: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const [ticketIndex, setTicketIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const tickets = useErpStore((state) => state.tickets);
   const repairInvoices = useErpStore((state) => state.repairInvoices);
+  const setTickets = useErpStore((state) => state.setTickets);
+
+  useEffect(() => {
+    setMounted(true);
+    async function loadLiveTickets() {
+      try {
+        const cloudTickets = await fetchTicketsFromSupabase();
+        if (Array.isArray(cloudTickets)) {
+          setTickets(cloudTickets);
+        }
+      } catch (err) {
+        console.warn('Hero live ticket sync:', err);
+      }
+    }
+    loadLiveTickets();
+  }, [setTickets]);
 
   // Filter out tickets that have already been converted into repair bills / invoices
   const unbilledTickets = tickets.filter((t) => {

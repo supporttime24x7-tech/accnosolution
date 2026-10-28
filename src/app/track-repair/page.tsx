@@ -9,6 +9,7 @@ import {
   User, CheckCircle, RefreshCw, Layers
 } from 'lucide-react';
 import { useErpStore } from '@/lib/store';
+import { searchTicketFromSupabase } from '@/lib/supabase-sync';
 
 export default function TrackRepairPage() {
   const [mounted, setMounted] = useState(false);
@@ -35,7 +36,7 @@ export default function TrackRepairPage() {
     return phoneStr.replace(/[^0-9]/g, '');
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -51,41 +52,30 @@ export default function TrackRepairPage() {
     }
 
     if (trackType === 'repair') {
-      // Search in Repair Tickets
-      const found = tickets.find((t) => {
+      // 1. Search in local state first
+      let found = tickets.find((t) => {
         const ticketMatch = tQuery ? t.ticket_number.toLowerCase().includes(tQuery) || (t.barcode_data && t.barcode_data.toLowerCase().includes(tQuery)) : true;
         const phoneMatch = pQuery ? normalizePhone(t.customer_phone).includes(pQuery) : true;
         return ticketMatch && phoneMatch;
       });
 
+      // 2. If not found in local memory, query live Supabase database!
+      if (!found) {
+        try {
+          const cloudTicket = await searchTicketFromSupabase(tQuery, pQuery);
+          if (cloudTicket) {
+            found = cloudTicket;
+          }
+        } catch (err) {
+          console.warn('Supabase ticket live search error:', err);
+        }
+      }
+
       if (found) {
         setSearchedTicket(found);
-        setSuccessMsg(`Repair Ticket #${found.ticket_number} verified successfully!`);
+        setSuccessMsg(`Repair Ticket #${found.ticket_number} verified live from cloud database!`);
       } else {
-        // Demo fallback result for preview matching inputs
-        if (tQuery || pQuery) {
-          setSearchedTicket({
-            id: 'demo-repair-1',
-            ticket_number: tQuery ? tQuery.toUpperCase() : 'TKT-1001',
-            customer_name: 'Verified Customer',
-            customer_phone: mobileNumberInput || '+91 80900 20060',
-            device_type: 'MacBook Pro M1 (16-inch)',
-            brand: 'Apple Silicon',
-            model: 'A2485',
-            serial_or_imei: 'C02F1299Q12',
-            problem_reported: 'No power on charging, logic board micro-soldering & PMIC repair required',
-            status: 'in_progress',
-            priority: 'high',
-            estimated_cost: 9500,
-            advance_paid: 2000,
-            technician_name: 'Deepak Kumar',
-            created_at: '2026-08-15 11:30 AM',
-            entryDate: '2026-08-15',
-          });
-          setSuccessMsg('Record found matching your search parameters!');
-        } else {
-          setErrorMsg('No matching repair ticket found for the specified Ticket # and Mobile Number.');
-        }
+        setErrorMsg('No matching repair ticket found for the specified Ticket # and Mobile Number.');
       }
     } else {
       // Search in Data Recovery Cases

@@ -263,10 +263,10 @@ export default function ErpRepairsPage() {
         fetchTicketsFromSupabase(),
         fetchInvoicesFromSupabase(),
       ]);
-      if (cloudTickets && cloudTickets.length > 0) {
+      if (Array.isArray(cloudTickets)) {
         setTickets(cloudTickets);
       }
-      if (cloudInvoices) {
+      if (Array.isArray(cloudInvoices)) {
         setRepairInvoices(cloudInvoices);
       }
     } catch (e) {
@@ -283,10 +283,10 @@ export default function ErpRepairsPage() {
           fetchTicketsFromSupabase(),
           fetchInvoicesFromSupabase(),
         ]);
-        if (cloudTickets && cloudTickets.length > 0) {
+        if (Array.isArray(cloudTickets)) {
           setTickets(cloudTickets);
         }
-        if (cloudInvoices) {
+        if (Array.isArray(cloudInvoices)) {
           setRepairInvoices(cloudInvoices);
         }
       } catch (err) {

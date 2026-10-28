@@ -53,54 +53,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const sampleTickets = [
-    {
-      id: 't-1',
-      ticket_number: 'ACC-2025-8801',
-      barcode_data: 'ACC8801',
-      customer_name: 'Rajesh Kumar (Tech Logics)',
-      customer_phone: '+919876543210',
-      device_type: 'MacBook Pro M2',
-      brand: 'Apple',
-      model: 'A2442',
-      serial_or_imei: 'C02G1234MD6R',
-      problem_reported: 'Screen flickering & Liquid Spill on keyboard trackpad',
-      status: 'in_progress',
-      priority: 'urgent',
-      estimated_cost: 18500,
-      advance_paid: 5000,
-      technician_name: 'Deepak Kumar',
-      created_at: '2025-05-10 10:30 AM',
-    },
-    {
-      id: 't-2',
-      ticket_number: 'ACC-2025-8802',
-      barcode_data: 'ACC8802',
-      customer_name: 'Dr. Anita Roy',
-      customer_phone: '+919419112233',
-      device_type: 'Data Recovery (Seagate 2TB HDD)',
-      brand: 'Seagate',
-      model: 'ST2000LM015',
-      serial_or_imei: 'Z3901XQP',
-      problem_reported: 'Clicking sound from drive. Heads stuck. Hospital records recovery.',
-      status: 'diagnosing',
-      priority: 'urgent',
-      estimated_cost: 14000,
-      advance_paid: 3000,
-      technician_name: 'Rahul Gupta',
-      created_at: '2025-05-11 11:15 AM',
-    },
-  ];
-
-  let filtered = sampleTickets;
-  if (statusFilter && statusFilter !== 'all') {
-    filtered = filtered.filter((t) => t.status === statusFilter);
-  }
-
   return NextResponse.json({
     success: true,
-    data: filtered,
-    count: filtered.length,
+    data: [],
+    count: 0,
   });
 }
 

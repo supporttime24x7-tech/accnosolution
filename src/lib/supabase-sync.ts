@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { RepairTicket, RepairInvoice } from './store';
+import type { RepairTicket, RepairInvoice, BookRepairLeadItem, SupportLeadItem } from './store';
 
 // Helper to convert snake_case Supabase row to camelCase RepairTicket
 export function mapRowToTicket(row: any): RepairTicket {
@@ -350,5 +350,102 @@ export async function deleteInvoiceFromSupabase(id: string, invoiceNumber?: stri
   } catch (err) {
     console.error('Exception deleting invoice from Supabase:', err);
     return false;
+  }
+}
+
+/**
+ * Push Book Repair Online lead directly to Supabase
+ */
+export async function pushBookRepairLeadToSupabase(lead: BookRepairLeadItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const row = {
+      id: lead.id,
+      booking_no: lead.bookingNo,
+      customer_name: lead.name,
+      phone: lead.phone,
+      email: lead.email || null,
+      address: lead.address || null,
+      device_type: lead.deviceType,
+      brand: lead.brand || null,
+      model: lead.model || null,
+      problem_reported: lead.problemDescription || '',
+      service_mode: lead.serviceMode || 'Store Drop-off',
+      status: lead.status || 'New Booking',
+      created_at: lead.created_at || new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('book_repair_leads')
+      .upsert(row, { onConflict: 'booking_no' });
+
+    if (error) {
+      console.warn('Failed to sync book repair lead to Supabase:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Exception syncing book repair lead to Supabase:', err);
+    return false;
+  }
+}
+
+/**
+ * Push Contact / Support lead directly to Supabase
+ */
+export async function pushSupportLeadToSupabase(lead: SupportLeadItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const row = {
+      id: lead.id,
+      lead_name: lead.lead_name,
+      phone: lead.phone,
+      email: lead.email || null,
+      company: lead.company || null,
+      service_interested: lead.service_interested || lead.subject || 'General Inquiry',
+      status: lead.status || 'new',
+      source: lead.source || 'Website Form',
+      notes: `${lead.subject ? lead.subject + ': ' : ''}${lead.message || ''}`,
+      created_at: lead.created_at || new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from('support_leads').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.warn('Failed to sync support lead to Supabase:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Exception syncing support lead to Supabase:', err);
+    return false;
+  }
+}
+
+/**
+ * Direct Live Lookup for Customer Track Status
+ */
+export async function searchTicketFromSupabase(query?: string, phone?: string): Promise<RepairTicket | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    let q = supabase.from('repair_tickets').select('*');
+    const cleanPhone = phone ? phone.replace(/[^0-9]/g, '') : '';
+    const cleanQuery = query ? query.trim() : '';
+
+    if (cleanQuery && cleanPhone) {
+      q = q.or(`ticket_number.ilike.%${cleanQuery}%,barcode_data.ilike.%${cleanQuery}%`).ilike('customer_phone', `%${cleanPhone}%`);
+    } else if (cleanQuery) {
+      q = q.or(`ticket_number.ilike.%${cleanQuery}%,barcode_data.ilike.%${cleanQuery}%`);
+    } else if (cleanPhone) {
+      q = q.ilike('customer_phone', `%${cleanPhone}%`);
+    } else {
+      return null;
+    }
+
+    const { data, error } = await q.limit(1);
+    if (error || !data || data.length === 0) return null;
+    return mapRowToTicket(data[0]);
+  } catch (e) {
+    console.warn('Search ticket in Supabase exception:', e);
+    return null;
   }
 }

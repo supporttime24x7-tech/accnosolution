@@ -82,10 +82,10 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
           fetchInvoicesFromSupabase(),
         ]);
         if (isSubscribed) {
-          if (cloudTickets && cloudTickets.length > 0) {
+          if (Array.isArray(cloudTickets)) {
             setTickets(cloudTickets);
           }
-          if (cloudInvoices) {
+          if (Array.isArray(cloudInvoices)) {
             setRepairInvoices(cloudInvoices);
           }
           setCloudSyncStatus('synced');

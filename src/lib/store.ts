@@ -4,6 +4,8 @@ import {
   deleteTicketFromSupabase,
   pushInvoiceToSupabase,
   deleteInvoiceFromSupabase,
+  pushBookRepairLeadToSupabase,
+  pushSupportLeadToSupabase,
 } from './supabase-sync';
 
 export interface LineItemBilling {
@@ -1701,160 +1703,9 @@ function saveToStorage<T>(key: string, value: T): void {
 }
 
 export const useErpStore = create<ErpState>((set, get) => ({
-  // Repair Tickets Initial State
-  tickets: (() => {
-    const loaded = loadFromStorage<RepairTicket[]>('accno_erp_tickets', [
-      {
-        id: 't-1001',
-        ticket_number: 'TKT-1001',
-        barcode_data: 'TKT1001',
-        customer_name: 'Rajesh Kumar (Tech Logics)',
-        customer_phone: '+91 98765-43210',
-        customerAlternatePhone: '+91 94191-88776',
-        customerEmail: 'rajesh@techlogics.in',
-        customerGstin: '01AAAAA0000A1Z5',
-        customerAddress: 'Plot 42, Sector 3, Industrial Area, Jammu',
-        customerType: 'CORPORATE',
-
-        device_type: 'MacBook Pro M2',
-        brand: 'Apple',
-        model: 'A2442 (14-inch 2022)',
-        serial_or_imei: 'C02G1234MD6R',
-        passwordLock: 'mac2025@pass',
-        patternLockSequence: [0, 1, 2, 5, 8], // Z pattern
-        rackLocation: 'Shelf A-3, Bin 04',
-        problem_reported: 'MacBook Pro M2 Motherboard Repair - Logic Board Micro-soldering',
-        physicalCondition: 'Minor bezel scratches. Moisture indicator turned pink near USB-C port.',
-
-        status: 'in_progress',
-        priority: 'urgent',
-        progressPercentage: 78,
-
-        lineItems: [
-          { id: 'li-1', description: 'MacBook M2 Motherboard Liquid Damage Micro-soldering', hsnCode: '998713', quantity: 1, unitPrice: 12500, total: 12500, itemType: 'service' },
-          { id: 'li-2', description: 'Apple OEM Force Touch Trackpad Assembly', hsnCode: '84733020', quantity: 1, unitPrice: 6000, total: 6000, itemType: 'part' },
-        ],
-        outsourceCharges: 0,
-        freightCharges: 0,
-        estimated_cost: 18500,
-        advance_paid: 5000,
-        discountAmount: 500,
-        gstTaxRate: 18,
-        subtotal: 18000,
-        taxableAmount: 18000,
-        cgstAmount: 1620,
-        sgstAmount: 1620,
-        roundOffAdjustment: -0.24,
-        grandTotal: 21239,
-        netDueBalance: 16239,
-
-        paymentMethod: 'UPI',
-        paymentStatus: 'PARTIAL',
-        warrantyStatement: '30 Days Parts & Labor Warranty',
-        deliveredTo: '',
-        deliveryStatus: 'IN REPAIR LAB',
-        afterServiceRemarks: 'Replaced power IC controller and trackpad flex cable.',
-
-        technician_name: 'Deepak Kumar',
-        entryDate: '2025-05-10',
-        estimatedDeliveryDate: '2025-05-14',
-        created_at: '2025-05-10 10:30 AM',
-      },
-      {
-        id: 't-1002',
-        ticket_number: 'TKT-1002',
-        barcode_data: 'TKT1002',
-        customer_name: 'Dr. Anita Roy',
-        customer_phone: '+91 94191-12233',
-        customerAlternatePhone: '+91 94191-12234',
-        customerEmail: 'anita@royhospital.org',
-        customerGstin: '01BBBBB1111B2Z6',
-        customerAddress: 'Channi Himmat Main Road, Jammu',
-        customerType: 'CORPORATE',
-
-        device_type: 'Data Recovery (Seagate 2TB HDD)',
-        brand: 'Seagate',
-        model: 'ST2000LM015',
-        serial_or_imei: 'Z3901XQP',
-        passwordLock: 'N/A',
-        patternLockSequence: [],
-        rackLocation: 'Cleanroom Safe Locker 02',
-        problem_reported: 'Clicking sound from drive. Heads stuck. Hospital records recovery.',
-        physicalCondition: 'Sealed drive casing intact. No prior opening marks.',
-
-        status: 'diagnosing',
-        priority: 'urgent',
-
-        lineItems: [
-          { id: 'li-3', description: 'Class-100 Cleanroom Mechanical Head Replacement & Data Extraction', hsnCode: '998713', quantity: 1, unitPrice: 14000, total: 14000, itemType: 'service' },
-        ],
-        outsourceCharges: 3200,
-        freightCharges: 350,
-        estimated_cost: 17550,
-        advance_paid: 3000,
-        discountAmount: 0,
-        gstTaxRate: 18,
-        subtotal: 17550,
-        taxableAmount: 17550,
-        cgstAmount: 1579.5,
-        sgstAmount: 1579.5,
-        roundOffAdjustment: 0,
-        grandTotal: 20709,
-        netDueBalance: 17709,
-
-        paymentMethod: 'NETBANKING',
-        paymentStatus: 'PARTIAL',
-        warrantyStatement: 'Data Recovery Guarantee - No Data No Fee',
-        deliveredTo: '',
-        deliveryStatus: 'DIAGNOSING IN CLEANROOM',
-        afterServiceRemarks: 'Donor drive head assembly received from Delhi lab.',
-
-        technician_name: 'Rahul Gupta',
-        entryDate: '2025-05-11',
-        estimatedDeliveryDate: '2025-05-16',
-        created_at: '2025-05-11 11:15 AM',
-      }
-    ]);
-    return loaded;
-  })(),
-  repairInvoices: loadFromStorage('accno_erp_repair_invoices', [
-    {
-      id: 'inv-1001',
-      invoiceNumber: 'TKT-3001',
-      ticketId: 't-1002',
-      ticketNumber: 'TKT-1002',
-      invoiceDate: new Date().toISOString().split('T')[0],
-      customerName: 'Dr. Anita Roy',
-      customerPhone: '+91 94191-12233',
-      customerGstin: '01BBBBB1111B2Z6',
-      customerType: 'CORPORATE',
-      deviceType: 'Data Recovery (Seagate 2TB HDD)',
-      brand: 'Seagate',
-      model: 'ST2000LM015',
-      serial_or_imei: 'Z3901XQP',
-      lineItems: [
-        { id: 'li-3', description: 'Class-100 Cleanroom Mechanical Head Replacement & Data Extraction', hsnCode: '998713', quantity: 1, unitPrice: 14000, total: 14000, itemType: 'service' },
-      ],
-      outsourceCharges: 3200,
-      freightCharges: 350,
-      subtotal: 17550,
-      discountAmount: 0,
-      taxableAmount: 17550,
-      gstTaxRate: 18,
-      cgstAmount: 1579.5,
-      sgstAmount: 1579.5,
-      roundOffAdjustment: 0,
-      grandTotal: 20709,
-      advancePaid: 3000,
-      netDueBalance: 17709,
-      paymentMethod: 'NETBANKING',
-      paymentStatus: 'PAID',
-      warrantyStatement: '30 Days Parts & Labor Warranty',
-      deliveredTo: 'Dr. Anita Roy',
-      deliveryStatus: 'DELIVERED TO CUSTOMER',
-      afterServiceRemarks: 'Donor drive head assembly received from Delhi lab.',
-    }
-  ]),
+  // Repair Tickets & Invoices Initial State (Hydrated dynamically from Supabase Cloud)
+  tickets: loadFromStorage<RepairTicket[]>('accno_erp_tickets', []),
+  repairInvoices: loadFromStorage<RepairInvoice[]>('accno_erp_repair_invoices', []),
 
   // Repair Billing / Ticket Rules Configuration
   repairBillingRules: loadFromStorage('accno_erp_repair_billing_rules', {
@@ -4476,6 +4327,11 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newLead, ...state.supportLeads];
       saveToStorage('accno_erp_support_leads', updated);
+      try {
+        pushSupportLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushSupportLead error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
+      }
       return { supportLeads: updated };
     }),
 
@@ -4536,6 +4392,11 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newLead, ...state.bookRepairLeads];
       saveToStorage('accno_erp_book_repair_leads', updated);
+      try {
+        pushBookRepairLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushBookRepairLead error:', err));
+      } catch (e) {
+        console.warn('Sync failed:', e);
+      }
       return { bookRepairLeads: updated };
     }),
 
