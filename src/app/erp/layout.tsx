@@ -13,7 +13,7 @@ import {
 import { useErpStore } from '@/lib/store';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
+import { syncEntireErpWithSupabase, fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
 
 interface NavItem {
   name: string;
@@ -77,17 +77,39 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
       }
       try {
         setCloudSyncStatus('syncing');
-        const [cloudTickets, cloudInvoices] = await Promise.all([
-          fetchTicketsFromSupabase(),
-          fetchInvoicesFromSupabase(),
-        ]);
+
+        // One-time client cleanup of legacy hardcoded sample localStorage items
+        if (typeof window !== 'undefined') {
+          try {
+            const legacyKeys = [
+              'accno_erp_tickets',
+              'accno_erp_repair_invoices',
+              'accno_erp_outsource_vouchers',
+              'accno_erp_data_recovery_cases',
+              'accno_erp_amc_contracts',
+              'accno_erp_inventory',
+              'accno_erp_customers',
+              'accno_erp_sales_invoices',
+              'accno_erp_purchase_invoices',
+              'accno_erp_support_leads',
+              'accno_erp_book_repair_leads',
+              'accno_erp_blog_posts',
+              'accno_erp_milestones',
+              'accno_erp_accounting_vouchers',
+            ];
+            const hasCleaned = localStorage.getItem('accno_supabase_pure_cloud_v1');
+            if (!hasCleaned) {
+              for (const k of legacyKeys) {
+                localStorage.removeItem(k);
+              }
+              localStorage.setItem('accno_supabase_pure_cloud_v1', 'true');
+            }
+          } catch (e) {}
+        }
+
+        const store = useErpStore.getState();
+        await syncEntireErpWithSupabase(store);
         if (isSubscribed) {
-          if (Array.isArray(cloudTickets)) {
-            setTickets(cloudTickets);
-          }
-          if (Array.isArray(cloudInvoices)) {
-            setRepairInvoices(cloudInvoices);
-          }
           setCloudSyncStatus('synced');
         }
       } catch (err) {

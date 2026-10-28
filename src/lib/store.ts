@@ -1379,12 +1379,14 @@ export interface QuotationItem {
 export interface ErpStore {
   // Sales Invoices State
   salesInvoices: SalesInvoiceItem[];
+  setSalesInvoices: (invoices: SalesInvoiceItem[]) => void;
   addSalesInvoice: (invoice: Omit<SalesInvoiceItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateSalesInvoice: (id: string, updated: Partial<SalesInvoiceItem>) => void;
   deleteSalesInvoice: (id: string) => void;
 
   // Purchase Invoices State
   purchaseInvoices: PurchaseInvoiceItem[];
+  setPurchaseInvoices: (invoices: PurchaseInvoiceItem[]) => void;
   addPurchaseInvoice: (bill: Omit<PurchaseInvoiceItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updatePurchaseInvoice: (id: string, updated: Partial<PurchaseInvoiceItem>) => void;
   deletePurchaseInvoice: (id: string) => void;
@@ -1427,6 +1429,7 @@ export interface ErpStore {
 
   // Outsourced Repairs State & Rules
   outsourceVouchers: OutsourceVoucher[];
+  setOutsourceVouchers: (vouchers: OutsourceVoucher[]) => void;
   outsourceRules: OutsourceRulesConfig;
   addOutsourceVoucher: (voucherData: Omit<OutsourceVoucher, 'id' | 'profitMargin'> & { voucherNumber?: string }) => void;
   updateOutsourceVoucher: (id: string, updatedData: Partial<OutsourceVoucher>) => void;
@@ -1435,6 +1438,7 @@ export interface ErpStore {
   
   // Customers State
   customers: CustomerItem[];
+  setCustomers: (customers: CustomerItem[]) => void;
   customerRules: CustomerRulesConfig;
   addCustomer: (cust: Omit<CustomerItem, 'id' | 'code' | 'totalRepairs'>) => void;
   updateCustomer: (id: string, cust: Partial<CustomerItem>) => void;
@@ -1443,6 +1447,7 @@ export interface ErpStore {
 
   // Vendors State & Rules
   vendors: VendorItem[];
+  setVendors: (vendors: VendorItem[]) => void;
   vendorRules: VendorRulesConfig;
   addVendor: (vendorData: Omit<VendorItem, 'id' | 'code'>) => void;
   updateVendor: (id: string, vendorData: Partial<VendorItem>) => void;
@@ -1451,6 +1456,7 @@ export interface ErpStore {
 
   // Employees State & Actions
   employees: EmployeeItem[];
+  setEmployees?: (employees: EmployeeItem[]) => void;
   employeeRules: EmployeeRulesConfig;
   addEmployee: (emp: Omit<EmployeeItem, 'id' | 'empCode' | 'created_at'> & { empCode?: string }) => void;
   updateEmployee: (id: string, emp: Partial<EmployeeItem>) => void;
@@ -1466,6 +1472,7 @@ export interface ErpStore {
 
   // Inventory State & Rules
   inventory: InventoryItem[];
+  setInventory: (inventory: InventoryItem[]) => void;
   inventoryRules: InventoryRulesConfig;
   addInventoryItem: (itemData: Omit<InventoryItem, 'id' | 'code'>) => void;
   updateInventoryItem: (id: string, itemData: Partial<InventoryItem>) => void;
@@ -1474,12 +1481,14 @@ export interface ErpStore {
 
   // Data Recovery Cases State
   dataRecoveryCases: DataRecoveryCase[];
+  setDataRecoveryCases: (cases: DataRecoveryCase[]) => void;
   addDataRecoveryCase: (caseData: Omit<DataRecoveryCase, 'id' | 'created_at'> & { caseNumber?: string }) => void;
   updateDataRecoveryCase: (id: string, updatedData: Partial<DataRecoveryCase>) => void;
   deleteDataRecoveryCase: (id: string) => void;
 
   // AMC Contracts State
   amcContracts: AmcContract[];
+  setAmcContracts: (contracts: AmcContract[]) => void;
   amcRules: AmcRulesConfig;
   addAmcContract: (contractData: Omit<AmcContract, 'id' | 'created_at'> & { contractNumber?: string }) => void;
   updateAmcContract: (id: string, updatedData: Partial<AmcContract>) => void;
@@ -1552,24 +1561,28 @@ export interface ErpStore {
 
   // Support Leads State & Actions
   supportLeads: SupportLeadItem[];
+  setSupportLeads: (leads: SupportLeadItem[]) => void;
   addSupportLead: (lead: Omit<SupportLeadItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateSupportLead: (id: string, updated: Partial<SupportLeadItem>) => void;
   deleteSupportLead: (id: string) => void;
 
   // Book Repair Online Leads State & Actions
   bookRepairLeads: BookRepairLeadItem[];
+  setBookRepairLeads: (leads: BookRepairLeadItem[]) => void;
   addBookRepairLead: (lead: Omit<BookRepairLeadItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateBookRepairLead: (id: string, updated: Partial<BookRepairLeadItem>) => void;
   deleteBookRepairLead: (id: string) => void;
 
   // Blog Management State & Actions
   blogPosts: BlogPostItem[];
+  setBlogPosts: (posts: BlogPostItem[]) => void;
   addBlogPost: (post: Omit<BlogPostItem, 'id' | 'views' | 'created_at'> & { id?: string; views?: number; created_at?: string }) => void;
   updateBlogPost: (id: string, updated: Partial<BlogPostItem>) => void;
   deleteBlogPost: (id: string) => void;
 
   // Company Milestones State & Actions
   milestones: MilestoneItem[];
+  setMilestones: (milestones: MilestoneItem[]) => void;
   addMilestone: (milestone: Omit<MilestoneItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateMilestone: (id: string, updated: Partial<MilestoneItem>) => void;
   deleteMilestone: (id: string) => void;
@@ -1983,213 +1996,68 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Outsourced Repairs Initial State
-  outsourceVouchers: loadFromStorage<OutsourceVoucher[]>('accno_erp_outsource_vouchers', [
-    {
-      id: 'out-1001',
-      voucherNumber: 'OUT-1001',
-      voucherDate: '2025-05-11',
-      linkedTicketNumber: 'TKT-1002',
-      vendorJobId: 'LAB-DEL-8890',
-      vendorId: 'v-1002',
-      vendorName: 'Cleanroom Data Recovery Labs',
-      vendorPhone: '+91 94192-33445',
-      vendorCity: 'Delhi NCR',
-      vendorAddress: 'Plot 12, Nehru Place, Delhi NCR',
-      vendorGstin: '07BBBBB8888C1Z2',
-      serviceType: 'Data Recovery Lab',
+  outsourceVouchers: loadFromStorage<OutsourceVoucher[]>('accno_erp_outsource_vouchers', []),
+  setOutsourceVouchers: (outsourceVouchers: OutsourceVoucher[]) => {
+    saveToStorage('accno_erp_outsource_vouchers', outsourceVouchers);
+    set({ outsourceVouchers });
+  },
 
-      outgoingCourier: 'Bluedart Express',
-      outgoingDocket: 'BLU-990088112',
-      outgoingDispatchDate: '2025-05-11',
-      outgoingFreightCost: 200,
+  dataRecoveryCases: loadFromStorage<DataRecoveryCase[]>('accno_erp_data_recovery_cases', []),
+  setDataRecoveryCases: (dataRecoveryCases: DataRecoveryCase[]) => {
+    saveToStorage('accno_erp_data_recovery_cases', dataRecoveryCases);
+    set({ dataRecoveryCases });
+  },
 
-      incomingCourier: 'DTDC Courier',
-      incomingDocket: 'DTD-77665544',
-      incomingDispatchDate: '2025-05-15',
-      incomingFreightCost: 150,
-      expectedReturnDate: '2025-05-15',
-      receivedDate: '2025-05-15',
+  amcContracts: loadFromStorage<AmcContract[]>('accno_erp_amc_contracts', []),
+  setAmcContracts: (amcContracts: AmcContract[]) => {
+    saveToStorage('accno_erp_amc_contracts', amcContracts);
+    set({ amcContracts });
+  },
 
-      vendorCostPrice: 3200,
-      freightCharges: 350,
-      customerSellingPrice: 6500,
-      profitMargin: 2950,
+  setCustomers: (customers: CustomerItem[]) => {
+    saveToStorage('accno_erp_customers', customers);
+    set({ customers });
+  },
 
-      dispatchStatus: 'COMPLETED',
-      technicalInstructions: 'Swap HDD mechanical head platter assembly under Class-100 laminar cleanroom bench.',
-      testingNotes: 'Head swap successful. Sector-by-sector clone created on 2TB target drive.',
-    },
-  ]),
+  setVendors: (vendors: VendorItem[]) => {
+    saveToStorage('accno_erp_vendors', vendors);
+    set({ vendors });
+  },
 
-  dataRecoveryCases: loadFromStorage<DataRecoveryCase[]>('accno_erp_data_recovery_cases', [
-    {
-      id: 'drc-1001',
-      recoveryIdNumber: 'REC-1001',
-      caseNumber: 'REC-1001',
-      entryDate: '2025-05-10',
-      customerName: 'Tech Logics Pvt Ltd',
-      customerPhone: '+91 98765-43210',
-      customerEmail: 'techlogics@gmail.com',
-      customerGst: '07AAAAA0000A1Z5',
-      customerAddress: 'Plot 42, Sector 3, Industrial Area',
-      deviceBrand: 'Seagate',
-      deviceType: 'Mechanical HDD (3.5"/2.5")',
-      driveModel: 'Seagate Barracuda 2TB (ST2000DM008)',
-      driveSerial: 'Z5K189LM',
-      capacity: '2TB',
-      fileSystem: 'NTFS',
-      damageType: 'Head Crash / Physical Noise',
-      priority: 'HIGH',
-      symptoms: 'CLICKING HEAD NOISE',
-      status: 'Completed / Delivered',
-      technician: 'Rahul Gupta',
-      storageLocation: 'Safe Vault Locker 01',
-      estimateCost: 16000,
-      advance: 1500,
-      customerCharge: 14500,
-      freight: 300,
-      discount: 1000,
-      gstRate: 18,
-      totalInvoice: 17700,
-      deposit: 1500,
-      balanceDue: 0,
-      diagnosticFee: 1500,
-      recoveryFee: 14500,
-      paidAmount: 17700,
-      paymentStatus: 'PAID IN FULL',
-      termsConsentAccepted: true,
-      requestedWork: 'D:\\Photos & Tally ERP Data Backup',
-      additionalInfo: 'Drive in USB 3.0 enclosure',
-      confidentialNotes: 'Donor head slider swapped under Class-100 cleanroom bench.',
-      recoveryPhaseStatus: 'Phase 4: Extraction & Verification',
-      progressPercentage: 100,
-      estimatedDataGb: 1450,
-      recoveredDataGb: 1420,
-      healthPercentage: 97.9,
-      rackLocation: 'Safe Vault Locker 01',
-      donorDriveSerial: 'Z5K998AB',
-      notes: 'Donor head slider swapped under Class-100 cleanroom bench.',
-      targetDriveDetails: 'Restored to Customer 2TB WD Passport (SN: WX12A45)',
-      created_at: '2025-05-10 10:30 AM',
-    },
-    {
-      id: 'drc-1002',
-      recoveryIdNumber: 'REC-1002',
-      caseNumber: 'REC-1002',
-      entryDate: '2025-05-12',
-      customerName: 'Dr. Anita Roy',
-      customerPhone: '+91 94321-12233',
-      customerEmail: 'anita.roy@royhospital.org',
-      customerAddress: 'Roy Memorial Hospital, Sanchore',
-      deviceBrand: 'Samsung',
-      deviceType: 'NVMe / M.2 PCIe SSD',
-      driveModel: 'Samsung 980 PRO 1TB NVMe SSD',
-      driveSerial: 'S5GXNX0R982134K',
-      capacity: '1TB',
-      fileSystem: 'APFS',
-      damageType: 'Firmware Lock / Service Area',
-      priority: 'NORMAL',
-      symptoms: 'NOT DETECTED / BUSY STATE',
-      status: 'Imaging in Cleanroom',
-      technician: 'Deepak Kumar',
-      storageLocation: 'Cleanroom Bench 03',
-      estimateCost: 19500,
-      advance: 5000,
-      customerCharge: 18000,
-      freight: 200,
-      discount: 1500,
-      gstRate: 18,
-      totalInvoice: 19706,
-      deposit: 5000,
-      balanceDue: 14706,
-      diagnosticFee: 1500,
-      recoveryFee: 18000,
-      paidAmount: 5000,
-      paymentStatus: 'PARTIALLY PAID',
-      termsConsentAccepted: true,
-      requestedWork: 'Patient Records & X-Ray Dicom Files',
-      additionalInfo: 'M.2 PCIe board with heatsink',
-      confidentialNotes: 'NAND controller entered safe mode. Shorted BOOT ROM pads & rebuilt translator table.',
-      recoveryPhaseStatus: 'Phase 3: Bit-Stream Mirroring',
-      progressPercentage: 65,
-      estimatedDataGb: 680,
-      recoveredDataGb: 650,
-      healthPercentage: 95.5,
-      rackLocation: 'Cleanroom Bench 03',
-      notes: 'NAND controller entered safe mode. Shorted BOOT ROM pads & rebuilt translator table.',
-      targetDriveDetails: 'Targeting 1TB SanDisk Extreme Portable SSD',
-      created_at: '2025-05-12 11:15 AM',
-    },
-  ]),
+  setInventory: (inventory: InventoryItem[]) => {
+    saveToStorage('accno_erp_inventory', inventory);
+    set({ inventory });
+  },
 
-  amcContracts: loadFromStorage<AmcContract[]>('accno_erp_amc_contracts', [
-    {
-      id: 'amc-1001',
-      contractNumber: 'AMC-1001',
-      manualEntryDate: '2025-04-01',
-      customerId: 'CUST-1001',
-      customerName: 'Tech Logics Pvt Ltd',
-      companyName: 'Tech Logics Private Limited',
-      customerPhone: '+91 98765-43210',
-      alternatePhone: '+91 98765-99887',
-      customerEmail: 'techlogics@gmail.com',
-      customerGst: '07AAAAA0000A1Z5',
-      customerAddress: 'Plot 42, Sector 3, Industrial Area, Sanchore',
-      planOption: 'Gold Plan',
-      contractCost: 45000,
-      amcAmount: 45000,
-      gstRate: 18,
-      totalAmount: 53100,
-      advancePaid: 25000,
-      balanceDue: 28100,
-      paymentStatus: 'Partially Paid',
-      startDate: '2025-04-01',
-      endDate: '2026-03-31',
-      renewalDate: '2026-03-31',
-      contractStatus: 'Active',
-      coverageScopeDetails: 'Full Server & Desktop Hardware, OS Maintenance, Quarterly PM Visit, and 4-Hour Emergency Response.',
-      source: 'Direct',
-      serviceType: 'Hardware + Software On-site Support',
-      numberOfDevices: 5,
-      totalServiceVisits: 4,
-      assignedTechnician: 'Rahul Gupta',
-      priority: 'High',
-      deviceType: 'Server',
-      issueFound: 'Server RAID array fan noise & high thermal load.',
-      notes: 'Covers all hardware repairs, quarterly PM visits, and 4-hr SLA.',
-      serviceIncludedChecklist: [
-        'Dusting & Cleaning',
-        'OS & Antivirus Update',
-        'RAID Health Check',
-        'Thermal Paste Refresh',
-        'UPS & Power Check'
-      ],
-      coveredAssets: [
-        { id: 'ast-1', assetName: 'Main ERP Server', category: 'Server', brand: 'Dell', model: 'PowerEdge T340', serialNumber: 'DLT340-9981', location: 'Server Room' },
-        { id: 'ast-2', assetName: 'Accounts Desktop', category: 'Desktop PC', brand: 'HP', model: 'ProDesk 400 G7', serialNumber: 'HPP400-1120', location: 'Accounts Dept' }
-      ],
-      pmVisits: [
-        { id: 'pm-1', visitNumber: 1, visitDate: '2025-06-15', completedDate: '2025-06-14', status: 'Completed', technician: 'Rahul Gupta', visitPurpose: 'Quarterly Hardware Cleaning & Thermal Paste', serviceActionsPerformed: 'Dust cleaned, thermal paste refreshed on CPU.' },
-        { id: 'pm-2', visitNumber: 2, visitDate: '2025-09-15', completedDate: '2025-09-15', status: 'Completed', technician: 'Deepak Kumar', visitPurpose: 'RAID Array Health & OS Patch Update', serviceActionsPerformed: 'RAID 5 verified, OS security patches installed.' },
-        { id: 'pm-3', visitNumber: 3, visitDate: '2025-12-15', status: 'Scheduled', technician: 'Rahul Gupta', visitPurpose: 'Q3 Preventive Maintenance Visit' },
-        { id: 'pm-4', visitNumber: 4, visitDate: '2026-03-15', status: 'Scheduled', technician: 'Rahul Gupta', visitPurpose: 'Q4 Final Contract Audit & PM Visit' },
-      ],
-      complaints: [
-        { id: 'cmp-1', complaintNumber: 'CMP-1001', logDate: '2025-07-10', description: 'Server overheating warning alarm in server room.', status: 'Resolved', technician: 'Rahul Gupta', internalNotes: 'Replaced faulty chassis fan unit.', resolvedDate: '2025-07-11' }
-      ],
-      retailProducts: [
-        { id: 'rp-1', productId: 'inv-1', name: 'Kingston NV2 1TB NVMe PCIe 4.0 SSD', sku: 'KNG-NV2-1TB', unitPrice: 5200, quantity: 1, gstRate: 18, totalPrice: 6136 }
-      ],
-      invoiceGenerated: true,
-      invoiceNumber: 'AMC-1001',
-      invoiceDate: '2025-04-01',
-      planType: 'Comprehensive (Parts + Labor)',
-      slaTier: '4-Hour Emergency Response',
-      paymentFrequency: 'Quarterly Installments',
-      status: 'ACTIVE',
-      created_at: '2025-04-01 10:00 AM'
-    }
-  ]),
+  setSalesInvoices: (salesInvoices: SalesInvoiceItem[]) => {
+    saveToStorage('accno_erp_sales_invoices', salesInvoices);
+    set({ salesInvoices });
+  },
+
+  setPurchaseInvoices: (purchaseInvoices: PurchaseInvoiceItem[]) => {
+    saveToStorage('accno_erp_purchase_invoices', purchaseInvoices);
+    set({ purchaseInvoices });
+  },
+
+  setSupportLeads: (supportLeads: SupportLeadItem[]) => {
+    saveToStorage('accno_erp_support_leads', supportLeads);
+    set({ supportLeads });
+  },
+
+  setBookRepairLeads: (bookRepairLeads: BookRepairLeadItem[]) => {
+    saveToStorage('accno_erp_book_repair_leads', bookRepairLeads);
+    set({ bookRepairLeads });
+  },
+
+  setBlogPosts: (blogPosts: BlogPostItem[]) => {
+    saveToStorage('accno_erp_blog_posts', blogPosts);
+    set({ blogPosts });
+  },
+
+  setMilestones: (milestones: MilestoneItem[]) => {
+    saveToStorage('accno_erp_milestones', milestones);
+    set({ milestones });
+  },
 
   amcRules: loadFromStorage<AmcRulesConfig>('accno_erp_amc_rules', {
     amc_contract_prefix: 'AMC-',
@@ -2211,104 +2079,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     ],
   }),
 
-  accountingVouchers: loadFromStorage<AccountingVoucher[]>('accno_erp_accounting_vouchers', [
-    {
-      id: 'vch-1001',
-      voucherNumber: 'RCT-1001',
-      voucherType: 'RECEIPT',
-      voucherDate: '2025-05-15',
-      partyName: 'Tech Logics Pvt Ltd',
-      partyPhone: '+91 98765-43210',
-      partyGst: '07AAAAA0000A1Z5',
-      refInvoiceNumber: 'TKT-1001',
-      paymentMode: 'UPI / GPay',
-      instrumentRefNo: 'UPI9823145100',
-      debitLedger: 'HDFC Bank A/c 9812',
-      creditLedger: 'Tech Logics Pvt Ltd (Debtor)',
-      amount: 17700,
-      gstAmount: 2700,
-      totalAmount: 17700,
-      narration: 'Payment received against Repair Invoice RBN-1001 (Ticket TKT-1001).',
-      created_at: '2025-05-15 11:30 AM'
-    },
-    {
-      id: 'vch-1002',
-      voucherNumber: 'PAY-1002',
-      voucherType: 'PAYMENT',
-      voucherDate: '2025-05-16',
-      partyName: 'Vaidik InfoTech Labs',
-      partyPhone: '+91 98220-11223',
-      refInvoiceNumber: 'OUT-1001',
-      paymentMode: 'HDFC Bank NEFT/RTGS',
-      instrumentRefNo: 'NFT88210931',
-      debitLedger: 'Outsource Repair Expense',
-      creditLedger: 'HDFC Bank A/c 9812',
-      amount: 3500,
-      gstAmount: 533.9,
-      totalAmount: 3500,
-      narration: 'Vendor payment for BGA Reballing Outsource Job OUT-1001.',
-      created_at: '2025-05-16 02:15 PM'
-    },
-    {
-      id: 'vch-1003',
-      voucherNumber: 'DBN-1001',
-      voucherType: 'DEBIT_NOTE',
-      voucherDate: '2025-05-18',
-      partyName: 'Vaidik InfoTech Labs',
-      partyPhone: '+91 98220-11223',
-      refInvoiceNumber: 'OUT-1001',
-      debitLedger: 'Vaidik InfoTech Labs (Creditor)',
-      creditLedger: 'Outsource Repair Return',
-      amount: 500,
-      gstAmount: 76.2,
-      totalAmount: 500,
-      narration: 'Debit Note issued for overcharge on BGA Reballing freight.',
-      created_at: '2025-05-18 04:00 PM'
-    },
-    {
-      id: 'vch-1004',
-      voucherNumber: 'CRN-1001',
-      voucherType: 'CREDIT_NOTE',
-      voucherDate: '2025-05-20',
-      partyName: 'Dr. Anita Roy',
-      partyPhone: '+91 94321-12233',
-      refInvoiceNumber: 'REC-1002',
-      debitLedger: 'Data Recovery Service Discount',
-      creditLedger: 'Dr. Anita Roy (Debtor)',
-      amount: 1000,
-      gstAmount: 152.5,
-      totalAmount: 1000,
-      narration: 'Credit Note issued for goodwill discount on SSD Recovery.',
-      created_at: '2025-05-20 10:45 AM'
-    },
-    {
-      id: 'vch-1005',
-      voucherNumber: 'CNT-1001',
-      voucherType: 'CONTRA',
-      voucherDate: '2025-05-22',
-      paymentMode: 'Cash',
-      debitLedger: 'HDFC Bank A/c 9812',
-      creditLedger: 'Cash-in-Hand',
-      amount: 15000,
-      totalAmount: 15000,
-      narration: 'Cash deposited into HDFC Bank Account.',
-      created_at: '2025-05-22 05:00 PM'
-    },
-    {
-      id: 'vch-1006',
-      voucherNumber: 'JRN-1001',
-      voucherType: 'JOURNAL',
-      voucherDate: '2025-05-25',
-      amount: 4500,
-      totalAmount: 4500,
-      journalLines: [
-        { id: 'j1', accountLedger: 'Depreciation Expense', type: 'DEBIT', amount: 4500, narration: 'Monthly lab equipment depreciation' },
-        { id: 'j2', accountLedger: 'Accumulated Depreciation - Cleanroom Equipment', type: 'CREDIT', amount: 4500, narration: 'Accumulated depreciation credit' }
-      ],
-      narration: 'Month-end depreciation journal entry for Cleanroom Workstation.',
-      created_at: '2025-05-25 06:30 PM'
-    }
-  ]),
+  accountingVouchers: loadFromStorage<AccountingVoucher[]>('accno_erp_accounting_vouchers', []),
 
   outsourceRules: loadFromStorage('accno_erp_outsource_rules', {
     outsource_ticket_prefix: 'OUT-',
@@ -2671,86 +2442,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
   }),
 
   // Customers initial state
-  customers: loadFromStorage<CustomerItem[]>('accno_erp_customers', [
-    {
-      id: 'c-1001',
-      code: 'CUST-1001',
-      name: 'Rajesh Kumar',
-      companyName: 'Tech Logics Pvt Ltd',
-      category: 'Sundry Debtor',
-      accountGroup: 'Corporate / B2B',
-      mobile: '+91 98765-43210',
-      alternateContact: '+91 94191-88776',
-      email: 'rajesh@techlogics.in',
-      website: 'www.techlogics.in',
-      dob: '1985-08-15',
-      weddingAnniversary: '2012-11-20',
-      panNumber: 'ABCDE1234F',
-      gstin: '01AAAAA0000A1Z5',
-      state: '01 - Jammu & Kashmir',
-      billingAddress: 'Plot 42, Sector 3, Industrial Area',
-      shippingAddress: 'Site Office: Subhash Nagar Branch',
-      city: 'Jammu',
-      pinCode: '180012',
-      accountStatus: 'Active',
-      referredBy: 'Dr. Anita Roy',
-      creditLimit: 150000,
-      outstandingBalance: 18500,
-      internalNotes: 'VIP B2B Client. Prompt payment history. 15-day credit terms.',
-
-      bankAccountName: 'Tech Logics Pvt Ltd',
-      bankAccountType: 'Current Account',
-      bankAccountNumber: '50100239485712',
-      bankIfscCode: 'HDFC0001234',
-      bankName: 'HDFC Bank',
-      bankBranch: 'Gandhi Nagar Branch, Jammu',
-      upiId: 'techlogics@okhdfcbank',
-
-      loyaltyPoints: 385,
-      kycVerified: true,
-      tier: 'Platinum VIP',
-      totalRepairs: 5,
-    },
-    {
-      id: 'c-1002',
-      code: 'CUST-1002',
-      name: 'Dr. Anita Roy',
-      companyName: 'Roy Hospital & Research Center',
-      category: 'Sundry Debtor',
-      accountGroup: 'Healthcare / Institutional',
-      mobile: '+91 94191-12233',
-      alternateContact: '+91 94191-12234',
-      email: 'anita@royhospital.org',
-      website: 'www.royhospital.org',
-      dob: '1978-04-12',
-      weddingAnniversary: '2005-02-14',
-      panNumber: 'FGHIJ5678K',
-      gstin: '01BBBBB1111B2Z6',
-      state: '01 - Jammu & Kashmir',
-      billingAddress: 'Channi Himmat Main Road',
-      shippingAddress: 'Emergency Ward IT Desk',
-      city: 'Jammu',
-      pinCode: '180015',
-      accountStatus: 'Active',
-      referredBy: 'Walk-in Direct',
-      creditLimit: 200000,
-      outstandingBalance: 0,
-      internalNotes: 'Cleanroom data recovery priority account.',
-
-      bankAccountName: 'Roy Hospital Trust',
-      bankAccountType: 'Current Account',
-      bankAccountNumber: '00120101998823',
-      bankIfscCode: 'JAKA0CHANNI',
-      bankName: 'J&K Bank',
-      bankBranch: 'Channi Himmat, Jammu',
-      upiId: 'royhospital@jkbank',
-
-      loyaltyPoints: 670,
-      kycVerified: true,
-      tier: 'Platinum VIP',
-      totalRepairs: 3,
-    },
-  ]),
+  customers: loadFromStorage<CustomerItem[]>('accno_erp_customers', []),
   addCustomer: (custData) =>
     set((state: ErpState) => {
       const nextNum = state.customerRules.startWithNo + state.customers.length;
@@ -3215,278 +2907,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Inventory Initial State (Retail Parts: PRT-1001, Service Parts: SRV-1001)
-  inventory: loadFromStorage('accno_erp_inventory', [
-    {
-      id: 'i-1001',
-      itemType: 'Retail Part',
-      code: 'PRT-1001',
-      name: 'Intel Core i7-14700K 20-Core Desktop Processor',
-      category: 'Processor (CPU)',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 38500,
-      mrp: 46000,
-      costPrice: 33200,
-      currentStock: 15,
-      lowStockAlert: 3,
-      activeStatus: 'Active',
-      hsnCode: '84713010',
-      gstRate: 18,
-      barcode: '5032037278776',
-      productGroup: 'Intel 14th Gen Desktop CPUs',
-      description: 'LGA1700 Socket, 20 Cores (8P + 12E), up to 5.6 GHz, 125W TDP.',
-      compatibleModels: 'LGA1700 Motherboards (Z790, B760)',
-      comfortabilityFeatures: 'Socket LGA1700, 125W TDP, DDR4/DDR5 Support',
-      supplierVendor: 'Ingram Micro India',
-      storageLocation: 'Shelf A-1, Bin 01',
-      openingBalance: 15,
-    },
-    {
-      id: 'i-1002',
-      itemType: 'Retail Part',
-      code: 'PRT-1002',
-      name: 'AMD Ryzen 7 7800X3D 8-Core 3D V-Cache Gaming CPU',
-      category: 'Processor (CPU)',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 36900,
-      mrp: 44000,
-      costPrice: 31800,
-      currentStock: 10,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84713010',
-      gstRate: 18,
-      barcode: '730143314930',
-      productGroup: 'AMD Ryzen 7000 Series',
-      description: 'Socket AM5, 8 Cores / 16 Threads, 104MB Cache, 120W TDP.',
-      compatibleModels: 'Socket AM5 Motherboards (X670, B650)',
-      comfortabilityFeatures: 'Socket AM5, 120W TDP, DDR5 Only',
-      supplierVendor: 'Supertron Electronics Pvt Ltd',
-      storageLocation: 'Shelf A-1, Bin 02',
-      openingBalance: 10,
-    },
-    {
-      id: 'i-1003',
-      itemType: 'Retail Part',
-      code: 'PRT-1003',
-      name: 'ASUS ROG Strix Z790-F Gaming WiFi ATX Motherboard',
-      category: 'Motherboard',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 34500,
-      mrp: 41000,
-      costPrice: 29800,
-      currentStock: 8,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '4711081944514',
-      productGroup: 'Intel Z790 Gaming Series',
-      description: 'Intel LGA1700 Socket, DDR5, PCIe 5.0, WiFi 6E, 4x M.2 Slots.',
-      compatibleModels: 'Intel 12th/13th/14th Gen Core Processors',
-      comfortabilityFeatures: 'LGA1700 Socket, DDR5, ATX Form Factor',
-      supplierVendor: 'Savex Technologies',
-      storageLocation: 'Shelf A-2, Bin 01',
-      openingBalance: 8,
-    },
-    {
-      id: 'i-1004',
-      itemType: 'Retail Part',
-      code: 'PRT-1004',
-      name: 'MSI MAG B650 Tomahawk WiFi Gaming ATX Motherboard',
-      category: 'Motherboard',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 21500,
-      mrp: 26000,
-      costPrice: 18200,
-      currentStock: 12,
-      lowStockAlert: 3,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '4719072978013',
-      productGroup: 'AMD AM5 Motherboards',
-      description: 'AMD Socket AM5, DDR5 6600+MHz (OC), PCIe 4.0 M.2, WiFi 6E.',
-      compatibleModels: 'AMD Ryzen 7000 / 8000 Series Processors',
-      comfortabilityFeatures: 'AM5 Socket, DDR5, ATX Form Factor',
-      supplierVendor: 'Supertron Electronics Pvt Ltd',
-      storageLocation: 'Shelf A-2, Bin 02',
-      openingBalance: 12,
-    },
-    {
-      id: 'i-1005',
-      itemType: 'Retail Part',
-      code: 'PRT-1005',
-      name: 'Corsair Vengeance RGB 32GB (2x16GB) DDR5 6000MHz CL30 RAM',
-      category: 'Memory (RAM)',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 11800,
-      mrp: 14500,
-      costPrice: 9800,
-      currentStock: 20,
-      lowStockAlert: 4,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '840006698129',
-      productGroup: 'High Speed DDR5 RAM',
-      description: 'Dual Channel Desktop Memory Kit with Intel XMP 3.0 & AMD EXPO.',
-      compatibleModels: 'DDR5 Motherboards (Intel Z790 / AMD B650)',
-      comfortabilityFeatures: 'DDR5, 6000MHz CL30, RGB Dynamic Lighting',
-      supplierVendor: 'Ingram Micro India',
-      storageLocation: 'Shelf B-1, Bin 05',
-      openingBalance: 20,
-    },
-    {
-      id: 'i-1006',
-      itemType: 'Retail Part',
-      code: 'PRT-1006',
-      name: 'Samsung 980 PRO 1TB NVMe PCIe 4.0 M.2 SSD',
-      category: 'Storage Devices',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 8500,
-      mrp: 11000,
-      costPrice: 6800,
-      currentStock: 24,
-      lowStockAlert: 5,
-      activeStatus: 'Active',
-      hsnCode: '85235100',
-      gstRate: 18,
-      barcode: '8806090563811',
-      productGroup: 'High Speed NVMe Storage',
-      description: 'Internal PCIe Gen4 x4 M.2 NVMe SSD (Read 7000 MB/s).',
-      compatibleModels: 'Desktop PCs, Laptops, PS5 Storage Expansion',
-      comfortabilityFeatures: 'PCIe 4.0 NVMe M.2 2280, 7000MB/s Read',
-      supplierVendor: 'Supertron Electronics Pvt Ltd',
-      storageLocation: 'Shelf A-4, Bin 12',
-      openingBalance: 30,
-    },
-    {
-      id: 'i-1007',
-      itemType: 'Retail Part',
-      code: 'PRT-1007',
-      name: 'ZOTAC Gaming GeForce RTX 4070 Ti Super Trinity 16GB GDDR6X',
-      category: 'Graphics Card (GPU)',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 78500,
-      mrp: 92000,
-      costPrice: 68900,
-      currentStock: 6,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '4895173628005',
-      productGroup: 'NVIDIA RTX 40-Series GPUs',
-      description: 'DLSS 3, Ray Tracing, 16GB 256-bit GDDR6X, IceStorm 2.0 Cooling.',
-      compatibleModels: 'PCIe 4.0 x16 Desktop Systems (Min 750W PSU)',
-      comfortabilityFeatures: 'PCIe 4.0 x16, 750W Min PSU, 285W TDP',
-      supplierVendor: 'Savex Technologies',
-      storageLocation: 'Rack B-1, Lock 3',
-      openingBalance: 6,
-    },
-    {
-      id: 'i-1008',
-      itemType: 'Retail Part',
-      code: 'PRT-1008',
-      name: 'Corsair RM850x 850W 80+ Gold Fully Modular Power Supply',
-      category: 'Power Supply Unit (PSU)',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 12500,
-      mrp: 15500,
-      costPrice: 10200,
-      currentStock: 14,
-      lowStockAlert: 3,
-      activeStatus: 'Active',
-      hsnCode: '85044090',
-      gstRate: 18,
-      barcode: '840006631188',
-      productGroup: 'Corsair RM Series Modular PSUs',
-      description: '80 PLUS Gold Certified, Zero RPM Fan Mode, 100% Japanese Capacitors.',
-      compatibleModels: 'ATX Mid/Full Tower Cabinets',
-      comfortabilityFeatures: '850W Output, 80+ Gold, Fully Modular',
-      supplierVendor: 'Ingram Micro India',
-      storageLocation: 'Shelf C-2, Bin 01',
-      openingBalance: 14,
-    },
-    {
-      id: 'i-1009',
-      itemType: 'Retail Part',
-      code: 'PRT-1009',
-      name: 'Lian Li O11 Dynamic EVO Dual Chamber ATX Mid Tower Cabinet',
-      category: 'PC Cabinet / Chassis',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 14900,
-      mrp: 18000,
-      costPrice: 12100,
-      currentStock: 7,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '840353041902',
-      productGroup: 'Lian Li O11 Series Cases',
-      description: 'Reversible Dual-Chamber Chassis, Tempered Glass, Mesh Airflow.',
-      compatibleModels: 'ATX, Micro-ATX, E-ATX Motherboards',
-      comfortabilityFeatures: 'Dual Chamber, Tempered Glass, Up to 10 Fans',
-      supplierVendor: 'Supertron Electronics Pvt Ltd',
-      storageLocation: 'Main Store Room',
-      openingBalance: 7,
-    },
-    {
-      id: 'i-1010',
-      itemType: 'Retail Part',
-      code: 'PRT-1010',
-      name: 'NZXT Kraken 360 RGB LCD Liquid AIO CPU Cooler (360mm)',
-      category: 'Cooling System',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 18900,
-      mrp: 23000,
-      costPrice: 15400,
-      currentStock: 5,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '815671017406',
-      productGroup: 'Liquid AIO CPU Coolers',
-      description: '1.54" Square LCD Display, High-performance Pump, F120 RGB Core Fans.',
-      compatibleModels: 'Intel LGA1700 / AMD AM5 Sockets',
-      comfortabilityFeatures: '360mm Radiator, Customizable LCD Screen, RGB Fans',
-      supplierVendor: 'Ingram Micro India',
-      storageLocation: 'Shelf C-1, Bin 04',
-      openingBalance: 5,
-    },
-    {
-      id: 'i-1011',
-      itemType: 'Service Part',
-      code: 'SRV-1001',
-      name: 'MacBook Pro 16" A2141 Retina Display Panel Assembly',
-      category: 'Screen & Display Rework',
-      uom: 'pcs',
-      defaultQuantity: 1,
-      sellingPrice: 32000,
-      mrp: 42000,
-      costPrice: 24500,
-      currentStock: 4,
-      lowStockAlert: 2,
-      activeStatus: 'Active',
-      hsnCode: '84733020',
-      gstRate: 18,
-      barcode: '190199348911',
-      productGroup: 'Apple OEM Spare Display Assemblies',
-      description: 'Original Space Gray TrueTone LCD Assembly for A2141 MacBook Pro 2019.',
-    },
-  ]),
+  inventory: loadFromStorage<InventoryItem[]>('accno_erp_inventory', []),
   addInventoryItem: (itemData: Omit<InventoryItem, 'id' | 'code'>) =>
     set((state: ErpState) => {
       const type = itemData.itemType;
@@ -3617,62 +3038,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Sales Invoices State
-  salesInvoices: loadFromStorage('accno_erp_sales_invoices', [
-    {
-      id: 'sal-1001',
-      invoiceNo: 'SAL-1001',
-      invoiceDate: '2026-08-10T10:30:00.000Z',
-      customerId: 'c-1001',
-      customerName: 'Rajesh Kumar (Tech Logics)',
-      customerPhone: '+91 98765-43210',
-      customerGst: '08AAAAA0000A1Z5',
-      customerAddress: 'Plot 42, Sector 3, Industrial Area, Sanchore',
-      paymentTerms: 'Credit 15 Days',
-      paymentMethod: 'Bank Transfer',
-      items: [
-        { id: 'sli-1', itemId: 'i-1001', name: 'Intel Core i7-14700K 20-Core Desktop Processor', hsnCode: '84713010', gstRate: 18, quantity: 2, unitPrice: 38500, totalPrice: 77000 },
-        { id: 'sli-2', itemId: 'i-1003', name: 'ASUS ROG Strix Z790-F Gaming WiFi ATX Motherboard', hsnCode: '84733020', gstRate: 18, quantity: 1, unitPrice: 34500, totalPrice: 34500 },
-      ],
-      subtotal: 94491.53,
-      discount: 0,
-      discountType: 'fixed',
-      taxAmount: 17008.47,
-      shippingCharges: 0,
-      grandTotal: 111500,
-      paidAmount: 111500,
-      balanceDue: 0,
-      paymentStatus: 'Paid',
-      remarks: 'Standard Commercial Sales Supply',
-      created_at: '2026-08-10T10:30:00.000Z',
-    },
-    {
-      id: 'sal-1002',
-      invoiceNo: 'SAL-1002',
-      invoiceDate: '2026-08-12T14:15:00.000Z',
-      customerId: 'c-1002',
-      customerName: 'Supertron Infotech',
-      customerPhone: '+91 98290-11223',
-      customerGst: '08BAPPM9910B1Z2',
-      customerAddress: 'Station Road, Sanchore',
-      paymentTerms: 'Credit 30 Days',
-      paymentMethod: 'UPI',
-      items: [
-        { id: 'sli-3', itemId: 'i-1006', name: 'Samsung 980 PRO 1TB NVMe PCIe 4.0 M.2 SSD', hsnCode: '84733020', gstRate: 18, quantity: 5, unitPrice: 8500, totalPrice: 42500 },
-        { id: 'sli-4', itemId: 'i-1005', name: 'Corsair Vengeance RGB 32GB (2x16GB) DDR5 6000MHz RAM', hsnCode: '84733020', gstRate: 18, quantity: 4, unitPrice: 11800, totalPrice: 47200 },
-      ],
-      subtotal: 76016.95,
-      discount: 0,
-      discountType: 'fixed',
-      taxAmount: 13683.05,
-      shippingCharges: 0,
-      grandTotal: 89700,
-      paidAmount: 50000,
-      balanceDue: 39700,
-      paymentStatus: 'Partial',
-      remarks: 'Bulk Component Supply for Office Workstations',
-      created_at: '2026-08-12T14:15:00.000Z',
-    },
-  ]),
+  salesInvoices: loadFromStorage<SalesInvoiceItem[]>('accno_erp_sales_invoices', []),
 
   addSalesInvoice: (invoice: Omit<SalesInvoiceItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3701,33 +3067,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Purchase Invoices State
-  purchaseInvoices: loadFromStorage('accno_erp_purchase_invoices', [
-    {
-      id: 'pur-1001',
-      billNo: 'PUR-2026-088',
-      billDate: '2026-08-05T11:00:00.000Z',
-      vendorId: 'v-1001',
-      vendorName: 'Supertron Electronics Pvt Ltd',
-      vendorPhone: '+91 98300-12345',
-      vendorGst: '19AAAAA0000A1Z5',
-      vendorAddress: 'Kolkata Head Office & Logistics Hub',
-      paymentTerms: 'Credit 30 Days',
-      paymentMethod: 'Bank Transfer',
-      items: [
-        { id: 'pli-1', itemId: 'i-1002', name: 'AMD Ryzen 7 7800X3D 8-Core 3D V-Cache Gaming CPU', hsnCode: '84713010', gstRate: 18, quantity: 10, unitPrice: 31000, totalPrice: 310000 },
-        { id: 'pli-2', itemId: 'i-1004', name: 'MSI MAG B650 Tomahawk WiFi Gaming ATX Motherboard', hsnCode: '84733020', gstRate: 18, quantity: 10, unitPrice: 18200, totalPrice: 182000 },
-      ],
-      subtotal: 416949.15,
-      taxAmount: 75050.85,
-      freightCharges: 5000,
-      grandTotal: 497000,
-      paidAmount: 497000,
-      balanceDue: 0,
-      paymentStatus: 'Paid',
-      remarks: 'Direct Factory Distribution Batch Procurement',
-      created_at: '2026-08-05T11:00:00.000Z',
-    },
-  ]),
+  purchaseInvoices: loadFromStorage<PurchaseInvoiceItem[]>('accno_erp_purchase_invoices', []),
 
   addPurchaseInvoice: (bill: Omit<PurchaseInvoiceItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3773,28 +3113,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Sales Returns State
-  salesReturns: loadFromStorage('accno_erp_sales_returns', [
-    {
-      id: 'slr-1001',
-      returnNo: 'SLR-1001',
-      returnDate: '2026-08-11T16:20:00.000Z',
-      originalInvoiceNo: 'SAL-1001',
-      customerId: 'c-1001',
-      customerName: 'Rajesh Kumar (Tech Logics)',
-      customerPhone: '+91 98765-43210',
-      items: [
-        { id: 'sri-1', itemId: 'i-1005', name: 'Corsair Vengeance RGB 32GB (2x16GB) DDR5 6000MHz RAM', hsnCode: '84733020', gstRate: 18, quantity: 1, unitPrice: 11800, totalPrice: 11800 },
-      ],
-      subtotal: 10000,
-      taxAmount: 1800,
-      grandTotal: 11800,
-      returnReason: 'Defective RAM Module / Frequency Instability',
-      restockToStock: false,
-      refundStatus: 'Refunded',
-      remarks: 'Replaced under instant over-the-counter warranty claim',
-      created_at: '2026-08-11T16:20:00.000Z',
-    },
-  ]),
+  salesReturns: loadFromStorage<SalesReturnItem[]>('accno_erp_sales_returns', []),
 
   addSalesReturn: (ret: Omit<SalesReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3842,27 +3161,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Purchase Returns State
-  purchaseReturns: loadFromStorage('accno_erp_purchase_returns', [
-    {
-      id: 'pcr-1001',
-      returnNo: 'PCR-1001',
-      returnDate: '2026-08-08T12:00:00.000Z',
-      originalBillNo: 'PUR-2026-088',
-      vendorId: 'v-1002',
-      vendorName: 'Ingram Micro India',
-      vendorPhone: '+91 98111-99887',
-      items: [
-        { id: 'pri-1', itemId: 'i-1006', name: 'Samsung 980 PRO 1TB NVMe PCIe 4.0 M.2 SSD', hsnCode: '84733020', gstRate: 18, quantity: 2, unitPrice: 8500, totalPrice: 17000 },
-      ],
-      subtotal: 14406.78,
-      taxAmount: 2593.22,
-      grandTotal: 17000,
-      returnReason: 'Dead On Arrival (DOA) / NAND Controller Failure',
-      rmaStatus: 'Completed',
-      remarks: 'Returned to Vendor Distribution Hub for Credit Note Reversal',
-      created_at: '2026-08-08T12:00:00.000Z',
-    },
-  ]),
+  purchaseReturns: loadFromStorage<PurchaseReturnItem[]>('accno_erp_purchase_returns', []),
 
   addPurchaseReturn: (ret: Omit<PurchaseReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3907,32 +3206,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Quotations State
-  quotations: loadFromStorage('accno_erp_quotations', [
-    {
-      id: 'qtn-1001',
-      quotationNo: 'QTN-1001',
-      quotationDate: '2026-08-13T09:00:00.000Z',
-      validUntil: '2026-08-20T23:59:59.000Z',
-      customerId: 'c-1003',
-      customerName: 'Sharma Computer Services',
-      customerPhone: '+91 94140-55443',
-      customerGst: '08AAAPS1234F1Z1',
-      customerAddress: 'Main Market, Sanchore',
-      items: [
-        { id: 'qli-1', itemId: 'i-1001', name: 'Intel Core i7-14700K 20-Core Desktop Processor', hsnCode: '84713010', gstRate: 18, quantity: 2, unitPrice: 38500, totalPrice: 77000 },
-        { id: 'qli-2', itemId: 'i-1003', name: 'ASUS ROG Strix Z790-F Gaming WiFi ATX Motherboard', hsnCode: '84733020', gstRate: 18, quantity: 2, unitPrice: 34500, totalPrice: 69000 },
-        { id: 'qli-3', itemId: 'i-1005', name: 'Corsair Vengeance RGB 32GB (2x16GB) DDR5 6000MHz RAM', hsnCode: '84733020', gstRate: 18, quantity: 4, unitPrice: 11800, totalPrice: 47200 },
-      ],
-      subtotal: 163728.81,
-      discount: 2000,
-      taxAmount: 29471.19,
-      grandTotal: 191200,
-      status: 'Approved',
-      termsAndConditions: 'Valid for 7 days. 100% advance payment prior to dispatch. 1 Year Warranty.',
-      notes: 'Custom Corporate CAD & 3D Render Station Estimate',
-      created_at: '2026-08-13T09:00:00.000Z',
-    },
-  ]),
+  quotations: loadFromStorage<QuotationItem[]>('accno_erp_quotations', []),
 
   addQuotation: (q: Omit<QuotationItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -4276,47 +3550,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Support Leads Implementation
-  supportLeads: loadFromStorage<SupportLeadItem[]>('accno_erp_support_leads', [
-    {
-      id: 'lead-101',
-      lead_name: 'Hotel Grand Sanchore',
-      phone: '+91 94191-88990',
-      email: 'info@hotelgrandsanchore.com',
-      company: 'Grand Hospitality Group',
-      subject: 'CCTV Security & AMC Inquiry',
-      message: 'Need 32-camera IP CCTV installation with 1-Year AMC contract for hotel premises.',
-      service_interested: 'CCTV 32-Camera IP Setup & AMC',
-      status: 'Quotation Sent',
-      source: 'Website Contact Form',
-      created_at: '2026-08-15T10:00:00.000Z',
-    },
-    {
-      id: 'lead-102',
-      lead_name: 'Apex Diagnostic Center',
-      phone: '+91 98765-11223',
-      email: 'contact@apexlabs.in',
-      company: 'Apex Healthcare Sanchore',
-      subject: 'RAID Server Data Recovery',
-      message: 'Server hard drive controller failed in RAID 10 array. Require emergency cleanroom recovery.',
-      service_interested: 'RAID 10 Server Data Recovery Lab Case',
-      status: 'Contacted',
-      source: 'Website Contact Form',
-      created_at: '2026-08-18T14:30:00.000Z',
-    },
-    {
-      id: 'lead-103',
-      lead_name: 'St. Xavier International School',
-      phone: '+91 94192-55667',
-      email: 'admin@stxavierssanchore.edu.in',
-      company: 'St. Xavier Trust',
-      subject: 'Computer Lab Annual Maintenance',
-      message: 'Looking for annual hardware AMC software support for 60 desktop PCs.',
-      service_interested: 'Computer Lab Maintenance AMC (60 PCs)',
-      status: 'Closed Won',
-      source: 'Walk-in',
-      created_at: '2026-08-20T09:15:00.000Z',
-    },
-  ]),
+  supportLeads: loadFromStorage<SupportLeadItem[]>('accno_erp_support_leads', []),
 
   addSupportLead: (lead) =>
     set((state: ErpState) => {
@@ -4350,38 +3584,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Book Repair Online Leads Implementation
-  bookRepairLeads: loadFromStorage<BookRepairLeadItem[]>('accno_erp_book_repair_leads', [
-    {
-      id: 'br-101',
-      bookingNo: 'BK-1001',
-      name: 'Rajesh Kumar',
-      phone: '+91 98765-43210',
-      email: 'rajesh@techlogics.com',
-      deviceType: 'Laptop',
-      brand: 'Apple MacBook Pro M2',
-      model: 'A2442 14-inch',
-      serviceMode: 'In-Store Drop Off (Gandhi Nagar)',
-      problemDescription: 'Liquid spill on keyboard, backlight flickering, battery charging error.',
-      address: 'Plot 42, Sector 3, Sanchore',
-      status: 'New Booking',
-      created_at: '2026-08-21T11:00:00.000Z',
-    },
-    {
-      id: 'br-102',
-      bookingNo: 'BK-1002',
-      name: 'Vikram Sharma',
-      phone: '+91 94140-55443',
-      email: 'vikram@cadstudio.in',
-      deviceType: 'Desktop / Custom PC',
-      brand: 'ASUS ROG Workstation',
-      model: 'RTX 4090 Rendering Rig',
-      serviceMode: 'Onsite Doorstep Pickup',
-      problemDescription: 'System auto-rebooting under heavy 3D GPU load, blue screen memory error.',
-      address: 'Main Market, Indira Chowk, Sanchore',
-      status: 'Confirmed',
-      created_at: '2026-08-21T12:30:00.000Z',
-    },
-  ]),
+  bookRepairLeads: loadFromStorage<BookRepairLeadItem[]>('accno_erp_book_repair_leads', []),
 
   addBookRepairLead: (lead) =>
     set((state: ErpState) => {
@@ -4415,76 +3618,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Blog Management Implementation
-  blogPosts: loadFromStorage<BlogPostItem[]>('accno_erp_blog_posts', [
-    {
-      id: 'blog-101',
-      slug: 'prevent-macbook-liquid-damage',
-      title: 'How to Prevent MacBook M1/M2 Motherboard Liquid Damage Short Circuits',
-      category: 'Mac Repair Guide',
-      author: 'Vikram Sharma (Lead Micro-Soldering Engineer)',
-      date: 'May 10, 2025',
-      readTime: '6 min read',
-      excerpt: 'Learn critical emergency steps after tea or coffee spills on Apple Silicon MacBooks to prevent power rail oxidation and PMIC chip burnout.',
-      content: `Spilling liquid on an Apple MacBook M1/M2/M3 is one of the most critical hardware emergencies. Modern USB-C and MagSafe 3 MacBooks carry high-voltage power lines (up to 28V) adjacent to delicate 1.8V CPU power rails on the logic board.
-
-### Emergency Steps Immediately Following a Liquid Spill:
-1. **Force Shutdown Immediately**: Hold the power / Touch ID button down for 8 seconds until the screen turns pitch black. Do not try to save files if liquid is actively penetrating the keyboard.
-2. **Disconnect Charging Cable**: Unplug MagSafe 3 or USB-C charging cords immediately. Keeping power connected accelerates galvanic corrosion within seconds.
-3. **The Tent Position**: Flip the MacBook upside down in an inverted 'V' tent shape on a dry towel. This prevents liquid from draining deeper into the battery cell connectors and display T-CON board.
-4. **Do NOT Use Rice**: Rice dust and starch react with liquid to form sticky corrosive paste inside cooling fans and under BGA chips.
-5. **Cleanroom Ultrasonic Bath**: Professional micro-soldering labs submerge the logic board in an ultrasonic bath filled with pure 99.9% Isopropyl Alcohol (IPA) to neutralize mineral salts before applying thermal heat.`,
-      coverImage: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
-      imagePosition: 'header_hero',
-      status: 'Published',
-      featured: true,
-      views: 1240,
-      created_at: '2025-05-10T10:00:00.000Z',
-    },
-    {
-      id: 'blog-102',
-      slug: 'forensic-data-recovery-cleanroom-hdd',
-      title: 'Forensic Data Recovery: How Cleanrooms Swap Mechanical HDD Heads',
-      category: 'Data Recovery',
-      author: 'Rahul Verma (Data Recovery Specialist)',
-      date: 'April 28, 2025',
-      readTime: '8 min read',
-      excerpt: 'Inside ISO Class 100 cleanroom environments: swapping micro-actuator reader heads on clicking hard drives to recover lost databases.',
-      content: `When a 3.5-inch or 2.5-inch hard drive emits repetitive clicking sounds (the dreaded "Click of Death"), it indicates physical head stack assembly (HSA) failure. Attempting to run software recovery tools on a physically damaged mechanical drive will scrape magnetic platter coatings permanently destroying data.
-
-### Cleanroom Head Replacement Protocol:
-- **ISO Class 100 Airflow**: Cleanroom laminar flow benches filter out 99.99% of airborne dust particles down to 0.5 microns. A single particle of dust trapped under a flying magnetic head will crash the drive at 7200 RPM.
-- **Donor Drive Matching**: Matching donor head assemblies requires exact compatibility across Drive Family, Firmware Microcode, Controller Revision, and P-List / G-List head map configurations.
-- **Micro-Precision Head Combs**: Specialized head separator combs prevent magnetic reader sliders from touching each other during transfer from donor to patient chassis.`,
-      coverImage: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=1200&q=80',
-      imagePosition: 'inline_middle',
-      status: 'Published',
-      featured: false,
-      views: 890,
-      created_at: '2025-04-28T14:30:00.000Z',
-    },
-    {
-      id: 'blog-103',
-      slug: 'enterprise-repair-shop-barcode-erp',
-      title: 'Why Enterprise Repair Shops Need Real-Time Barcode ERP Systems',
-      category: 'ERP & Software',
-      author: 'ACCNO Software Team',
-      date: 'April 14, 2025',
-      readTime: '5 min read',
-      excerpt: 'How automated job cards, barcode scanning, POS terminal checkout, and GST compliance double repair shop revenue and operational speed.',
-      content: `Modern IT service centers and multi-branch repair outlets handle hundreds of computer repairs, spare part inventories, and customer inquiries daily. Relying on manual registers or paper billing leads to lost inventory, delayed deliveries, and untracked revenue.
-
-### Core Pillars of Modern Repair ERP Software:
-1. **Automated Barcode Tracking**: Every incoming repair ticket gets a thermal barcode label printed for instant rack location lookup.
-2. **Integrated POS & GST Billing**: Seamlessly transition from diagnostic estimates to GST invoices with CGST/SGST breakdowns and UPI QR payments.
-3. **Real-Time Customer WhatsApp Alerts**: Automatic WhatsApp notifications when repair status changes from 'In Repair' to 'Ready for Delivery'.`,
-      coverImage: 'https://images.unsplash.com/photo-1556742049-0a67daf40954?auto=format&fit=crop&w=1200&q=80',
-      imagePosition: 'sidebar_right',
-      status: 'Published',
-      featured: false,
-      views: 650,
-      created_at: '2025-04-14T09:15:00.000Z',
-    },
-  ]),
+  blogPosts: loadFromStorage<BlogPostItem[]>('accno_erp_blog_posts', []),
 
   addBlogPost: (post) =>
     set((state: ErpState) => {
@@ -4514,62 +3648,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     }),
 
   // Company Milestones Implementation
-  milestones: loadFromStorage<MilestoneItem[]>('accno_erp_milestones', [
-    {
-      id: 'm-1',
-      year: '2015',
-      title: 'Established in Jammu & Sanchore',
-      description: 'Started as a precision component-level repair workshop with 2 engineers specializing in desktop and laptop motherboard diagnostics.',
-      status: 'Completed',
-      order: 1,
-      created_at: '2015-01-15T00:00:00.000Z',
-    },
-    {
-      id: 'm-2',
-      year: '2018',
-      title: 'Apple Mac Micro-Soldering Desk',
-      description: 'Expanded to logic board diagnostics for MacBook Pro, iMac & Mac Studio with BGA reballing stations and digital microscopes.',
-      status: 'Completed',
-      order: 2,
-      created_at: '2018-04-10T00:00:00.000Z',
-    },
-    {
-      id: 'm-3',
-      year: '2021',
-      title: 'Class-100 Cleanroom Data Lab',
-      description: 'Invested in forensic data extraction tools for dead mechanical HDDs, SSDs, NAND chip-off & RAID array recovery.',
-      status: 'Completed',
-      order: 3,
-      created_at: '2021-09-01T00:00:00.000Z',
-    },
-    {
-      id: 'm-4',
-      year: '2024',
-      title: 'ACCNO ERP Software Suite',
-      description: 'Launched enterprise repair shop management, POS counter checkout & barcode inventory ERP suite.',
-      status: 'Completed',
-      order: 4,
-      created_at: '2024-01-01T00:00:00.000Z',
-    },
-    {
-      id: 'm-5',
-      year: '2025',
-      title: '45,000+ Devices Repaired',
-      description: 'Serving healthcare diagnostic centers, hospitality, schools, government offices, and corporate power users.',
-      status: 'Completed',
-      order: 5,
-      created_at: '2025-01-01T00:00:00.000Z',
-    },
-    {
-      id: 'm-6',
-      year: '2026',
-      title: 'Headquarters & Dual Tracker Portal Expansion',
-      description: 'Expanded Sanchore headquarters with automated barcode tracking and real-time client status portal.',
-      status: 'In Progress',
-      order: 6,
-      created_at: '2026-01-01T00:00:00.000Z',
-    },
-  ]),
+  milestones: loadFromStorage<MilestoneItem[]>('accno_erp_milestones', []),
 
   addMilestone: (milestone) =>
     set((state: ErpState) => {

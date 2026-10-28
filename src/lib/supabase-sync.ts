@@ -1,5 +1,19 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { RepairTicket, RepairInvoice, BookRepairLeadItem, SupportLeadItem } from './store';
+import type {
+  RepairTicket,
+  RepairInvoice,
+  BookRepairLeadItem,
+  SupportLeadItem,
+  CustomerItem,
+  InventoryItem,
+  OutsourceVoucher,
+  DataRecoveryCase,
+  AmcContract,
+  SalesInvoiceItem,
+  PurchaseInvoiceItem,
+  BlogPostItem,
+  MilestoneItem,
+} from './store';
 
 // Helper to convert snake_case Supabase row to camelCase RepairTicket
 export function mapRowToTicket(row: any): RepairTicket {
@@ -447,5 +461,267 @@ export async function searchTicketFromSupabase(query?: string, phone?: string): 
   } catch (e) {
     console.warn('Search ticket in Supabase exception:', e);
     return null;
+  }
+}
+
+// ----------------------------------------------------------------------
+// EXTENDED ENTITY FETCHERS: ALL ERP TABLES DIRECTLY FROM SUPABASE
+// ----------------------------------------------------------------------
+
+export function mapRowToCustomer(row: any): CustomerItem {
+  return {
+    id: row.id,
+    code: row.customer_code || '',
+    name: row.name || 'Customer',
+    companyName: row.company_name || '',
+    category: 'Sundry Debtor',
+    accountGroup: row.customer_type === 'CORPORATE' ? 'Corporate / B2B' : 'Retail / Cash',
+    mobile: row.phone || '',
+    alternateContact: row.alternate_phone || '',
+    email: row.email || '',
+    panNumber: '',
+    gstin: row.gstin || '',
+    billingAddress: row.address || '',
+    city: row.city || 'Sanchore',
+    state: row.state || 'Rajasthan',
+    pinCode: row.pincode || '',
+    accountStatus: 'Active',
+    creditLimit: 0,
+    outstandingBalance: 0,
+    loyaltyPoints: 0,
+    kycVerified: false,
+    tier: 'Standard',
+    totalRepairs: 0,
+  };
+}
+
+export async function fetchCustomersFromSupabase(): Promise<CustomerItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data.map(mapRowToCustomer) : [];
+  } catch {
+    return null;
+  }
+}
+
+export function mapRowToInventory(row: any): InventoryItem {
+  return {
+    id: row.id,
+    itemType: row.item_type === 'service_part' ? 'Service Part' : 'Retail Part',
+    code: row.sku || '',
+    name: row.name || 'Inventory Item',
+    category: row.category || 'General Hardware',
+    uom: row.unit || 'pcs',
+    defaultQuantity: 1,
+    sellingPrice: Number(row.selling_price) || 0,
+    mrp: Number(row.mrp) || 0,
+    costPrice: Number(row.cost_price) || 0,
+    currentStock: Number(row.stock_quantity) || 0,
+    lowStockAlert: Number(row.min_stock_alert) || 2,
+    activeStatus: 'Active',
+    hsnCode: row.hsn_code || '84733020',
+    gstRate: 18,
+    barcode: row.barcode || '',
+    productGroup: row.brand || '',
+    description: row.model || '',
+    supplierVendor: '',
+    storageLocation: '',
+    openingBalance: Number(row.stock_quantity) || 0,
+  };
+}
+
+export async function fetchInventoryFromSupabase(): Promise<InventoryItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('inventory_items').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data.map(mapRowToInventory) : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchOutsourceVouchersFromSupabase(): Promise<OutsourceVoucher[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('outsource_vouchers').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchDataRecoveryFromSupabase(): Promise<DataRecoveryCase[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('data_recovery_cases').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAmcContractsFromSupabase(): Promise<AmcContract[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('amc_contracts').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSupportLeadsFromSupabase(): Promise<SupportLeadItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('support_leads').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data)
+      ? data.map((row) => ({
+          id: row.id,
+          lead_name: row.lead_name || 'Inquiry',
+          phone: row.phone || '',
+          email: row.email || '',
+          company: row.company || '',
+          subject: row.service_interested || 'General Inquiry',
+          message: row.notes || '',
+          service_interested: row.service_interested || 'General Inquiry',
+          status: 'New Inquiry',
+          source: 'Website Contact Form',
+          created_at: row.created_at || new Date().toISOString(),
+        }))
+      : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchBookRepairLeadsFromSupabase(): Promise<BookRepairLeadItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('book_repair_leads').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data)
+      ? data.map((row) => ({
+          id: row.id,
+          bookingNo: row.booking_no || '',
+          name: row.customer_name || 'Customer',
+          phone: row.phone || '',
+          email: row.email || '',
+          deviceType: row.device_type || 'Device',
+          brand: row.brand || '',
+          model: row.model || '',
+          serviceMode: row.service_mode || 'Store Drop-off',
+          problemDescription: row.problem_reported || '',
+          address: row.address || '',
+          status: (row.status || 'New Booking') as any,
+          created_at: row.created_at || new Date().toISOString(),
+        }))
+      : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSalesInvoicesFromSupabase(): Promise<SalesInvoiceItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchPurchaseInvoicesFromSupabase(): Promise<PurchaseInvoiceItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('purchase_invoices').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchBlogPostsFromSupabase(): Promise<BlogPostItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchMilestonesFromSupabase(): Promise<MilestoneItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('milestones').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sync entire ERP state exclusively from Supabase Cloud
+ */
+export async function syncEntireErpWithSupabase(store: any) {
+  if (!supabase || !isSupabaseConfigured()) return;
+  try {
+    const [
+      tickets,
+      invoices,
+      customers,
+      inventory,
+      outsource,
+      dataRecovery,
+      amc,
+      supportLeads,
+      bookLeads,
+      salesInvoices,
+      purchaseInvoices,
+      blogs,
+      milestones,
+    ] = await Promise.all([
+      fetchTicketsFromSupabase(),
+      fetchInvoicesFromSupabase(),
+      fetchCustomersFromSupabase(),
+      fetchInventoryFromSupabase(),
+      fetchOutsourceVouchersFromSupabase(),
+      fetchDataRecoveryFromSupabase(),
+      fetchAmcContractsFromSupabase(),
+      fetchSupportLeadsFromSupabase(),
+      fetchBookRepairLeadsFromSupabase(),
+      fetchSalesInvoicesFromSupabase(),
+      fetchPurchaseInvoicesFromSupabase(),
+      fetchBlogPostsFromSupabase(),
+      fetchMilestonesFromSupabase(),
+    ]);
+
+    if (Array.isArray(tickets) && store.setTickets) store.setTickets(tickets);
+    if (Array.isArray(invoices) && store.setRepairInvoices) store.setRepairInvoices(invoices);
+    if (Array.isArray(customers) && store.setCustomers) store.setCustomers(customers);
+    if (Array.isArray(inventory) && store.setInventory) store.setInventory(inventory);
+    if (Array.isArray(outsource) && store.setOutsourceVouchers) store.setOutsourceVouchers(outsource);
+    if (Array.isArray(dataRecovery) && store.setDataRecoveryCases) store.setDataRecoveryCases(dataRecovery);
+    if (Array.isArray(amc) && store.setAmcContracts) store.setAmcContracts(amc);
+    if (Array.isArray(supportLeads) && store.setSupportLeads) store.setSupportLeads(supportLeads);
+    if (Array.isArray(bookLeads) && store.setBookRepairLeads) store.setBookRepairLeads(bookLeads);
+    if (Array.isArray(salesInvoices) && store.setSalesInvoices) store.setSalesInvoices(salesInvoices);
+    if (Array.isArray(purchaseInvoices) && store.setPurchaseInvoices) store.setPurchaseInvoices(purchaseInvoices);
+    if (Array.isArray(blogs) && store.setBlogPosts) store.setBlogPosts(blogs);
+    if (Array.isArray(milestones) && store.setMilestones) store.setMilestones(milestones);
+  } catch (err) {
+    console.warn('Sync entire ERP with Supabase failed:', err);
   }
 }
