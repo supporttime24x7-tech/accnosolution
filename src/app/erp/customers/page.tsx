@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Plus, Search, Trash2, Edit3, X, Check, Building, Phone, Mail, Globe,
   Calendar, CreditCard, Shield, MapPin, UserCheck, AlertCircle, FileSpreadsheet,
-  MessageSquare, Star, Award, CheckCircle2, ShieldAlert, Landmark, QrCode
+  MessageSquare, Star, Award, CheckCircle2, ShieldAlert, Landmark, QrCode, RefreshCw
 } from 'lucide-react';
 import { useErpStore, CustomerItem } from '@/lib/store';
 import {
@@ -24,18 +24,26 @@ export default function CustomersPage() {
     setViewFormat(customerRules.displayFormat);
   }, [customerRules.displayFormat]);
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const syncFromCloudNow = async () => {
+    setIsSyncing(true);
+    try {
+      const cloudData = await fetchCustomersFromSupabase();
+      if (cloudData && Array.isArray(cloudData)) {
+        setCustomers(cloudData);
+      }
+    } catch (e) {
+      console.warn('Sync failed:', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Initial Supabase Cloud Sync & Auto-Upload of any unsaved local customers
   useEffect(() => {
-    fetchCustomersFromSupabase().then((cloudData) => {
-      if (cloudData && cloudData.length > 0) {
-        setCustomers(cloudData);
-      } else if (customers && customers.length > 0) {
-        for (const cust of customers) {
-          pushCustomerToSupabase(cust).catch(() => {});
-        }
-      }
-    });
-  }, [setCustomers]);
+    syncFromCloudNow();
+  }, []);
 
   // Modal state: null = closed, 'new' = creating new, CustomerItem = editing/viewing existing
   const [activeCustomerModal, setActiveCustomerModal] = useState<'new' | CustomerItem | null>(null);
@@ -545,8 +553,22 @@ export default function CustomersPage() {
           </div>
 
           <button
+            onClick={syncFromCloudNow}
+            disabled={isSyncing}
+            className={`px-4 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+              isSyncing
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border-white/15'
+            }`}
+            title="Force refresh customer directory from Supabase Cloud"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-amber-400' : 'text-[#5ED29C]'}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
+          <button
             onClick={handleOpenNewModal}
-            className="px-5 py-2.5 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-[#5ED29C] hover:bg-[#16FFC6] text-[#070B0A] font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#5ED29C]/20 flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Add New Customer
           </button>
