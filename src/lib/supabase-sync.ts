@@ -479,21 +479,24 @@ export function mapRowToCustomer(row: any): CustomerItem {
     category: 'Sundry Debtor',
     accountGroup: row.customer_type === 'CORPORATE' ? 'Corporate / B2B' : 'Retail / Cash',
     mobile: row.phone || '',
+    phone: row.phone || '',
     alternateContact: row.alternate_phone || '',
     email: row.email || '',
     panNumber: '',
     gstin: row.gstin || '',
     billingAddress: row.address || '',
+    address: row.address || '',
     city: row.city || 'Sanchore',
     state: row.state || 'Rajasthan',
     pinCode: row.pincode || '',
     accountStatus: 'Active',
-    creditLimit: 0,
-    outstandingBalance: 0,
+    creditLimit: Number(row.credit_limit) || 0,
+    outstandingBalance: Number(row.current_balance) || 0,
     loyaltyPoints: 0,
-    kycVerified: false,
-    tier: 'Standard',
+    kycVerified: Boolean(row.gstin),
+    tier: (Number(row.credit_limit) || 0) > 100000 ? 'Platinum VIP' : 'Standard',
     totalRepairs: 0,
+    internalNotes: row.notes || '',
   };
 }
 
@@ -501,10 +504,110 @@ export async function fetchCustomersFromSupabase(): Promise<CustomerItem[] | nul
   if (!supabase || !isSupabaseConfigured()) return null;
   try {
     const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
-    if (error) return null;
+    if (error) {
+      console.warn('fetchCustomersFromSupabase error:', error);
+      return null;
+    }
     return Array.isArray(data) ? data.map(mapRowToCustomer) : [];
-  } catch {
+  } catch (err) {
+    console.warn('fetchCustomersFromSupabase exception:', err);
     return null;
+  }
+}
+
+export async function pushCustomerToSupabase(cust: CustomerItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: cust.id,
+      customer_code: cust.code || '',
+      name: cust.name || 'Customer',
+      phone: cust.mobile || cust.phone || '',
+      alternate_phone: cust.alternateContact || null,
+      email: cust.email || null,
+      customer_type: (cust.accountGroup || '').includes('Corporate') ? 'CORPORATE' : 'RETAIL',
+      company_name: cust.companyName || null,
+      gstin: cust.gstin || null,
+      address: cust.billingAddress || cust.address || null,
+      city: cust.city || 'Sanchore',
+      state: cust.state || 'Rajasthan',
+      pincode: cust.pinCode || null,
+      notes: cust.internalNotes || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('customers').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.warn('pushCustomerToSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('pushCustomerToSupabase exception:', err);
+    return false;
+  }
+}
+
+export async function deleteCustomerFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('customers').delete().eq('id', id);
+    if (error) {
+      console.warn('deleteCustomerFromSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('deleteCustomerFromSupabase exception:', err);
+    return false;
+  }
+}
+
+export async function pushInventoryToSupabase(item: InventoryItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id,
+      sku: item.code || '',
+      name: item.name || '',
+      category: item.category || 'General Hardware',
+      item_type: item.itemType === 'Retail Part' ? 'retail_product' : 'service_part',
+      unit: item.uom || 'Pcs',
+      cost_price: Number(item.costPrice) || 0,
+      selling_price: Number(item.sellingPrice) || 0,
+      mrp: Number(item.mrp) || 0,
+      stock_quantity: Number(item.currentStock) || 0,
+      min_stock_alert: Number(item.lowStockAlert) || 2,
+      hsn_code: item.hsnCode || '84733020',
+      gst_rate: Number(item.gstRate) || 18,
+      location: (item as any).location || 'Shop Shelf',
+      description: item.description || null,
+      is_active: item.activeStatus === 'Active',
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('inventory_items').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.warn('pushInventoryToSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('pushInventoryToSupabase exception:', err);
+    return false;
+  }
+}
+
+export async function deleteInventoryFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('inventory_items').delete().eq('id', id);
+    if (error) {
+      console.warn('deleteInventoryFromSupabase error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('deleteInventoryFromSupabase exception:', err);
+    return false;
   }
 }
 
@@ -829,8 +932,29 @@ export async function syncEntireErpWithSupabase(store: any) {
 
     if (Array.isArray(tickets) && store.setTickets) store.setTickets(tickets);
     if (Array.isArray(invoices) && store.setRepairInvoices) store.setRepairInvoices(invoices);
-    if (Array.isArray(customers) && store.setCustomers) store.setCustomers(customers);
-    if (Array.isArray(inventory) && store.setInventory) store.setInventory(inventory);
+    
+    // Customers 2-way cloud synchronization
+    if (Array.isArray(customers)) {
+      if (customers.length > 0) {
+        if (store.setCustomers) store.setCustomers(customers);
+      } else if (Array.isArray(store.customers) && store.customers.length > 0) {
+        for (const c of store.customers) {
+          pushCustomerToSupabase(c).catch(() => {});
+        }
+      }
+    }
+
+    // Inventory 2-way cloud synchronization
+    if (Array.isArray(inventory)) {
+      if (inventory.length > 0) {
+        if (store.setInventory) store.setInventory(inventory);
+      } else if (Array.isArray(store.inventory) && store.inventory.length > 0) {
+        for (const i of store.inventory) {
+          pushInventoryToSupabase(i).catch(() => {});
+        }
+      }
+    }
+
     if (Array.isArray(outsource) && store.setOutsourceVouchers) store.setOutsourceVouchers(outsource);
     if (Array.isArray(dataRecovery) && store.setDataRecoveryCases) store.setDataRecoveryCases(dataRecovery);
     if (Array.isArray(amc) && store.setAmcContracts) store.setAmcContracts(amc);

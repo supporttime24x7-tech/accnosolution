@@ -7,9 +7,14 @@ import {
   MessageSquare, Star, Award, CheckCircle2, ShieldAlert, Landmark, QrCode
 } from 'lucide-react';
 import { useErpStore, CustomerItem } from '@/lib/store';
+import {
+  fetchCustomersFromSupabase,
+  pushCustomerToSupabase,
+  deleteCustomerFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function CustomersPage() {
-  const { customers, customerRules, addCustomer, updateCustomer, deleteCustomer } = useErpStore();
+  const { customers, setCustomers, customerRules, addCustomer, updateCustomer, deleteCustomer } = useErpStore();
   const [search, setSearch] = useState('');
   
   // Display format initialized from global customer rules
@@ -18,6 +23,19 @@ export default function CustomersPage() {
   useEffect(() => {
     setViewFormat(customerRules.displayFormat);
   }, [customerRules.displayFormat]);
+
+  // Initial Supabase Cloud Sync & Auto-Upload of any unsaved local customers
+  useEffect(() => {
+    fetchCustomersFromSupabase().then((cloudData) => {
+      if (cloudData && cloudData.length > 0) {
+        setCustomers(cloudData);
+      } else if (customers && customers.length > 0) {
+        for (const cust of customers) {
+          pushCustomerToSupabase(cust).catch(() => {});
+        }
+      }
+    });
+  }, [setCustomers]);
 
   // Modal state: null = closed, 'new' = creating new, CustomerItem = editing/viewing existing
   const [activeCustomerModal, setActiveCustomerModal] = useState<'new' | CustomerItem | null>(null);
@@ -217,9 +235,22 @@ export default function CustomersPage() {
     if (!formData.name || !formData.mobile) return;
 
     if (activeCustomerModal === 'new') {
-      addCustomer(formData);
+      const nextNum = customerRules.startWithNo + customers.length;
+      const code = `${customerRules.autoPrefixPattern}${nextNum}`;
+      const newCust: CustomerItem = {
+        ...formData,
+        id: `c-${Date.now()}`,
+        code,
+        loyaltyPoints: customerRules.loyaltyAndGreetings?.enableLoyaltyPoints ? customerRules.loyaltyAndGreetings.signupBonusPoints : 0,
+        kycVerified: Boolean(formData.gstin || formData.panNumber),
+        tier: formData.creditLimit > 100000 ? 'Platinum VIP' : 'Standard',
+        totalRepairs: 0,
+      };
+      addCustomer(newCust);
+      pushCustomerToSupabase(newCust).catch(() => {});
     } else if (typeof activeCustomerModal === 'object' && activeCustomerModal !== null) {
       updateCustomer(activeCustomerModal.id, formData);
+      pushCustomerToSupabase({ ...activeCustomerModal, ...formData }).catch(() => {});
     }
 
     setActiveCustomerModal(null);
@@ -229,6 +260,7 @@ export default function CustomersPage() {
     if (typeof activeCustomerModal === 'object' && activeCustomerModal !== null) {
       if (confirm(`Are you sure you want to delete customer "${activeCustomerModal.name}"?`)) {
         deleteCustomer(activeCustomerModal.id);
+        deleteCustomerFromSupabase(activeCustomerModal.id).catch(() => {});
         setActiveCustomerModal(null);
       }
     }

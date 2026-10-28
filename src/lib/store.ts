@@ -8,6 +8,10 @@ import {
   pushSupportLeadToSupabase,
   pushEmployeeToSupabase,
   deleteEmployeeFromSupabase,
+  pushCustomerToSupabase,
+  deleteCustomerFromSupabase,
+  pushInventoryToSupabase,
+  deleteInventoryFromSupabase,
 } from './supabase-sync';
 
 export interface LineItemBilling {
@@ -2464,18 +2468,29 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newCust, ...state.customers];
       saveToStorage('accno_erp_customers', updated);
+      pushCustomerToSupabase(newCust).catch(() => {});
       return { customers: updated };
     }),
   updateCustomer: (id: string, custData: Partial<CustomerItem>) =>
     set((state: ErpState) => {
-      const updated = state.customers.map((c: CustomerItem) => (c.id === id ? { ...c, ...custData } : c));
+      let updatedTarget: CustomerItem | null = null;
+      const updated = state.customers.map((c: CustomerItem) => {
+        if (c.id === id || c.code === id) {
+          const merged = { ...c, ...custData };
+          updatedTarget = merged;
+          return merged;
+        }
+        return c;
+      });
       saveToStorage('accno_erp_customers', updated);
+      if (updatedTarget) pushCustomerToSupabase(updatedTarget).catch(() => {});
       return { customers: updated };
     }),
   deleteCustomer: (id: string) =>
     set((state: ErpState) => {
-      const updated = state.customers.filter((c: CustomerItem) => c.id !== id);
+      const updated = state.customers.filter((c: CustomerItem) => c.id !== id && c.code !== id);
       saveToStorage('accno_erp_customers', updated);
+      deleteCustomerFromSupabase(id).catch(() => {});
       return { customers: updated };
     }),
   updateCustomerRules: (rules: Partial<CustomerRulesConfig>) =>
@@ -2834,18 +2849,29 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newItem, ...state.inventory];
       saveToStorage('accno_erp_inventory', updated);
+      pushInventoryToSupabase(newItem).catch(() => {});
       return { inventory: updated };
     }),
   updateInventoryItem: (id: string, itemData: Partial<InventoryItem>) =>
     set((state: ErpState) => {
-      const updated = state.inventory.map((i: InventoryItem) => (i.id === id ? { ...i, ...itemData } : i));
+      let updatedTarget: InventoryItem | null = null;
+      const updated = state.inventory.map((i: InventoryItem) => {
+        if (i.id === id || i.code === id) {
+          const merged = { ...i, ...itemData };
+          updatedTarget = merged;
+          return merged;
+        }
+        return i;
+      });
       saveToStorage('accno_erp_inventory', updated);
+      if (updatedTarget) pushInventoryToSupabase(updatedTarget).catch(() => {});
       return { inventory: updated };
     }),
   deleteInventoryItem: (id: string) =>
     set((state: ErpState) => {
-      const updated = state.inventory.filter((i: InventoryItem) => i.id !== id);
+      const updated = state.inventory.filter((i: InventoryItem) => i.id !== id && i.code !== id);
       saveToStorage('accno_erp_inventory', updated);
+      deleteInventoryFromSupabase(id).catch(() => {});
       return { inventory: updated };
     }),
   updateInventoryRules: (rules: Partial<InventoryRulesConfig>) =>

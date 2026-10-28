@@ -18,6 +18,7 @@ import {
   fetchTicketsFromSupabase,
   fetchInvoicesFromSupabase,
   fetchEmployeesFromSupabase,
+  fetchCustomersFromSupabase,
 } from '@/lib/supabase-sync';
 
 interface NavItem {
@@ -66,6 +67,7 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     setTickets,
     setRepairInvoices,
     setEmployees,
+    setCustomers,
   } = useErpStore();
 
   useEffect(() => {
@@ -164,6 +166,17 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
             }
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'customers' },
+          async () => {
+            const freshCust = await fetchCustomersFromSupabase();
+            if (freshCust && isSubscribed) {
+              setCustomers(freshCust);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED' && isSubscribed) {
             setCloudSyncStatus('synced');
@@ -175,7 +188,7 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
         supabase?.removeChannel(channel);
       };
     }
-  }, [setTickets, setRepairInvoices, setEmployees]);
+  }, [setTickets, setRepairInvoices, setEmployees, setCustomers]);
 
   // Strict Client-Side Defense-in-Depth Auth Check
   useEffect(() => {
