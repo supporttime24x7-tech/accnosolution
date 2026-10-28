@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (supabaseAdmin && isSupabaseConfigured()) {
-      const payload = {
+      const payload: Record<string, any> = {
         id: body.id || `c-${Date.now()}`,
         customer_code: body.code || '',
         name: body.name || 'Customer',
@@ -47,20 +47,58 @@ export async function POST(req: NextRequest) {
         company_name: body.companyName || null,
         gstin: body.gstin || null,
         address: body.billingAddress || body.address || null,
+        billing_address: body.billingAddress || body.address || null,
+        shipping_address: body.shippingAddress || null,
         city: body.city || 'Sanchore',
         state: body.state || 'Rajasthan',
         pincode: body.pinCode || null,
-        notes: body.internalNotes || null,
+        category: body.category || 'Sundry Debtor',
+        account_group: body.accountGroup || 'Retail / Cash',
+        pan_number: body.panNumber || null,
+        account_status: body.accountStatus || 'Active',
         credit_limit: Number(body.creditLimit) || 0,
         current_balance: Number(body.outstandingBalance) || 0,
+        loyalty_points: Number(body.loyaltyPoints) || 0,
+        kyc_verified: Boolean(body.kycVerified),
+        tier: body.tier || 'Standard',
+        total_repairs: Number(body.totalRepairs) || 0,
+        notes: body.internalNotes || null,
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabaseAdmin
+      let { data, error } = await supabaseAdmin
         .from('customers')
         .upsert(payload, { onConflict: 'id' })
         .select()
         .single();
+
+      // Graceful fallback to core columns if new migration columns are not yet in Supabase
+      if (error && error.message?.includes('schema cache')) {
+        const corePayload = {
+          id: body.id || `c-${Date.now()}`,
+          customer_code: body.code || '',
+          name: body.name || 'Customer',
+          phone: body.mobile || body.phone || '',
+          alternate_phone: body.alternateContact || null,
+          email: body.email || null,
+          customer_type: (body.accountGroup || '').includes('Corporate') ? 'CORPORATE' : 'RETAIL',
+          company_name: body.companyName || null,
+          gstin: body.gstin || null,
+          address: body.billingAddress || body.address || null,
+          city: body.city || 'Sanchore',
+          state: body.state || 'Rajasthan',
+          pincode: body.pinCode || null,
+          notes: body.internalNotes || null,
+          updated_at: new Date().toISOString(),
+        };
+        const fb = await supabaseAdmin
+          .from('customers')
+          .upsert(corePayload, { onConflict: 'id' })
+          .select()
+          .single();
+        data = fb.data;
+        error = fb.error;
+      }
 
       if (error) {
         console.warn('API customer upsert error:', error);

@@ -34,14 +34,18 @@ export async function POST(req: NextRequest) {
     const vendorName = body.companyName || body.name || 'Vendor';
 
     if (supabaseAdmin && isSupabaseConfigured()) {
-      const payload = {
+      const payload: Record<string, any> = {
         id: body.id || `v-${Date.now()}`,
+        vendor_type: body.vendorType || 'Standard Vendor',
         vendor_code: body.code || null,
         vendor_name: vendorName,
         contact_person: body.contactPerson || null,
+        account_group: body.accountGroup || 'Sundry Creditor',
+        designation: body.designation || null,
         phone: body.phone || '+91 99999-00000',
         alternate_phone: body.alternatePhone || null,
         email: body.email || null,
+        website: body.website || null,
         gstin: body.gstin || null,
         pan_number: body.pan || null,
         address: body.fullAddress || body.address || null,
@@ -49,20 +53,56 @@ export async function POST(req: NextRequest) {
         state: body.state || null,
         pincode: body.pinCode || null,
         bank_name: body.bankName || null,
+        bank_account_name: body.bankAccountName || null,
+        bank_account_type: body.bankAccountType || 'Current',
         bank_account_number: body.bankAccountNumber || null,
-        bank_ifsc: body.bankIfsc || null,
+        bank_ifsc: body.bankIfscCode || body.bankIfsc || null,
+        bank_branch: body.bankBranch || null,
+        upi_id: body.upiId || null,
         payment_terms: body.paymentTerms || 'Net 30 Days',
         opening_balance: Number(body.openingBalance) || 0,
         current_balance: Number(body.outstandingBalance) || 0,
+        max_credit_limit: Number(body.maxCreditLimit) || 0,
         category: body.category || 'Components',
         is_active: body.activeStatus !== 'Inactive',
+        active_status: body.activeStatus || 'Active',
+        internal_notes: body.internalNotes || null,
+        updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabaseAdmin
+      let { data, error } = await supabaseAdmin
         .from('suppliers')
         .upsert(payload, { onConflict: 'id' })
         .select()
         .single();
+
+      if (error && error.message?.includes('schema cache')) {
+        const corePayload = {
+          id: body.id || `v-${Date.now()}`,
+          vendor_code: body.code || null,
+          vendor_name: vendorName,
+          contact_person: body.contactPerson || null,
+          phone: body.phone || '+91 99999-00000',
+          alternate_phone: body.alternatePhone || null,
+          email: body.email || null,
+          gstin: body.gstin || null,
+          pan_number: body.pan || null,
+          address: body.fullAddress || body.address || null,
+          city: body.station || body.city || null,
+          state: body.state || null,
+          bank_name: body.bankName || null,
+          bank_account_number: body.bankAccountNumber || null,
+          bank_ifsc: body.bankIfscCode || body.bankIfsc || null,
+          payment_terms: body.paymentTerms || 'Net 30 Days',
+          opening_balance: Number(body.openingBalance) || 0,
+          current_balance: Number(body.outstandingBalance) || 0,
+          category: body.category || 'Components',
+          is_active: body.activeStatus !== 'Inactive',
+        };
+        const fb = await supabaseAdmin.from('suppliers').upsert(corePayload, { onConflict: 'id' }).select().single();
+        data = fb.data;
+        error = fb.error;
+      }
 
       if (error) {
         console.warn('API suppliers upsert error:', error);
