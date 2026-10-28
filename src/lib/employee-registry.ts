@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { verifyPassword } from './auth';
+import { supabaseAdmin } from './supabase';
 
 export interface VerifiedEmployee {
   id: string;
@@ -20,7 +21,7 @@ export interface VerifiedEmployee {
 
 const EMPLOYEES_FILE = path.join(process.cwd(), 'src', 'data', 'employees.json');
 
-// Default fallback matching the Employee Module
+// Default structural template (passwords & sensitive data stored securely in Supabase cloud)
 export const DEFAULT_EMPLOYEES: VerifiedEmployee[] = [
   {
     id: 'emp-1001',
@@ -31,7 +32,7 @@ export const DEFAULT_EMPLOYEES: VerifiedEmployee[] = [
     department: 'Admin',
     designation: 'Admin',
     activeStatus: 'Active',
-    passwordHashOrPlain: 'Admin@123',
+    passwordHashOrPlain: '',
   },
   {
     id: 'emp-1002',
@@ -42,7 +43,7 @@ export const DEFAULT_EMPLOYEES: VerifiedEmployee[] = [
     department: 'Billing & POS',
     designation: 'Store Manager & Billing Lead',
     activeStatus: 'Active',
-    passwordHashOrPlain: 'Priya@Accno2026#',
+    passwordHashOrPlain: '',
   },
   {
     id: 'emp-1003',
@@ -53,7 +54,7 @@ export const DEFAULT_EMPLOYEES: VerifiedEmployee[] = [
     department: 'Technical Lab',
     designation: 'Hardware Diagnostic Specialist',
     activeStatus: 'Active',
-    passwordHashOrPlain: 'Rahul@Accno2026#',
+    passwordHashOrPlain: '',
   },
   {
     id: 'emp-1004',
@@ -64,7 +65,7 @@ export const DEFAULT_EMPLOYEES: VerifiedEmployee[] = [
     department: 'Customer Support',
     designation: 'Customer Support Executive',
     activeStatus: 'On Leave',
-    passwordHashOrPlain: 'Sonia@Accno2026#',
+    passwordHashOrPlain: '',
   },
 ];
 
@@ -203,6 +204,75 @@ export async function authenticateEmployee(
       error: 'Please enter both your Employee ID and Password to sign in.',
       status: 400,
     };
+  }
+
+  // 1. Direct Supabase Cloud Authentication (Primary & Secure)
+  if (supabaseAdmin) {
+    try {
+      const { data: supaEmp, error: supaErr } = await supabaseAdmin
+        .from('employees')
+        .select('*')
+        .or(`emp_code.ilike.${cleanId},email.ilike.${cleanId}`)
+        .maybeSingle();
+
+      if (supaEmp) {
+        if (supaEmp.active_status === 'Inactive') {
+          return {
+            success: false,
+            error: 'Security Alert: This employee account has been deactivated. Access is blocked.',
+            status: 403,
+          };
+        }
+
+        if (supaEmp.active_status === 'On Leave') {
+          return {
+            success: false,
+            error: 'Access Restricted: This employee profile is currently registered as On Leave. Please contact the administrator.',
+            status: 403,
+          };
+        }
+
+        if (!supaEmp.password_hash_or_plain) {
+          return {
+            success: false,
+            error: `Access Denied: No login password has been configured for employee ${supaEmp.emp_code}.`,
+            status: 401,
+          };
+        }
+
+        const isPasswordValid = await verifyPassword(cleanPass, supaEmp.password_hash_or_plain);
+        if (!isPasswordValid) {
+          return {
+            success: false,
+            error: `Invalid password. Please enter the correct password configured for employee ${supaEmp.emp_code}.`,
+            status: 401,
+          };
+        }
+
+        let redirectTo = '/erp/repairs';
+        const roleLower = (supaEmp.role || 'technician').toLowerCase();
+        if (roleLower === 'sales' || roleLower === 'accounts') redirectTo = '/erp/pos';
+        else if (roleLower === 'manager') redirectTo = '/erp/repairs';
+        else if (roleLower === 'admin' || roleLower === 'super_admin') redirectTo = '/erp/repairs';
+
+        return {
+          success: true,
+          status: 200,
+          user: {
+            id: supaEmp.id,
+            empCode: supaEmp.emp_code,
+            name: supaEmp.name,
+            email: supaEmp.email || '',
+            role: roleLower as any,
+            department: supaEmp.department || 'Technical',
+            designation: supaEmp.designation || 'Staff',
+            redirectTo,
+          },
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase authentication lookup failed, checking local registry:', err);
+    }
   }
 
   const employee = findEmployeeByIdentifier(cleanId);

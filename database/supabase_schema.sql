@@ -509,9 +509,9 @@ CREATE TABLE IF NOT EXISTS company_profile (
     state VARCHAR(100) DEFAULT 'Rajasthan',
     pincode VARCHAR(20) DEFAULT '343041',
     merchant_upi_id VARCHAR(100) DEFAULT 'support.time24x7-3@okhdfcbank',
-    bank_name VARCHAR(100) DEFAULT 'Bank of Baroda',
-    bank_account_number VARCHAR(100) DEFAULT '29450100022394',
-    bank_ifsc_code VARCHAR(50) DEFAULT 'BARB0SANCHO',
+    bank_name VARCHAR(100),
+    bank_account_number VARCHAR(100),
+    bank_ifsc_code VARCHAR(50),
     repair_rules JSONB DEFAULT '{"ticket_prefix":"TKT-","ticket_start_no":1001,"invoice_prefix":"RBN-","invoice_start_no":1001}'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

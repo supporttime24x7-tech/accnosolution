@@ -32,6 +32,10 @@ yarn-error.log*
 .env.test
 .env.production
 
+# sensitive data and local database dumps
+src/data/employees.json
+database/seed_all_data.sql
+
 # vercel & ide
 .vercel
 .idea
