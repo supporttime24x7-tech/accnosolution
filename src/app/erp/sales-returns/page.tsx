@@ -8,6 +8,11 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useErpStore, SalesReturnItem, TransactionItemLine, InventoryItem, CustomerItem } from '@/lib/store';
+import {
+  fetchSalesReturnsFromSupabase,
+  pushSalesReturnToSupabase,
+  deleteSalesReturnFromSupabase,
+} from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Sales Return Line Items
 interface SearchableLineItemSelectProps {
@@ -516,7 +521,7 @@ export default function SalesReturnsPage() {
     }
 
     if (editingReturnId) {
-      updateSalesReturn(editingReturnId, {
+      const updatedReturn = {
         returnNo: formData.returnNo,
         returnDate: new Date(formData.returnDate).toISOString(),
         originalInvoiceNo: formData.originalInvoiceNo,
@@ -533,11 +538,14 @@ export default function SalesReturnsPage() {
         restockToStock: formData.restockToStock,
         refundStatus: formData.refundStatus as any,
         remarks: formData.remarks,
-      });
+      };
+
+      updateSalesReturn(editingReturnId, updatedReturn);
+      pushSalesReturnToSupabase({ id: editingReturnId, ...updatedReturn } as any).catch(() => {});
 
       alert(`Sales Return Credit Note "${formData.returnNo}" updated successfully!`);
     } else {
-      addSalesReturn({
+      const newReturn = {
         returnNo: formData.returnNo || `SLR-${Date.now()}`,
         returnDate: new Date(formData.returnDate).toISOString(),
         originalInvoiceNo: formData.originalInvoiceNo,
@@ -554,7 +562,10 @@ export default function SalesReturnsPage() {
         restockToStock: formData.restockToStock,
         refundStatus: formData.refundStatus as any,
         remarks: formData.remarks,
-      });
+      };
+
+      addSalesReturn(newReturn);
+      pushSalesReturnToSupabase(newReturn as any).catch(() => {});
 
       alert(`Sales Return Credit Note "${formData.returnNo}" created & registered successfully!`);
     }
@@ -1183,6 +1194,7 @@ export default function SalesReturnsPage() {
                           onClick={() => {
                             if (confirm(`Delete Sales Return Credit Note "${ret.returnNo}"?`)) {
                               deleteSalesReturn(ret.id);
+                              deleteSalesReturnFromSupabase(ret.id).catch(() => {});
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/30 cursor-pointer"

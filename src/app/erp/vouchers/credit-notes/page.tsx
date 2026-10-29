@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import { useErpStore, AccountingVoucher } from '@/lib/store';
 import {
+  pushAccountingVoucherToSupabase,
+  deleteAccountingVoucherFromSupabase,
+} from '@/lib/supabase-sync';
+import {
   FileCode,
   Plus,
   Search,
@@ -87,9 +91,9 @@ export default function CreditNotesPage() {
     const count = creditNotesList.length;
     const autoNo = formData.voucherNumber || `CRN-${1001 + count}`;
 
-    addAccountingVoucher({
+    const vPayload = {
       voucherNumber: autoNo,
-      voucherType: 'CREDIT_NOTE',
+      voucherType: 'CREDIT_NOTE' as const,
       voucherDate: formData.voucherDate,
       partyName: formData.partyName,
       partyPhone: formData.partyPhone,
@@ -100,7 +104,10 @@ export default function CreditNotesPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    addAccountingVoucher(vPayload);
+    pushAccountingVoucherToSupabase(vPayload as any).catch(() => {});
 
     setShowCreateModal(false);
   };
@@ -128,7 +135,7 @@ export default function CreditNotesPage() {
     e.preventDefault();
     if (!selectedVoucher) return;
 
-    updateAccountingVoucher(selectedVoucher.id, {
+    const updatedPayload = {
       voucherDate: formData.voucherDate,
       partyName: formData.partyName,
       partyPhone: formData.partyPhone,
@@ -139,7 +146,10 @@ export default function CreditNotesPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    updateAccountingVoucher(selectedVoucher.id, updatedPayload);
+    pushAccountingVoucherToSupabase({ ...selectedVoucher, ...updatedPayload } as any).catch(() => {});
 
     setShowEditModal(false);
   };
@@ -147,6 +157,7 @@ export default function CreditNotesPage() {
   const handleDelete = (id: string, num: string) => {
     if (confirm(`Are you sure you want to delete Credit Note ${num}?`)) {
       deleteAccountingVoucher(id);
+      deleteAccountingVoucherFromSupabase(id).catch(() => {});
     }
   };
 

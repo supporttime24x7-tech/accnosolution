@@ -7,7 +7,11 @@ import {
   Building, Phone, MapPin, Tag, ShieldCheck, ArrowRight, RefreshCw, CreditCard, Sparkles, Barcode, Edit2, RotateCw
 } from 'lucide-react';
 import { useErpStore, SalesInvoiceItem, TransactionItemLine, CustomerItem, InventoryItem } from '@/lib/store';
-import { fetchSalesInvoicesFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchSalesInvoicesFromSupabase,
+  pushSalesInvoiceToSupabase,
+  deleteSalesInvoiceFromSupabase,
+} from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Line Items
 interface SearchableLineItemSelectProps {
@@ -575,7 +579,7 @@ export default function SalesPage() {
 
     if (editingInvoiceId) {
       // Modify Existing Generated Sales Invoice
-      updateSalesInvoice(editingInvoiceId, {
+      const updatedInv = {
         invoiceNo: formData.invoiceNo,
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         customerId: formData.customerId || 'c-walkin',
@@ -598,12 +602,15 @@ export default function SalesPage() {
         remarks: formData.remarks,
         showProductRemarksOnPrint: formData.showProductRemarksOnPrint,
         showRefurbishedBadgeOnPrint: formData.showRefurbishedBadgeOnPrint,
-      });
+      };
+
+      updateSalesInvoice(editingInvoiceId, updatedInv);
+      pushSalesInvoiceToSupabase({ id: editingInvoiceId, ...updatedInv } as any).catch(() => {});
 
       alert(`Sales Invoice "${formData.invoiceNo}" modified and updated successfully!`);
     } else {
       // Add New Sales Invoice
-      addSalesInvoice({
+      const newInv = {
         invoiceNo: formData.invoiceNo || `${saleRules?.salesInvoicePrefix || 'SAL-'}${1001 + salesInvoices.length}`,
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         customerId: formData.customerId || 'c-walkin',
@@ -626,7 +633,10 @@ export default function SalesPage() {
         remarks: formData.remarks,
         showProductRemarksOnPrint: formData.showProductRemarksOnPrint,
         showRefurbishedBadgeOnPrint: formData.showRefurbishedBadgeOnPrint,
-      });
+      };
+
+      addSalesInvoice(newInv);
+      pushSalesInvoiceToSupabase(newInv as any).catch(() => {});
 
       // Update Customer Outstanding Ledger Balance
       if (formData.customerId && balVal > 0) {
@@ -657,6 +667,12 @@ export default function SalesPage() {
       balanceDue: newBalance,
       paymentStatus: newStatus,
     });
+    pushSalesInvoiceToSupabase({
+      ...paymentModalInvoice,
+      paidAmount: newPaid,
+      balanceDue: newBalance,
+      paymentStatus: newStatus,
+    } as any).catch(() => {});
 
     // Reduce Customer Outstanding Balance
     if (paymentModalInvoice.customerId) {
@@ -1567,6 +1583,7 @@ export default function SalesPage() {
                           onClick={() => {
                             if (confirm(`Delete Sales Invoice "${inv.invoiceNo}"?`)) {
                               deleteSalesInvoice(inv.id);
+                              deleteSalesInvoiceFromSupabase(inv.id).catch(() => {});
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/30 cursor-pointer"

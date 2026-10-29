@@ -9,7 +9,13 @@ import {
   Printer, CheckCircle, AlertCircle as WarningIcon, DollarSign, Truck, ChevronDown, RefreshCw
 } from 'lucide-react';
 import { useErpStore, InventoryItem, HsnMasterItem } from '@/lib/store';
-import { fetchInventoryFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchInventoryFromSupabase,
+  pushInventoryToSupabase,
+  deleteInventoryFromSupabase,
+  pushHsnMasterToSupabase,
+  deleteHsnMasterFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function InventoryPage() {
   const {
@@ -325,6 +331,7 @@ export default function InventoryPage() {
       const generatedId = `i-${Date.now()}`;
       const newItemData = { ...formData, id: generatedId };
       addInventoryItem(newItemData);
+      pushInventoryToSupabase(newItemData as any).catch(() => {});
       
       if (activeSlotForNewPart) {
         handleUpdateSlot(activeSlotForNewPart, { selectedItemId: generatedId, category: formData.category });
@@ -333,6 +340,7 @@ export default function InventoryPage() {
       alert(`Product "${formData.name}" created and saved successfully!`);
     } else if (activeItemModal && typeof activeItemModal === 'object') {
       updateInventoryItem(activeItemModal.id, formData);
+      pushInventoryToSupabase({ ...activeItemModal, ...formData } as any).catch(() => {});
       alert(`Product "${formData.name}" updated and saved successfully!`);
     }
     setActiveItemModal(null);
@@ -342,6 +350,7 @@ export default function InventoryPage() {
     if (typeof activeItemModal === 'object' && activeItemModal !== null) {
       if (confirm(`Are you sure you want to delete inventory item "${activeItemModal.name}"?`)) {
         deleteInventoryItem(activeItemModal.id);
+        deleteInventoryFromSupabase(activeItemModal.id).catch(() => {});
         setActiveItemModal(null);
       }
     }
@@ -371,6 +380,7 @@ export default function InventoryPage() {
       description: inlineHsnForm.description.trim() || 'Custom Part HSN Code',
     };
     addHsnCode(newHsn);
+    pushHsnMasterToSupabase(newHsn).catch(() => {});
     setFormData({
       ...formData,
       hsnCode: newHsn.hsnCode,
@@ -2532,7 +2542,10 @@ export default function InventoryPage() {
                       <td className="p-3 text-white/70 font-sans">{h.description}</td>
                       <td className="p-3 text-right">
                         <button
-                          onClick={() => deleteHsnCode(h.hsnCode)}
+                          onClick={() => {
+                            deleteHsnCode(h.hsnCode);
+                            deleteHsnMasterFromSupabase(h.hsnCode).catch(() => {});
+                          }}
                           className="p-1 text-rose-400 hover:text-white hover:bg-rose-500/20 rounded-lg transition-all"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

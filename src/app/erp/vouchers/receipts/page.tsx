@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import { useErpStore, AccountingVoucher } from '@/lib/store';
 import {
+  pushAccountingVoucherToSupabase,
+  deleteAccountingVoucherFromSupabase,
+} from '@/lib/supabase-sync';
+import {
   Receipt,
   Plus,
   Search,
@@ -97,9 +101,9 @@ export default function ReceiptVouchersPage() {
     const count = receiptsList.length;
     const autoNo = formData.voucherNumber || `RCT-${1001 + count}`;
 
-    addAccountingVoucher({
+    const vPayload = {
       voucherNumber: autoNo,
-      voucherType: 'RECEIPT',
+      voucherType: 'RECEIPT' as const,
       voucherDate: formData.voucherDate,
       partyName: formData.partyName,
       partyPhone: formData.partyPhone,
@@ -112,7 +116,10 @@ export default function ReceiptVouchersPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    addAccountingVoucher(vPayload);
+    pushAccountingVoucherToSupabase(vPayload as any).catch(() => {});
 
     setShowCreateModal(false);
   };
@@ -142,7 +149,7 @@ export default function ReceiptVouchersPage() {
     e.preventDefault();
     if (!selectedVoucher) return;
 
-    updateAccountingVoucher(selectedVoucher.id, {
+    const updatedPayload = {
       voucherDate: formData.voucherDate,
       partyName: formData.partyName,
       partyPhone: formData.partyPhone,
@@ -155,7 +162,10 @@ export default function ReceiptVouchersPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    updateAccountingVoucher(selectedVoucher.id, updatedPayload);
+    pushAccountingVoucherToSupabase({ ...selectedVoucher, ...updatedPayload } as any).catch(() => {});
 
     setShowEditModal(false);
   };
@@ -163,6 +173,7 @@ export default function ReceiptVouchersPage() {
   const handleDelete = (id: string, num: string) => {
     if (confirm(`Are you sure you want to delete Receipt Voucher ${num}?`)) {
       deleteAccountingVoucher(id);
+      deleteAccountingVoucherFromSupabase(id).catch(() => {});
     }
   };
 

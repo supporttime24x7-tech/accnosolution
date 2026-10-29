@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import { useErpStore, AccountingVoucher, JournalLineItem } from '@/lib/store';
 import {
+  pushAccountingVoucherToSupabase,
+  deleteAccountingVoucherFromSupabase,
+} from '@/lib/supabase-sync';
+import {
   BookOpen,
   Plus,
   Search,
@@ -138,9 +142,9 @@ export default function JournalEntriesPage() {
     const primaryDebit = lines.find((l) => l.type === 'DEBIT')?.accountLedger || 'Debit Ledger';
     const primaryCredit = lines.find((l) => l.type === 'CREDIT')?.accountLedger || 'Credit Ledger';
 
-    addAccountingVoucher({
+    const vPayload = {
       voucherNumber: autoNo,
-      voucherType: 'JOURNAL',
+      voucherType: 'JOURNAL' as const,
       voucherDate: formData.voucherDate,
       debitLedger: primaryDebit,
       creditLedger: primaryCredit,
@@ -148,7 +152,10 @@ export default function JournalEntriesPage() {
       amount: totalDebitSum,
       totalAmount: totalDebitSum,
       narration: formData.narration,
-    });
+    };
+
+    addAccountingVoucher(vPayload);
+    pushAccountingVoucherToSupabase(vPayload as any).catch(() => {});
 
     setShowCreateModal(false);
   };
@@ -185,7 +192,7 @@ export default function JournalEntriesPage() {
     const primaryDebit = lines.find((l) => l.type === 'DEBIT')?.accountLedger || 'Debit Ledger';
     const primaryCredit = lines.find((l) => l.type === 'CREDIT')?.accountLedger || 'Credit Ledger';
 
-    updateAccountingVoucher(selectedVoucher.id, {
+    const updatedPayload = {
       voucherDate: formData.voucherDate,
       debitLedger: primaryDebit,
       creditLedger: primaryCredit,
@@ -193,7 +200,10 @@ export default function JournalEntriesPage() {
       amount: totalDebitSum,
       totalAmount: totalDebitSum,
       narration: formData.narration,
-    });
+    };
+
+    updateAccountingVoucher(selectedVoucher.id, updatedPayload);
+    pushAccountingVoucherToSupabase({ ...selectedVoucher, ...updatedPayload } as any).catch(() => {});
 
     setShowEditModal(false);
   };
@@ -201,6 +211,7 @@ export default function JournalEntriesPage() {
   const handleDelete = (id: string, num: string) => {
     if (confirm(`Are you sure you want to delete Journal Entry ${num}?`)) {
       deleteAccountingVoucher(id);
+      deleteAccountingVoucherFromSupabase(id).catch(() => {});
       if (showViewModal) setShowViewModal(false);
     }
   };

@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useErpStore, AmcContract, AmcPmVisit, AmcComplaint, AmcRetailProductItem, AmcAssetItem } from '@/lib/store';
-import { fetchAmcContractsFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchAmcContractsFromSupabase,
+  pushAmcContractToSupabase,
+  deleteAmcContractFromSupabase,
+} from '@/lib/supabase-sync';
 import {
   ShieldCheck,
   Plus,
@@ -507,7 +511,7 @@ export default function AmcSoftwareSuitePage() {
       completedDate: idx === 0 ? formData.startDate : undefined,
     }));
 
-    addAmcContract({
+    const contractPayload = {
       contractNumber: contractNo,
       manualEntryDate: formData.manualEntryDate,
       customerId: formData.customerId,
@@ -551,7 +555,10 @@ export default function AmcSoftwareSuitePage() {
       complaints: [],
 
       invoiceGenerated: false,
-    });
+    };
+
+    addAmcContract(contractPayload);
+    pushAmcContractToSupabase(contractPayload as any).catch(() => {});
 
     setShowCreateModal(false);
     resetForm();
@@ -562,7 +569,7 @@ export default function AmcSoftwareSuitePage() {
     e.preventDefault();
     if (!selectedContract) return;
 
-    updateAmcContract(selectedContract.id, {
+    const updatedPayload = {
       contractNumber: formData.contractNumber,
       manualEntryDate: formData.manualEntryDate,
       customerId: formData.customerId,
@@ -602,7 +609,10 @@ export default function AmcSoftwareSuitePage() {
       serviceIncludedChecklist: formData.selectedChecklistItems,
       retailProducts: retailProducts,
       coveredAssets: coveredAssets,
-    });
+    };
+
+    updateAmcContract(selectedContract.id, updatedPayload);
+    pushAmcContractToSupabase({ ...selectedContract, ...updatedPayload } as any).catch(() => {});
 
     setShowEditModal(false);
     resetForm();
@@ -1094,6 +1104,7 @@ export default function AmcSoftwareSuitePage() {
                               onClick={() => {
                                 if (confirm(`Delete AMC Contract ${contract.contractNumber}?`)) {
                                   deleteAmcContract(contract.id);
+                                  deleteAmcContractFromSupabase(contract.id).catch(() => {});
                                 }
                               }}
                               className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all border border-rose-500/20"
@@ -2016,6 +2027,7 @@ export default function AmcSoftwareSuitePage() {
                   onClick={() => {
                     if (confirm(`Delete AMC Contract ${selectedContract.contractNumber}?`)) {
                       deleteAmcContract(selectedContract.id);
+                      deleteAmcContractFromSupabase(selectedContract.id).catch(() => {});
                       setShowDetailModal(false);
                     }
                   }}

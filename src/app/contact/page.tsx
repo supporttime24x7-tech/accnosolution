@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/home/Sections';
 import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { useErpStore } from '@/lib/store';
+import { pushSupportLeadToSupabase } from '@/lib/supabase-sync';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -37,8 +38,9 @@ export default function ContactPage() {
       created_at: new Date().toISOString()
     };
 
-    // 1. Save directly to global ERP Store (Local Storage)
+    // 1. Save directly to global ERP Store (Local Storage) & Supabase Cloud
     addSupportLead(newLeadData);
+    pushSupportLeadToSupabase(newLeadData as any).catch(() => {});
 
     // 2. Post to API route for backend database persistence
     try {

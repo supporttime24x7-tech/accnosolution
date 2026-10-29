@@ -3084,6 +3084,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         },
       };
       saveToStorage('accno_erp_company_details', updated);
+      pushCompanySettingsToSupabase('company_details', updated).catch(() => {});
       return { companyDetails: updated };
     }),
 

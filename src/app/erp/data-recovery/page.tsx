@@ -8,7 +8,11 @@ import {
   Building, Phone, Mail, MapPin, AlertCircle, ArrowRight, RotateCw
 } from 'lucide-react';
 import { useErpStore, DataRecoveryCase } from '@/lib/store';
-import { fetchDataRecoveryFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchDataRecoveryFromSupabase,
+  pushDataRecoveryToSupabase,
+  deleteDataRecoveryFromSupabase,
+} from '@/lib/supabase-sync';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
 import QRCode from 'qrcode';
 
@@ -646,8 +650,10 @@ export default function ErpDataRecoveryPage() {
 
     if (editingCase) {
       updateDataRecoveryCase(editingCase.id, payload);
+      pushDataRecoveryToSupabase({ ...editingCase, ...payload } as any).catch(() => {});
     } else {
       addDataRecoveryCase(payload as DataRecoveryCase);
+      pushDataRecoveryToSupabase(payload as any).catch(() => {});
     }
     setShowCaseModal(false);
   };
@@ -688,6 +694,7 @@ export default function ErpDataRecoveryPage() {
     if (!quickViewCase) return;
     const updated = { ...quickViewCase, status: newStatus };
     updateDataRecoveryCase(quickViewCase.id, { status: newStatus });
+    pushDataRecoveryToSupabase(updated as any).catch(() => {});
     setQuickViewCase(updated);
   };
 
@@ -695,6 +702,7 @@ export default function ErpDataRecoveryPage() {
     if (!quickViewCase) return;
     const updated = { ...quickViewCase, recoveryPhaseStatus: newPhase };
     updateDataRecoveryCase(quickViewCase.id, { recoveryPhaseStatus: newPhase });
+    pushDataRecoveryToSupabase(updated as any).catch(() => {});
     setQuickViewCase(updated);
   };
 
@@ -702,6 +710,7 @@ export default function ErpDataRecoveryPage() {
     if (!quickViewCase) return;
     const updated = { ...quickViewCase, progressPercentage: newPct };
     updateDataRecoveryCase(quickViewCase.id, { progressPercentage: newPct });
+    pushDataRecoveryToSupabase(updated as any).catch(() => {});
     setQuickViewCase(updated);
   };
 
@@ -709,6 +718,7 @@ export default function ErpDataRecoveryPage() {
     if (!quickViewCase) return;
     const updated = { ...quickViewCase, confidentialNotes: newNotes, notes: newNotes };
     updateDataRecoveryCase(quickViewCase.id, { confidentialNotes: newNotes, notes: newNotes });
+    pushDataRecoveryToSupabase(updated as any).catch(() => {});
     setQuickViewCase(updated);
   };
 
@@ -1279,6 +1289,7 @@ export default function ErpDataRecoveryPage() {
                             onClick={() => {
                               if (confirm(`Delete Forensic Recovery Case ${recNo}?`)) {
                                 deleteDataRecoveryCase(item.id);
+                                deleteDataRecoveryFromSupabase(item.id).catch(() => {});
                               }
                             }}
                             className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20"

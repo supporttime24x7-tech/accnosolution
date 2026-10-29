@@ -8,7 +8,11 @@ import {
   Trash2, Lock, Tag, Calendar, Building2, Layers, AlertTriangle, RotateCw
 } from 'lucide-react';
 import { useErpStore, OutsourceVoucher } from '@/lib/store';
-import { fetchOutsourceVouchersFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchOutsourceVouchersFromSupabase,
+  pushOutsourceVoucherToSupabase,
+  deleteOutsourceVoucherFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function ErpOutsourcePage() {
   const {
@@ -212,68 +216,43 @@ export default function ErpOutsourcePage() {
     const incomingFreight = Number(voucherForm.incomingFreightCost || 0);
     const totalFreight = outgoingFreight + incomingFreight;
 
+    const voucherPayload = {
+      voucherNumber: voucherForm.voucherNumber,
+      voucherDate: voucherForm.voucherDate,
+      linkedTicketNumber: voucherForm.linkedTicketNumber,
+      vendorJobId: voucherForm.vendorJobId,
+      vendorId: selectedVendor.id,
+      vendorName: selectedVendor.companyName,
+      vendorPhone: selectedVendor.phone,
+      vendorCity: selectedVendor.station || 'Delhi NCR',
+      vendorAddress: selectedVendor.fullAddress || '',
+      vendorGstin: selectedVendor.gstin,
+      serviceType: voucherForm.serviceType,
+
+      outgoingCourier: voucherForm.outgoingCourier,
+      outgoingDocket: voucherForm.outgoingDocket,
+      outgoingDispatchDate: voucherForm.outgoingDispatchDate,
+      outgoingFreightCost: outgoingFreight,
+
+      incomingCourier: voucherForm.incomingCourier,
+      incomingDocket: voucherForm.incomingDocket,
+      incomingDispatchDate: voucherForm.incomingDispatchDate,
+      incomingFreightCost: incomingFreight,
+      expectedReturnDate: voucherForm.expectedReturnDate,
+
+      vendorCostPrice: Number(voucherForm.vendorCostPrice),
+      freightCharges: totalFreight,
+      customerSellingPrice: Number(voucherForm.customerSellingPrice),
+      dispatchStatus: voucherForm.dispatchStatus,
+      technicalInstructions: voucherForm.technicalInstructions,
+    };
+
     if (isEditMode && editingVoucherId) {
-      updateOutsourceVoucher(editingVoucherId, {
-        voucherNumber: voucherForm.voucherNumber,
-        voucherDate: voucherForm.voucherDate,
-        linkedTicketNumber: voucherForm.linkedTicketNumber,
-        vendorJobId: voucherForm.vendorJobId,
-        vendorId: selectedVendor.id,
-        vendorName: selectedVendor.companyName,
-        vendorPhone: selectedVendor.phone,
-        vendorCity: selectedVendor.station || 'Delhi NCR',
-        vendorAddress: selectedVendor.fullAddress || '',
-        vendorGstin: selectedVendor.gstin,
-        serviceType: voucherForm.serviceType,
-
-        outgoingCourier: voucherForm.outgoingCourier,
-        outgoingDocket: voucherForm.outgoingDocket,
-        outgoingDispatchDate: voucherForm.outgoingDispatchDate,
-        outgoingFreightCost: outgoingFreight,
-
-        incomingCourier: voucherForm.incomingCourier,
-        incomingDocket: voucherForm.incomingDocket,
-        incomingDispatchDate: voucherForm.incomingDispatchDate,
-        incomingFreightCost: incomingFreight,
-        expectedReturnDate: voucherForm.expectedReturnDate,
-
-        vendorCostPrice: Number(voucherForm.vendorCostPrice),
-        freightCharges: totalFreight,
-        customerSellingPrice: Number(voucherForm.customerSellingPrice),
-        dispatchStatus: voucherForm.dispatchStatus,
-        technicalInstructions: voucherForm.technicalInstructions,
-      });
+      updateOutsourceVoucher(editingVoucherId, voucherPayload);
+      pushOutsourceVoucherToSupabase({ id: editingVoucherId, ...voucherPayload } as any).catch(() => {});
     } else {
-      addOutsourceVoucher({
-        voucherNumber: voucherForm.voucherNumber,
-        voucherDate: voucherForm.voucherDate,
-        linkedTicketNumber: voucherForm.linkedTicketNumber,
-        vendorJobId: voucherForm.vendorJobId,
-        vendorId: selectedVendor.id,
-        vendorName: selectedVendor.companyName,
-        vendorPhone: selectedVendor.phone,
-        vendorCity: selectedVendor.station || 'Delhi NCR',
-        vendorAddress: selectedVendor.fullAddress || '',
-        vendorGstin: selectedVendor.gstin,
-        serviceType: voucherForm.serviceType,
-
-        outgoingCourier: voucherForm.outgoingCourier,
-        outgoingDocket: voucherForm.outgoingDocket,
-        outgoingDispatchDate: voucherForm.outgoingDispatchDate,
-        outgoingFreightCost: outgoingFreight,
-
-        incomingCourier: voucherForm.incomingCourier,
-        incomingDocket: voucherForm.incomingDocket,
-        incomingDispatchDate: voucherForm.incomingDispatchDate,
-        incomingFreightCost: incomingFreight,
-        expectedReturnDate: voucherForm.expectedReturnDate,
-
-        vendorCostPrice: Number(voucherForm.vendorCostPrice),
-        freightCharges: totalFreight,
-        customerSellingPrice: Number(voucherForm.customerSellingPrice),
-        dispatchStatus: voucherForm.dispatchStatus,
-        technicalInstructions: voucherForm.technicalInstructions,
-      });
+      addOutsourceVoucher(voucherPayload);
+      pushOutsourceVoucherToSupabase(voucherPayload as any).catch(() => {});
     }
 
     setShowFormModal(false);
@@ -1434,7 +1413,11 @@ export default function ErpOutsourcePage() {
                   {/* Status Dropdown */}
                   <select
                     value={v.dispatchStatus}
-                    onChange={(e) => updateOutsourceVoucher(v.id, { dispatchStatus: e.target.value as any })}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as any;
+                      updateOutsourceVoucher(v.id, { dispatchStatus: newStatus });
+                      pushOutsourceVoucherToSupabase({ ...v, dispatchStatus: newStatus }).catch(() => {});
+                    }}
                     className="p-1.5 rounded-lg bg-[#0D1117] border border-purple-500/30 text-white font-bold text-[10px]"
                   >
                     <option value="SHIPPED">SHIPPED VIA COURIER</option>
@@ -1459,6 +1442,7 @@ export default function ErpOutsourcePage() {
                       onClick={() => {
                         if (confirm(`Delete Outsource Voucher ${v.voucherNumber}?`)) {
                           deleteOutsourceVoucher(v.id);
+                          deleteOutsourceVoucherFromSupabase(v.id).catch(() => {});
                         }
                       }}
                       className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 transition-all"

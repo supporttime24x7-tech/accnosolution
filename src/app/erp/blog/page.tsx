@@ -7,6 +7,10 @@ import {
   CheckCircle2, FileText, Image as ImageIcon, Sparkles, X, Layout, ArrowUpRight
 } from 'lucide-react';
 import { useErpStore, BlogPostItem } from '@/lib/store';
+import {
+  pushBlogPostToSupabase,
+  deleteBlogPostFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function ErpBlogPage() {
   const [mounted, setMounted] = useState(false);
@@ -95,7 +99,7 @@ export default function ErpBlogPage() {
     });
 
     if (editingPost) {
-      updateBlogPost(editingPost.id, {
+      const updatedPost = {
         title,
         slug: slug || editingPost.slug,
         category,
@@ -108,9 +112,12 @@ export default function ErpBlogPage() {
         content,
         status,
         featured,
-      });
+      };
+
+      updateBlogPost(editingPost.id, updatedPost);
+      pushBlogPostToSupabase({ id: editingPost.id, ...updatedPost } as any).catch(() => {});
     } else {
-      addBlogPost({
+      const newPost = {
         title,
         slug: slug || `post-${Date.now()}`,
         category,
@@ -123,7 +130,10 @@ export default function ErpBlogPage() {
         content,
         status,
         featured,
-      });
+      };
+
+      addBlogPost(newPost);
+      pushBlogPostToSupabase(newPost as any).catch(() => {});
     }
 
     setIsModalOpen(false);
@@ -132,6 +142,7 @@ export default function ErpBlogPage() {
   const handleDelete = (id: string, postTitle: string) => {
     if (confirm(`Are you sure you want to delete article "${postTitle}"?`)) {
       deleteBlogPost(id);
+      deleteBlogPostFromSupabase(id).catch(() => {});
     }
   };
 
@@ -365,11 +376,11 @@ export default function ErpBlogPage() {
 
                     <td className="p-4">
                       <button
-                        onClick={() =>
-                          updateBlogPost(post.id, {
-                            status: post.status === 'Published' ? 'Draft' : 'Published',
-                          })
-                        }
+                        onClick={() => {
+                          const newStat = post.status === 'Published' ? 'Draft' : 'Published';
+                          updateBlogPost(post.id, { status: newStat });
+                          pushBlogPostToSupabase({ ...post, status: newStat }).catch(() => {});
+                        }}
                         className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border cursor-pointer transition-all ${
                           post.status === 'Published'
                             ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'

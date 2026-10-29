@@ -259,6 +259,7 @@ export default function EmployeesPage() {
 
     if (editingEmp) {
       updateEmployee(editingEmp.id, finalData);
+      pushEmployeeToSupabase({ ...editingEmp, ...finalData } as any).catch(() => {});
       try {
         await fetch('/api/erp/employees', {
           method: 'PUT',
@@ -270,6 +271,7 @@ export default function EmployeesPage() {
       }
     } else {
       addEmployee(finalData);
+      pushEmployeeToSupabase(finalData as any).catch(() => {});
       try {
         await fetch('/api/erp/employees', {
           method: 'POST',
@@ -287,6 +289,7 @@ export default function EmployeesPage() {
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete employee record for "${name}"?`)) {
       deleteEmployee(id);
+      deleteEmployeeFromSupabase(id).catch(() => {});
       try {
         await fetch(`/api/erp/employees?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       } catch (err) {

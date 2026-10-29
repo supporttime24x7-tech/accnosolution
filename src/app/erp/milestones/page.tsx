@@ -8,6 +8,14 @@ import {
   Hash, Layers, UserCheck, Users, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useErpStore, MilestoneItem, AchievementStatItem, LeadershipTeamMember } from '@/lib/store';
+import {
+  pushMilestoneToSupabase,
+  deleteMilestoneFromSupabase,
+  pushAchievementStatToSupabase,
+  deleteAchievementStatFromSupabase,
+  pushLeadershipTeamToSupabase,
+  deleteLeadershipTeamFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function ErpMilestonesPage() {
   const [mounted, setMounted] = useState(false);
@@ -88,19 +96,23 @@ export default function ErpMilestonesPage() {
     if (!year.trim() || !title.trim() || !description.trim()) return;
 
     if (editingMilestone) {
-      updateMilestone(editingMilestone.id, {
+      const updated = {
         year,
         title,
         description,
         status,
-      });
+      };
+      updateMilestone(editingMilestone.id, updated);
+      pushMilestoneToSupabase({ id: editingMilestone.id, ...updated } as any).catch(() => {});
     } else {
-      addMilestone({
+      const newM = {
         year,
         title,
         description,
         status,
-      });
+      };
+      addMilestone(newM);
+      pushMilestoneToSupabase(newM as any).catch(() => {});
     }
 
     setIsMilestoneModalOpen(false);
@@ -109,6 +121,7 @@ export default function ErpMilestonesPage() {
   const handleDeleteMilestone = (id: string, milestoneYear: string, milestoneTitle: string) => {
     if (confirm(`Are you sure you want to delete milestone "${milestoneYear} - ${milestoneTitle}"?`)) {
       deleteMilestone(id);
+      deleteMilestoneFromSupabase(id).catch(() => {});
     }
   };
 
@@ -134,17 +147,21 @@ export default function ErpMilestonesPage() {
     if (!statLabel.trim() || !statValue.trim()) return;
 
     if (editingStat) {
-      updateAchievementStat(editingStat.id, {
+      const updatedStat = {
         label: statLabel,
         value: statValue,
         description: statDesc,
-      });
+      };
+      updateAchievementStat(editingStat.id, updatedStat);
+      pushAchievementStatToSupabase({ id: editingStat.id, ...updatedStat } as any).catch(() => {});
     } else {
-      addAchievementStat({
+      const newStat = {
         label: statLabel,
         value: statValue,
         description: statDesc,
-      });
+      };
+      addAchievementStat(newStat);
+      pushAchievementStatToSupabase(newStat as any).catch(() => {});
     }
 
     setIsStatModalOpen(false);
@@ -153,6 +170,7 @@ export default function ErpMilestonesPage() {
   const handleDeleteStat = (id: string, label: string) => {
     if (confirm(`Are you sure you want to delete Key Metric Card "${label}"?`)) {
       deleteAchievementStat(id);
+      deleteAchievementStatFromSupabase(id).catch(() => {});
     }
   };
 
@@ -196,21 +214,25 @@ export default function ErpMilestonesPage() {
     const computedInitials = leadInitials.trim() || leadName.trim().substring(0, 2).toUpperCase();
 
     if (editingLeadership) {
-      updateLeadershipMember(editingLeadership.id, {
+      const updatedMember = {
         name: leadName,
         role: leadRole,
         experienceBio: leadBio,
         photoUrl: leadPhotoUrl,
         initials: computedInitials,
-      });
+      };
+      updateLeadershipMember(editingLeadership.id, updatedMember);
+      pushLeadershipTeamToSupabase({ id: editingLeadership.id, ...updatedMember } as any).catch(() => {});
     } else {
-      addLeadershipMember({
+      const newMember = {
         name: leadName,
         role: leadRole,
         experienceBio: leadBio,
         photoUrl: leadPhotoUrl,
         initials: computedInitials,
-      });
+      };
+      addLeadershipMember(newMember);
+      pushLeadershipTeamToSupabase(newMember as any).catch(() => {});
     }
 
     setIsLeadershipModalOpen(false);
@@ -219,6 +241,7 @@ export default function ErpMilestonesPage() {
   const handleDeleteLeadership = (id: string, name: string) => {
     if (confirm(`Are you sure you want to remove team member "${name}" from Leadership Team?`)) {
       deleteLeadershipMember(id);
+      deleteLeadershipTeamFromSupabase(id).catch(() => {});
     }
   };
 

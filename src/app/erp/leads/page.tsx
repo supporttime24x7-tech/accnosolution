@@ -7,6 +7,12 @@ import {
   ShoppingBag, ShieldCheck, FileText, QrCode, CreditCard, Building2, Eye, Download, User, ExternalLink, Edit2, Upload, ImageIcon
 } from 'lucide-react';
 import { useErpStore, SupportLeadItem, BookRepairLeadItem } from '@/lib/store';
+import {
+  pushSupportLeadToSupabase,
+  deleteSupportLeadFromSupabase,
+  pushBookRepairLeadToSupabase,
+  deleteBookRepairLeadFromSupabase,
+} from '@/lib/supabase-sync';
 
 export default function ErpLeadsPage() {
   const {
@@ -140,7 +146,7 @@ export default function ErpLeadsPage() {
     e.preventDefault();
     if (!newSupportInput.lead_name || !newSupportInput.phone) return;
 
-    addSupportLead({
+    const payload = {
       lead_name: newSupportInput.lead_name,
       phone: newSupportInput.phone,
       email: newSupportInput.email || 'support@client.com',
@@ -152,7 +158,10 @@ export default function ErpLeadsPage() {
       source: (newSupportInput.source as any) || 'Direct Call',
       formCategory: (newSupportInput.formCategory as any) || 'contact_form',
       created_at: new Date().toISOString(),
-    });
+    };
+
+    addSupportLead(payload);
+    pushSupportLeadToSupabase(payload as any).catch(() => {});
 
     setShowAddSupportModal(false);
   };
@@ -208,6 +217,7 @@ export default function ErpLeadsPage() {
     if (!editingSupportLead) return;
 
     updateSupportLead(editingSupportLead.id, { ...editingSupportLead });
+    pushSupportLeadToSupabase(editingSupportLead as any).catch(() => {});
     setEditingSupportLead(null);
   };
 
@@ -216,6 +226,7 @@ export default function ErpLeadsPage() {
     if (!editingBookLead) return;
 
     updateBookRepairLead(editingBookLead.id, { ...editingBookLead });
+    pushBookRepairLeadToSupabase(editingBookLead as any).catch(() => {});
     setEditingBookLead(null);
   };
 
@@ -225,7 +236,7 @@ export default function ErpLeadsPage() {
 
     const bkNo = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    addBookRepairLead({
+    const bPayload = {
       bookingNo: bkNo,
       name: newBookInput.name,
       phone: newBookInput.phone,
@@ -236,7 +247,10 @@ export default function ErpLeadsPage() {
       problemDescription: newBookInput.problemDescription || 'Customer submitted repair request.',
       status: (newBookInput.status as any) || 'New Booking',
       created_at: new Date().toISOString(),
-    });
+    };
+
+    addBookRepairLead(bPayload);
+    pushBookRepairLeadToSupabase(bPayload as any).catch(() => {});
 
     setShowAddBookModal(false);
   };
@@ -552,7 +566,11 @@ export default function ErpLeadsPage() {
                         <td className="p-4">
                           <select
                             value={lead.status}
-                            onChange={(e) => updateSupportLead(lead.id, { status: e.target.value as any })}
+                            onChange={(e) => {
+                              const newStat = e.target.value as any;
+                              updateSupportLead(lead.id, { status: newStat });
+                              pushSupportLeadToSupabase({ ...lead, status: newStat }).catch(() => {});
+                            }}
                             className="p-1.5 rounded-lg border bg-[#0D1117] text-white text-[11px] font-bold uppercase cursor-pointer"
                           >
                             <option value="New Inquiry">New Inquiry</option>
@@ -595,7 +613,10 @@ export default function ErpLeadsPage() {
                               WA
                             </a>
                             <button
-                              onClick={() => deleteSupportLead(lead.id)}
+                              onClick={() => {
+                                deleteSupportLead(lead.id);
+                                deleteSupportLeadFromSupabase(lead.id).catch(() => {});
+                              }}
                               className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white font-bold cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -675,7 +696,11 @@ export default function ErpLeadsPage() {
                       <td className="p-4">
                         <select
                           value={lead.status}
-                          onChange={(e) => updateBookRepairLead(lead.id, { status: e.target.value as any })}
+                          onChange={(e) => {
+                            const newStat = e.target.value as any;
+                            updateBookRepairLead(lead.id, { status: newStat });
+                            pushBookRepairLeadToSupabase({ ...lead, status: newStat }).catch(() => {});
+                          }}
                           className="p-1.5 rounded-lg border bg-[#0D1117] text-white text-[11px] font-bold uppercase cursor-pointer"
                         >
                           <option value="New Booking">New Booking</option>
@@ -702,7 +727,10 @@ export default function ErpLeadsPage() {
                             <Wrench className="w-3 h-3" /> Convert to Ticket
                           </button>
                           <button
-                            onClick={() => deleteBookRepairLead(lead.id)}
+                            onClick={() => {
+                              deleteBookRepairLead(lead.id);
+                              deleteBookRepairLeadFromSupabase(lead.id).catch(() => {});
+                            }}
                             className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white font-bold cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

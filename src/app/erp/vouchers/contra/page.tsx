@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import { useErpStore, AccountingVoucher } from '@/lib/store';
 import {
+  pushAccountingVoucherToSupabase,
+  deleteAccountingVoucherFromSupabase,
+} from '@/lib/supabase-sync';
+import {
   RefreshCcw,
   Plus,
   Search,
@@ -84,9 +88,9 @@ export default function ContraVouchersPage() {
     const count = contraList.length;
     const autoNo = formData.voucherNumber || `CNT-${1001 + count}`;
 
-    addAccountingVoucher({
+    const vPayload = {
       voucherNumber: autoNo,
-      voucherType: 'CONTRA',
+      voucherType: 'CONTRA' as const,
       voucherDate: formData.voucherDate,
       debitLedger: formData.debitLedger,
       creditLedger: formData.creditLedger,
@@ -95,7 +99,10 @@ export default function ContraVouchersPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    addAccountingVoucher(vPayload);
+    pushAccountingVoucherToSupabase(vPayload as any).catch(() => {});
 
     setShowCreateModal(false);
   };
@@ -125,7 +132,7 @@ export default function ContraVouchersPage() {
       return;
     }
 
-    updateAccountingVoucher(selectedVoucher.id, {
+    const updatedPayload = {
       voucherDate: formData.voucherDate,
       debitLedger: formData.debitLedger,
       creditLedger: formData.creditLedger,
@@ -134,7 +141,10 @@ export default function ContraVouchersPage() {
       amount: formData.amount,
       totalAmount: formData.amount,
       narration: formData.narration,
-    });
+    };
+
+    updateAccountingVoucher(selectedVoucher.id, updatedPayload);
+    pushAccountingVoucherToSupabase({ ...selectedVoucher, ...updatedPayload } as any).catch(() => {});
 
     setShowEditModal(false);
   };
@@ -142,6 +152,7 @@ export default function ContraVouchersPage() {
   const handleDelete = (id: string, num: string) => {
     if (confirm(`Are you sure you want to delete Contra Entry ${num}?`)) {
       deleteAccountingVoucher(id);
+      deleteAccountingVoucherFromSupabase(id).catch(() => {});
     }
   };
 

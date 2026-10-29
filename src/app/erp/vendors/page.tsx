@@ -7,7 +7,13 @@ import {
   List, LayoutGrid, BookOpen, CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, RefreshCcw, Printer, Filter, Calendar, RefreshCw
 } from 'lucide-react';
 import { useErpStore, VendorItem, AccountLedgerItem, AccountingVoucher } from '@/lib/store';
-import { fetchVendorsFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchVendorsFromSupabase,
+  pushVendorToSupabase,
+  deleteVendorFromSupabase,
+  pushAccountLedgerToSupabase,
+  deleteAccountLedgerFromSupabase,
+} from '@/lib/supabase-sync';
 
 const DEFAULT_VENDOR_CATEGORIES = [
   'Hardware & Components Supplier',
@@ -251,8 +257,10 @@ export default function VendorsPage() {
 
     if (activeVendorModal === 'new') {
       addVendor(formData);
+      pushVendorToSupabase(formData as any).catch(() => {});
     } else if (activeVendorModal && typeof activeVendorModal === 'object') {
       updateVendor(activeVendorModal.id, formData);
+      pushVendorToSupabase({ ...activeVendorModal, ...formData }).catch(() => {});
     }
 
     setActiveVendorModal(null);
@@ -261,6 +269,7 @@ export default function VendorsPage() {
   const handleDeleteVendor = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete vendor "${name}"?`)) {
       deleteVendor(id);
+      deleteVendorFromSupabase(id).catch(() => {});
     }
   };
 
@@ -295,8 +304,10 @@ export default function VendorsPage() {
 
     if (activeLedgerModal === 'new') {
       addAccountLedger(ledgerFormData);
+      pushAccountLedgerToSupabase(ledgerFormData as any).catch(() => {});
     } else if (activeLedgerModal && typeof activeLedgerModal === 'object') {
       updateAccountLedger(activeLedgerModal.id, ledgerFormData);
+      pushAccountLedgerToSupabase({ ...activeLedgerModal, ...ledgerFormData }).catch(() => {});
     }
 
     setActiveLedgerModal(null);
@@ -305,6 +316,7 @@ export default function VendorsPage() {
   const handleDeleteLedgerAccount = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete General Ledger Account "${name}"?`)) {
       deleteAccountLedger(id);
+      deleteAccountLedgerFromSupabase(id).catch(() => {});
     }
   };
 

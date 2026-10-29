@@ -8,6 +8,11 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useErpStore, QuotationItem, TransactionItemLine, InventoryItem, CustomerItem } from '@/lib/store';
+import {
+  fetchQuotationsFromSupabase,
+  pushQuotationToSupabase,
+  deleteQuotationFromSupabase,
+} from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Quotation Line Items
 interface SearchableLineItemSelectProps {
@@ -513,7 +518,7 @@ export default function QuotationsPage() {
     }
 
     if (editingQuotationId) {
-      updateQuotation(editingQuotationId, {
+      const updatedQtn = {
         quotationNo: formData.quotationNo,
         quotationDate: new Date(formData.quotationDate).toISOString(),
         validUntil: new Date(formData.validUntil).toISOString(),
@@ -529,11 +534,14 @@ export default function QuotationsPage() {
         grandTotal: grandTotalCalc,
         termsAndConditions: formData.termsAndConditions,
         notes: formData.notes,
-      });
+      };
+
+      updateQuotation(editingQuotationId, updatedQtn);
+      pushQuotationToSupabase({ id: editingQuotationId, ...updatedQtn } as any).catch(() => {});
 
       alert(`Quotation Estimate "${formData.quotationNo}" updated successfully!`);
     } else {
-      addQuotation({
+      const newQtn = {
         quotationNo: formData.quotationNo || `QTN-${Date.now()}`,
         quotationDate: new Date(formData.quotationDate).toISOString(),
         validUntil: new Date(formData.validUntil).toISOString(),
@@ -547,10 +555,13 @@ export default function QuotationsPage() {
         discount: computedOverallDiscount,
         taxAmount: taxSum,
         grandTotal: grandTotalCalc,
-        status: 'Approved',
+        status: 'Approved' as any,
         termsAndConditions: formData.termsAndConditions,
         notes: formData.notes,
-      });
+      };
+
+      addQuotation(newQtn);
+      pushQuotationToSupabase(newQtn as any).catch(() => {});
 
       alert(`Quotation Proposal "${formData.quotationNo}" created successfully!`);
     }
@@ -1201,6 +1212,7 @@ export default function QuotationsPage() {
                           onClick={() => {
                             if (confirm(`Delete Quotation "${qtn.quotationNo}"?`)) {
                               deleteQuotation(qtn.id);
+                              deleteQuotationFromSupabase(qtn.id).catch(() => {});
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/30 cursor-pointer"

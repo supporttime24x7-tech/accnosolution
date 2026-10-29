@@ -8,7 +8,13 @@ import {
   RefreshCw, Filter, Layers, Edit2, Calendar, RotateCw
 } from 'lucide-react';
 import { useErpStore, PosCartItem, CustomerItem, SalesInvoiceItem } from '@/lib/store';
-import { fetchInventoryFromSupabase, fetchCustomersFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchInventoryFromSupabase,
+  fetchCustomersFromSupabase,
+  pushSalesInvoiceToSupabase,
+  pushCustomerToSupabase,
+  pushInventoryToSupabase,
+} from '@/lib/supabase-sync';
 
 export default function ErpPosPage() {
   const {
@@ -308,7 +314,7 @@ export default function ErpPosPage() {
       return;
     }
 
-    addCustomer({
+    const custPayload = {
       name: newCustForm.name,
       mobile: newCustForm.mobile,
       companyName: newCustForm.companyName,
@@ -320,7 +326,10 @@ export default function ErpPosPage() {
       creditLimit: newCustForm.gstin ? 100000 : 25000,
       outstandingBalance: 0,
       loyaltyPoints: 50,
-    });
+    };
+
+    addCustomer(custPayload);
+    pushCustomerToSupabase(custPayload as any).catch(() => {});
 
     const newlyCreated = customers[0] || {
       id: `c-${Date.now()}`,
@@ -430,6 +439,7 @@ export default function ErpPosPage() {
 
     if (!salesInvoices.some((inv) => inv.invoiceNo === invoiceNo)) {
       addSalesInvoice(newSalesInvoice);
+      pushSalesInvoiceToSupabase(newSalesInvoice as any).catch(() => {});
 
       const shouldDeductStock = posRules?.autoDeductInventory ?? true;
       if (shouldDeductStock) {
@@ -439,6 +449,7 @@ export default function ErpPosPage() {
           if (invItem) {
             const updatedStock = Math.max(0, (invItem.currentStock || 0) - item.quantity);
             updateInventoryItem(invItem.id, { currentStock: updatedStock });
+            pushInventoryToSupabase({ ...invItem, currentStock: updatedStock } as any).catch(() => {});
           }
         });
       }

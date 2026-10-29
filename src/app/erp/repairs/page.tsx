@@ -10,7 +10,14 @@ import {
 } from 'lucide-react';
 import { useErpStore, RepairTicket, RepairInvoice, LineItemBilling, CustomerItem, InventoryItem, RepairBillingRulesConfig, HardwareRepairCatalogItem, RepairProcessStepItem } from '@/lib/store';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
-import { fetchTicketsFromSupabase, fetchInvoicesFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchTicketsFromSupabase,
+  fetchInvoicesFromSupabase,
+  pushTicketToSupabase,
+  deleteTicketFromSupabase,
+  pushInvoiceToSupabase,
+  deleteInvoiceFromSupabase,
+} from '@/lib/supabase-sync';
 import QRCode from 'qrcode';
 
 // Interactive 3x3 Smartphone Pattern Lock Picker Component
@@ -731,7 +738,7 @@ export default function ErpRepairsPage() {
     const combinedLineItems = [...intakeServiceParts, ...intakeRetailParts];
     const totalEst = combinedLineItems.reduce((sum, item) => sum + item.total, 0) || Number(newTicket.estimated_cost);
 
-    addTicket({
+    const ticketPayload = {
       ticket_number: newTicket.manualTicketNo || '',
       entryDate: newTicket.entryDate,
       customer_name: newTicket.customer_name,
@@ -774,7 +781,7 @@ export default function ErpRepairsPage() {
       partsToBeOrdered: newTicket.partsToBeOrdered,
       extraInfoArea: newTicket.extraInfoArea,
 
-      status: 'received',
+      status: 'received' as any,
       priority: newTicket.priority as any,
       progressPercentage: Number((newTicket as any).progressPercentage) || 15,
       lineItems: combinedLineItems,
@@ -792,7 +799,7 @@ export default function ErpRepairsPage() {
       grandTotal: totalEst * 1.18,
       netDueBalance: totalEst * 1.18 - Number(newTicket.advance_paid),
 
-      paymentMethod: 'CASH',
+      paymentMethod: 'CASH' as const,
       paymentStatus: newTicket.advance_paid > 0 ? 'PARTIAL' : 'UNPAID',
       warrantyStatement: newTicket.warrantyStatus || '30 Days Parts & Labor Warranty',
       deliveryStatus: newTicket.deliveryStatus,
@@ -800,7 +807,10 @@ export default function ErpRepairsPage() {
       technician_name: newTicket.assignedTechnician,
       estimatedDeliveryDate: newTicket.estimatedDeliveryDate,
       actualDeliveryDate: newTicket.actualDeliveryDate,
-    });
+    };
+
+    addTicket(ticketPayload as any);
+    pushTicketToSupabase(ticketPayload as any).catch(() => {});
 
     setShowCreateModal(false);
   };
@@ -880,7 +890,7 @@ export default function ErpRepairsPage() {
     const totalEst = combinedLineItems.reduce((sum, item) => sum + item.total, 0) || Number(newTicket.estimated_cost);
     const normalizedStatus = (newTicket.jobPipelineStatus?.toLowerCase().replace(/\s+/g, '_') as any) || editingTicket.status || 'received';
 
-    updateTicket(editingTicket.id, {
+    const updatedTicketData = {
       ticket_number: newTicket.manualTicketNo || editingTicket.ticket_number,
       entryDate: newTicket.entryDate,
       customer_name: newTicket.customer_name,
@@ -935,7 +945,10 @@ export default function ErpRepairsPage() {
       technician_name: newTicket.assignedTechnician,
       estimatedDeliveryDate: newTicket.estimatedDeliveryDate,
       actualDeliveryDate: newTicket.actualDeliveryDate,
-    });
+    };
+
+    updateTicket(editingTicket.id, updatedTicketData);
+    pushTicketToSupabase({ ...editingTicket, ...updatedTicketData } as any).catch(() => {});
 
     setShowEditModal(false);
     setEditingTicket(null);
@@ -1143,6 +1156,7 @@ export default function ErpRepairsPage() {
     if (editingInvoice) {
       updateRepairInvoice(editingInvoice.id, invoicePayload as any);
       const updatedInv: RepairInvoice = { ...editingInvoice, ...invoicePayload, status: invoicePayload.paymentStatus } as any;
+      pushInvoiceToSupabase(updatedInv).catch(() => {});
       setSelectedInvoice(updatedInv);
       setPrintChoiceInvoice(updatedInv);
       setEditingInvoice(null);
@@ -1156,6 +1170,7 @@ export default function ErpRepairsPage() {
         status: invoicePayload.paymentStatus,
         createdAt: new Date().toISOString(),
       } as any;
+      pushInvoiceToSupabase(createdInvoice).catch(() => {});
       setSelectedInvoice(createdInvoice);
       setPrintChoiceInvoice(createdInvoice);
     }
@@ -1995,6 +2010,7 @@ export default function ErpRepairsPage() {
                           const newStatus = e.target.value;
                           updateTicketStatus(t.id, newStatus as any);
                           updateTicket(t.id, { jobPipelineStatus: newStatus });
+                          pushTicketToSupabase({ ...t, status: newStatus as any, jobPipelineStatus: newStatus }).catch(() => {});
                         }}
                         className="px-2.5 py-1 rounded-xl bg-[#0D1117] border border-white/20 text-[10px] font-extrabold text-[#16FFC6] uppercase focus:outline-none focus:border-[#5ED29C] cursor-pointer"
                       >
@@ -2194,6 +2210,7 @@ export default function ErpRepairsPage() {
                                   if (isOutsourceLocked) return;
                                   if (confirm(`Delete Repair Ticket ${t.ticket_number}?`)) {
                                     deleteTicket(t.id);
+                                    deleteTicketFromSupabase(t.id, t.ticket_number).catch(() => {});
                                   }
                                 }}
                                 className={`p-1.5 rounded-xl border transition-all ${
@@ -2323,6 +2340,7 @@ export default function ErpRepairsPage() {
                                   if (isOutsourceLocked) return;
                                   if (confirm(`Delete Repair Ticket ${t.ticket_number}?`)) {
                                     deleteTicket(t.id);
+                                    deleteTicketFromSupabase(t.id, t.ticket_number).catch(() => {});
                                   }
                                 }}
                                 className={`p-1.5 rounded-xl border transition-all ${
@@ -2401,6 +2419,7 @@ export default function ErpRepairsPage() {
                         onClick={() => {
                           if (confirm(`Delete Repair Bill ${inv.invoiceNumber}?`)) {
                             deleteRepairInvoice(inv.id);
+                            deleteInvoiceFromSupabase(inv.id, inv.invoiceNumber).catch(() => {});
                           }
                         }}
                         className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 transition-all"
@@ -3634,6 +3653,7 @@ export default function ErpRepairsPage() {
                       onClick={() => {
                         if (confirm(`Delete Repair Ticket ${editingTicket.ticket_number}?`)) {
                           deleteTicket(editingTicket.id);
+                          deleteTicketFromSupabase(editingTicket.id, editingTicket.ticket_number).catch(() => {});
                           setShowEditModal(false);
                           setEditingTicket(null);
                         }
@@ -5290,6 +5310,7 @@ export default function ErpRepairsPage() {
                   onClick={() => {
                     if (confirm(`Delete Repair Bill ${selectedInvoice.invoiceNumber}?`)) {
                       deleteRepairInvoice(selectedInvoice.id);
+                      deleteInvoiceFromSupabase(selectedInvoice.id, selectedInvoice.invoiceNumber).catch(() => {});
                       setShowPrintModal(false);
                     }
                   }}

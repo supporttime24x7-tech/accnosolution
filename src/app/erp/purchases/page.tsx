@@ -7,7 +7,11 @@ import {
   Building, Phone, MapPin, Tag, ShieldCheck, ArrowRight, RefreshCw, CreditCard, Sparkles, Barcode, Edit2, Truck, Landmark, RotateCw
 } from 'lucide-react';
 import { useErpStore, PurchaseInvoiceItem, TransactionItemLine, VendorItem, InventoryItem } from '@/lib/store';
-import { fetchPurchaseInvoicesFromSupabase } from '@/lib/supabase-sync';
+import {
+  fetchPurchaseInvoicesFromSupabase,
+  pushPurchaseInvoiceToSupabase,
+  deletePurchaseInvoiceFromSupabase,
+} from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Purchase Line Items
 interface SearchableLineItemSelectProps {
@@ -549,7 +553,7 @@ export default function PurchasesPage() {
     const payStatus: 'Paid' | 'Partial' | 'Unpaid' = balVal === 0 ? 'Paid' : paidVal > 0 ? 'Partial' : 'Unpaid';
 
     if (editingBillId) {
-      updatePurchaseInvoice(editingBillId, {
+      const updatedBill = {
         billNo: formData.billNo,
         billDate: new Date(formData.billDate).toISOString(),
         vendorId: formData.vendorId || 'v-gen',
@@ -574,11 +578,14 @@ export default function PurchasesPage() {
         showProductRemarksOnPrint: formData.showProductRemarksOnPrint,
         showRefurbishedBadgeOnPrint: formData.showRefurbishedBadgeOnPrint,
         remarks: formData.remarks,
-      });
+      };
+
+      updatePurchaseInvoice(editingBillId, updatedBill);
+      pushPurchaseInvoiceToSupabase({ id: editingBillId, ...updatedBill } as any).catch(() => {});
 
       alert(`Purchase Entry "${formData.billNo}" updated successfully!`);
     } else {
-      addPurchaseInvoice({
+      const newBill = {
         billNo: formData.billNo || `PUR-${Date.now()}`,
         billDate: new Date(formData.billDate).toISOString(),
         vendorId: formData.vendorId || 'v-gen',
@@ -603,7 +610,10 @@ export default function PurchasesPage() {
         showProductRemarksOnPrint: formData.showProductRemarksOnPrint,
         showRefurbishedBadgeOnPrint: formData.showRefurbishedBadgeOnPrint,
         remarks: formData.remarks,
-      });
+      };
+
+      addPurchaseInvoice(newBill);
+      pushPurchaseInvoiceToSupabase(newBill as any).catch(() => {});
 
       alert(`Purchase Entry "${formData.billNo}" saved successfully!\nStock automatically updated for all inward items.`);
     }
@@ -624,6 +634,12 @@ export default function PurchasesPage() {
       balanceDue: newBalance,
       paymentStatus: newStatus,
     });
+    pushPurchaseInvoiceToSupabase({
+      ...paymentModalBill,
+      paidAmount: newPaid,
+      balanceDue: newBalance,
+      paymentStatus: newStatus,
+    } as any).catch(() => {});
 
     alert(`Vendor Payment of ₹${paymentInput.toLocaleString()} recorded for Bill ${paymentModalBill.billNo}.`);
     setPaymentModalBill(null);
@@ -1266,6 +1282,7 @@ export default function PurchasesPage() {
                           onClick={() => {
                             if (confirm(`Delete Purchase Bill "${bill.billNo}"?`)) {
                               deletePurchaseInvoice(bill.id);
+                              deletePurchaseInvoiceFromSupabase(bill.id).catch(() => {});
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 cursor-pointer"

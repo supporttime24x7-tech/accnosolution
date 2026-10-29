@@ -6,6 +6,7 @@ import { Footer } from '@/components/home/Sections';
 import { Wrench, CheckCircle2, Send, Phone, User, Laptop, MapPin } from 'lucide-react';
 
 import { useErpStore } from '@/lib/store';
+import { pushBookRepairLeadToSupabase, pushTicketToSupabase } from '@/lib/supabase-sync';
 
 export default function BookRepairPage() {
   const { addTicket, addBookRepairLead } = useErpStore();
@@ -28,8 +29,8 @@ export default function BookRepairPage() {
     const bkNo = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
     setBookingTicketNo(bkNo);
 
-    // 1. Save directly under "Book Repair Online" Leads Section
-    addBookRepairLead({
+    // 1. Save directly under "Book Repair Online" Leads Section & Supabase Cloud
+    const bookLeadData = {
       bookingNo: bkNo,
       name: formData.name,
       phone: formData.phone,
@@ -40,18 +41,20 @@ export default function BookRepairPage() {
       serviceMode: formData.serviceType,
       problemDescription: formData.problem,
       address: formData.address || 'In-Store Drop Off',
-      status: 'New Booking',
+      status: 'New Booking' as const,
       created_at: new Date().toISOString(),
-    });
+    };
+    addBookRepairLead(bookLeadData);
+    pushBookRepairLeadToSupabase(bookLeadData as any).catch(() => {});
 
-    // 2. Also register Repair Ticket for bench processing
-    addTicket({
+    // 2. Also register Repair Ticket for bench processing & Supabase Cloud
+    const ticketData = {
       ticket_number: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
       customer_name: formData.name,
       customer_phone: formData.phone,
       customerEmail: formData.email,
       customerAddress: formData.address || 'Online Booking Registration',
-      customerType: 'RETAIL',
+      customerType: 'RETAIL' as const,
       device_type: formData.deviceType,
       brand: formData.brand || 'Generic Brand',
       model: formData.model || 'Standard Model',
@@ -59,8 +62,8 @@ export default function BookRepairPage() {
       rackLocation: 'Online Desk Bin 01',
       problem_reported: formData.problem || 'Online Service Registration Request',
       physicalCondition: 'Customer Reported intake via Website',
-      status: 'received',
-      priority: 'normal',
+      status: 'received' as const,
+      priority: 'normal' as const,
       lineItems: [],
       outsourceCharges: 0,
       freightCharges: 0,
@@ -75,14 +78,16 @@ export default function BookRepairPage() {
       roundOffAdjustment: 0,
       grandTotal: 1500,
       netDueBalance: 1500,
-      paymentMethod: 'CASH',
-      paymentStatus: 'UNPAID',
+      paymentMethod: 'CASH' as const,
+      paymentStatus: 'UNPAID' as const,
       warrantyStatement: '30 Days Parts & Labor Warranty',
       deliveryStatus: 'IN REPAIR LAB',
       technician_name: 'Deepak Kumar',
       entryDate: new Date().toISOString().split('T')[0],
       estimatedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    });
+    };
+    addTicket(ticketData as any);
+    pushTicketToSupabase(ticketData as any).catch(() => {});
 
     setSubmitted(true);
   };

@@ -8,6 +8,11 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useErpStore, PurchaseReturnItem, TransactionItemLine, InventoryItem, VendorItem } from '@/lib/store';
+import {
+  fetchPurchaseReturnsFromSupabase,
+  pushPurchaseReturnToSupabase,
+  deletePurchaseReturnFromSupabase,
+} from '@/lib/supabase-sync';
 
 // Searchable Product Combobox Component for Purchase Return Line Items
 interface SearchableLineItemSelectProps {
@@ -518,7 +523,7 @@ export default function PurchaseReturnsPage() {
     }
 
     if (editingReturnId) {
-      updatePurchaseReturn(editingReturnId, {
+      const updatedReturn = {
         returnNo: formData.returnNo,
         returnDate: new Date(formData.returnDate).toISOString(),
         originalBillNo: formData.originalBillNo,
@@ -535,11 +540,14 @@ export default function PurchaseReturnsPage() {
         deductFromStock: formData.deductFromStock,
         rmaStatus: formData.rmaStatus as any,
         remarks: formData.remarks,
-      });
+      };
+
+      updatePurchaseReturn(editingReturnId, updatedReturn);
+      pushPurchaseReturnToSupabase({ id: editingReturnId, ...updatedReturn } as any).catch(() => {});
 
       alert(`Purchase Return Debit Note "${formData.returnNo}" updated successfully!`);
     } else {
-      addPurchaseReturn({
+      const newReturn = {
         returnNo: formData.returnNo || `PCR-${Date.now()}`,
         returnDate: new Date(formData.returnDate).toISOString(),
         originalBillNo: formData.originalBillNo,
@@ -556,7 +564,10 @@ export default function PurchaseReturnsPage() {
         deductFromStock: formData.deductFromStock,
         rmaStatus: formData.rmaStatus as any,
         remarks: formData.remarks,
-      });
+      };
+
+      addPurchaseReturn(newReturn);
+      pushPurchaseReturnToSupabase(newReturn as any).catch(() => {});
 
       alert(`Purchase Return Debit Note "${formData.returnNo}" created & registered successfully!`);
     }
@@ -1176,6 +1187,7 @@ export default function PurchaseReturnsPage() {
                           onClick={() => {
                             if (confirm(`Delete Purchase Return Debit Note "${ret.returnNo}"?`)) {
                               deletePurchaseReturn(ret.id);
+                              deletePurchaseReturnFromSupabase(ret.id).catch(() => {});
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/30 cursor-pointer"
