@@ -1,0 +1,27 @@
+{
+  "name": "ACCNO SOLUTION",
+  "short_name": "ACCNO",
+  "description": "Enterprise-grade laptop, desktop, Apple Mac chip-level repair, cleanroom data recovery, and custom business ERP.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070B0A",
+  "theme_color": "#070B0A",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
