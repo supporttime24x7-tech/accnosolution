@@ -43,6 +43,20 @@ CREATE TABLE IF NOT EXISTS employees (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS code VARCHAR(50);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS emp_code VARCHAR(50);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS department VARCHAR(100) DEFAULT 'Technical';
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS designation VARCHAR(100) DEFAULT 'Technician';
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS base_salary NUMERIC(12,2) DEFAULT 0.00;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary NUMERIC(12,2) DEFAULT 0.00;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS joining_date DATE DEFAULT CURRENT_DATE;
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS active_status VARCHAR(50) DEFAULT 'Active';
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS role VARCHAR(100) DEFAULT 'Technician';
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS password_hash_or_plain TEXT;
 ALTER TABLE employees ADD COLUMN IF NOT EXISTS alternate_phone VARCHAR(50);
 ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact_name VARCHAR(255);
 ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact_phone VARCHAR(50);
@@ -117,7 +131,10 @@ CREATE TABLE IF NOT EXISTS customers (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS code VARCHAR(50);
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS customer_code VARCHAR(50);
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS company_name VARCHAR(255);
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'Sundry Debtor';
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS account_group VARCHAR(100) DEFAULT 'Retail / Cash';
@@ -222,6 +239,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
 
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS code VARCHAR(50);
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vendor_code VARCHAR(50);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS company_name VARCHAR(255);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vendor_name VARCHAR(255);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vendor_type VARCHAR(50) DEFAULT 'Standard Vendor';
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS name VARCHAR(255);
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS contact_person VARCHAR(255);
@@ -327,6 +348,10 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS code VARCHAR(100);
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sku VARCHAR(100);
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'Hardware';
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS item_type VARCHAR(50) DEFAULT 'Retail Part';
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS barcode VARCHAR(100);
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS barcodes JSONB DEFAULT '[]'::jsonb;
@@ -464,6 +489,17 @@ CREATE TABLE IF NOT EXISTS repair_tickets (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS ticket_number VARCHAR(50);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS device_brand VARCHAR(100);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS device_model VARCHAR(100);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS device_type VARCHAR(100);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS serial_number VARCHAR(100);
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS problem_description TEXT;
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS estimated_cost NUMERIC(12,2) DEFAULT 0.00;
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'RECEIVED';
+ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'Normal';
 ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS ticket_no VARCHAR(50);
 ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS barcode_data VARCHAR(100);
 ALTER TABLE repair_tickets ADD COLUMN IF NOT EXISTS barcode VARCHAR(100);
@@ -580,6 +616,17 @@ CREATE TABLE IF NOT EXISTS repair_invoices (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(50);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS ticket_id TEXT;
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS ticket_number VARCHAR(50);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS customer_gstin VARCHAR(50);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS device_type VARCHAR(100);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS brand VARCHAR(100);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS model VARCHAR(100);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS serial_or_imei VARCHAR(100);
+ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS line_items JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS customer_type VARCHAR(50) DEFAULT 'RETAIL';
 ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS outsource_charges NUMERIC(12,2) DEFAULT 0.00;
 ALTER TABLE repair_invoices ADD COLUMN IF NOT EXISTS freight_charges NUMERIC(12,2) DEFAULT 0.00;
@@ -656,6 +703,16 @@ CREATE TABLE IF NOT EXISTS outsource_vouchers (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS voucher_number VARCHAR(50);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS linked_ticket_number VARCHAR(50);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS device_name VARCHAR(255);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS serial_number VARCHAR(100);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_id TEXT;
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_name VARCHAR(255);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_phone VARCHAR(50);
+ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS service_type VARCHAR(100);
 ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_job_id VARCHAR(100);
 ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_city VARCHAR(100) DEFAULT 'Sanchore';
 ALTER TABLE outsource_vouchers ADD COLUMN IF NOT EXISTS vendor_address TEXT;
@@ -765,6 +822,14 @@ CREATE TABLE IF NOT EXISTS data_recovery_cases (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS case_number VARCHAR(50);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS device_type VARCHAR(100);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS device_brand VARCHAR(100);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS device_model VARCHAR(100);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS serial_number VARCHAR(100);
+ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS status VARCHAR(50);
 ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS recovery_id_number VARCHAR(50);
 ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS entry_date DATE DEFAULT CURRENT_DATE;
 ALTER TABLE data_recovery_cases ADD COLUMN IF NOT EXISTS customer_email VARCHAR(255);
@@ -890,6 +955,10 @@ CREATE TABLE IF NOT EXISTS amc_contracts (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS contract_number VARCHAR(50);
+ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS start_date DATE;
+ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS end_date DATE;
 ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS manual_entry_date DATE DEFAULT CURRENT_DATE;
 ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS company_name VARCHAR(255);
 ALTER TABLE amc_contracts ADD COLUMN IF NOT EXISTS contact_name VARCHAR(255);
@@ -1724,41 +1793,47 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- CREATE OPTIMIZATION INDEXES
+-- CREATE OPTIMIZATION INDEXES (WITH FAIL-SAFE ERROR HANDLING)
 -- ============================================================================
-CREATE INDEX IF NOT EXISTS idx_customers_code ON customers(customer_code);
-CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
-CREATE INDEX IF NOT EXISTS idx_customers_mobile ON customers(mobile);
+DO $$
+BEGIN
+    BEGIN CREATE INDEX IF NOT EXISTS idx_customers_code ON customers(customer_code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_customers_c_code ON customers(code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_customers_mobile ON customers(mobile); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_suppliers_code ON suppliers(code);
-CREATE INDEX IF NOT EXISTS idx_suppliers_phone ON suppliers(phone);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_suppliers_code ON suppliers(code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_suppliers_vcode ON suppliers(vendor_code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_suppliers_phone ON suppliers(phone); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_inventory_code ON inventory_items(code);
-CREATE INDEX IF NOT EXISTS idx_inventory_barcode ON inventory_items(barcode);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_inventory_code ON inventory_items(code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_inventory_sku ON inventory_items(sku); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_inventory_barcode ON inventory_items(barcode); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_tickets_number ON repair_tickets(ticket_number);
-CREATE INDEX IF NOT EXISTS idx_tickets_phone ON repair_tickets(customer_phone);
-CREATE INDEX IF NOT EXISTS idx_tickets_status ON repair_tickets(status);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_tickets_number ON repair_tickets(ticket_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_tickets_phone ON repair_tickets(customer_phone); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_tickets_status ON repair_tickets(status); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_invoices_number ON repair_invoices(invoice_number);
-CREATE INDEX IF NOT EXISTS idx_invoices_ticket ON repair_invoices(ticket_number);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_invoices_number ON repair_invoices(invoice_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_invoices_ticket ON repair_invoices(ticket_number); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_outsource_voucher ON outsource_vouchers(voucher_number);
-CREATE INDEX IF NOT EXISTS idx_outsource_ticket ON outsource_vouchers(linked_ticket_number);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_outsource_voucher ON outsource_vouchers(voucher_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_outsource_ticket ON outsource_vouchers(linked_ticket_number); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_recovery_case ON data_recovery_cases(case_number);
-CREATE INDEX IF NOT EXISTS idx_recovery_phone ON data_recovery_cases(customer_phone);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_recovery_case ON data_recovery_cases(case_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_recovery_phone ON data_recovery_cases(customer_phone); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_amc_number ON amc_contracts(contract_number);
-CREATE INDEX IF NOT EXISTS idx_amc_phone ON amc_contracts(customer_phone);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_amc_number ON amc_contracts(contract_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_amc_phone ON amc_contracts(customer_phone); EXCEPTION WHEN others THEN NULL; END;
 
-CREATE INDEX IF NOT EXISTS idx_sales_invoice_no ON sales_invoices(invoice_number);
-CREATE INDEX IF NOT EXISTS idx_purch_bill_no ON purchase_invoices(bill_number);
-CREATE INDEX IF NOT EXISTS idx_sales_returns_no ON sales_returns(return_no);
-CREATE INDEX IF NOT EXISTS idx_purch_returns_no ON purchase_returns(return_no);
-CREATE INDEX IF NOT EXISTS idx_quotations_no ON quotations(quotation_no);
-CREATE INDEX IF NOT EXISTS idx_vouchers_no ON accounting_vouchers(voucher_number);
-CREATE INDEX IF NOT EXISTS idx_ledgers_name ON account_ledgers(account_name);
-CREATE INDEX IF NOT EXISTS idx_hsn_code ON hsn_master(hsn_code);
-CREATE INDEX IF NOT EXISTS idx_blog_slug ON blog_posts(slug);
-CREATE INDEX IF NOT EXISTS idx_milestones_year ON milestones(year);
+    BEGIN CREATE INDEX IF NOT EXISTS idx_sales_invoice_no ON sales_invoices(invoice_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_purch_bill_no ON purchase_invoices(bill_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_sales_returns_no ON sales_returns(return_no); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_purch_returns_no ON purchase_returns(return_no); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_quotations_no ON quotations(quotation_no); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_vouchers_no ON accounting_vouchers(voucher_number); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_ledgers_name ON account_ledgers(account_name); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_hsn_code ON hsn_master(hsn_code); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_blog_slug ON blog_posts(slug); EXCEPTION WHEN others THEN NULL; END;
+    BEGIN CREATE INDEX IF NOT EXISTS idx_milestones_year ON milestones(year); EXCEPTION WHEN others THEN NULL; END;
+END $$;
