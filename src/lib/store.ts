@@ -5,7 +5,9 @@ import {
   pushInvoiceToSupabase,
   deleteInvoiceFromSupabase,
   pushBookRepairLeadToSupabase,
+  deleteBookRepairLeadFromSupabase,
   pushSupportLeadToSupabase,
+  deleteSupportLeadFromSupabase,
   pushEmployeeToSupabase,
   deleteEmployeeFromSupabase,
   pushCustomerToSupabase,
@@ -24,6 +26,43 @@ import {
   deleteSalesInvoiceFromSupabase,
   pushPurchaseInvoiceToSupabase,
   deletePurchaseInvoiceFromSupabase,
+  pushSalesReturnToSupabase,
+  deleteSalesReturnFromSupabase,
+  pushPurchaseReturnToSupabase,
+  deletePurchaseReturnFromSupabase,
+  pushQuotationToSupabase,
+  deleteQuotationFromSupabase,
+  pushAccountingVoucherToSupabase,
+  deleteAccountingVoucherFromSupabase,
+  pushAccountLedgerToSupabase,
+  deleteAccountLedgerFromSupabase,
+  pushHsnMasterToSupabase,
+  deleteHsnMasterFromSupabase,
+  pushBlogPostToSupabase,
+  deleteBlogPostFromSupabase,
+  pushMilestoneToSupabase,
+  deleteMilestoneFromSupabase,
+  pushHardwareRepairCatalogToSupabase,
+  deleteHardwareRepairCatalogFromSupabase,
+  pushRepairProcessStepToSupabase,
+  deleteRepairProcessStepFromSupabase,
+  pushAchievementStatToSupabase,
+  deleteAchievementStatFromSupabase,
+  pushLeadershipTeamToSupabase,
+  deleteLeadershipTeamFromSupabase,
+  pushEnterpriseSolutionToSupabase,
+  deleteEnterpriseSolutionFromSupabase,
+  pushDetailedServiceToSupabase,
+  deleteDetailedServiceFromSupabase,
+  pushServiceStatToSupabase,
+  deleteServiceStatFromSupabase,
+  pushServicePillarToSupabase,
+  deleteServicePillarFromSupabase,
+  pushServicesFaqToSupabase,
+  deleteServicesFaqFromSupabase,
+  pushWebsitePromotionToSupabase,
+  deleteWebsitePromotionFromSupabase,
+  pushCompanySettingsToSupabase,
 } from './supabase-sync';
 
 export interface LineItemBilling {
@@ -1411,18 +1450,21 @@ export interface ErpStore {
 
   // Sales Returns State
   salesReturns: SalesReturnItem[];
+  setSalesReturns: (returns: SalesReturnItem[]) => void;
   addSalesReturn: (ret: Omit<SalesReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateSalesReturn: (id: string, updatedData: Partial<SalesReturnItem>) => void;
   deleteSalesReturn: (id: string) => void;
 
   // Purchase Returns State
   purchaseReturns: PurchaseReturnItem[];
+  setPurchaseReturns: (returns: PurchaseReturnItem[]) => void;
   addPurchaseReturn: (ret: Omit<PurchaseReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updatePurchaseReturn: (id: string, updatedData: Partial<PurchaseReturnItem>) => void;
   deletePurchaseReturn: (id: string) => void;
 
   // Quotations State
   quotations: QuotationItem[];
+  setQuotations: (quotations: QuotationItem[]) => void;
   addQuotation: (q: Omit<QuotationItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateQuotation: (id: string, updated: Partial<QuotationItem>) => void;
   deleteQuotation: (id: string) => void;
@@ -1515,12 +1557,14 @@ export interface ErpStore {
 
   // Accounting Vouchers State
   accountingVouchers: AccountingVoucher[];
+  setAccountingVouchers: (vouchers: AccountingVoucher[]) => void;
   addAccountingVoucher: (voucherData: Omit<AccountingVoucher, 'id' | 'created_at'> & { voucherNumber?: string }) => void;
   updateAccountingVoucher: (id: string, updatedData: Partial<AccountingVoucher>) => void;
   deleteAccountingVoucher: (id: string) => void;
 
   // HSN Master Settings State
   hsnCodes: HsnMasterItem[];
+  setHsnCodes: (codes: HsnMasterItem[]) => void;
   addHsnCode: (hsn: HsnMasterItem) => void;
   updateHsnCode: (hsnCode: string, updated: Partial<HsnMasterItem>) => void;
   deleteHsnCode: (hsnCode: string) => void;
@@ -1573,6 +1617,7 @@ export interface ErpStore {
 
   // Custom Account Ledgers State
   customLedgers: AccountLedgerItem[];
+  setCustomLedgers: (ledgers: AccountLedgerItem[]) => void;
   addAccountLedger: (ledger: Omit<AccountLedgerItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateAccountLedger: (id: string, updated: Partial<AccountLedgerItem>) => void;
   deleteAccountLedger: (id: string) => void;
@@ -1607,36 +1652,42 @@ export interface ErpStore {
 
   // Key Achievement Counter Metrics State & Actions
   achievementStats: AchievementStatItem[];
+  setAchievementStats: (stats: AchievementStatItem[]) => void;
   addAchievementStat: (stat: Omit<AchievementStatItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateAchievementStat: (id: string, updated: Partial<AchievementStatItem>) => void;
   deleteAchievementStat: (id: string) => void;
 
   // Leadership Team State & Actions
   leadershipMembers: LeadershipTeamMember[];
+  setLeadershipMembers: (members: LeadershipTeamMember[]) => void;
   addLeadershipMember: (member: Omit<LeadershipTeamMember, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateLeadershipMember: (id: string, updated: Partial<LeadershipTeamMember>) => void;
   deleteLeadershipMember: (id: string) => void;
 
   // Hardware Repair Catalog State & Actions
   hardwareRepairCatalog: HardwareRepairCatalogItem[];
+  setHardwareRepairCatalog: (items: HardwareRepairCatalogItem[]) => void;
   addHardwareRepairCatalogItem: (item: Omit<HardwareRepairCatalogItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateHardwareRepairCatalogItem: (id: string, updated: Partial<HardwareRepairCatalogItem>) => void;
   deleteHardwareRepairCatalogItem: (id: string) => void;
 
   // Repair Process Steps (SOP) State & Actions
   repairProcessSteps: RepairProcessStepItem[];
+  setRepairProcessSteps: (steps: RepairProcessStepItem[]) => void;
   addRepairProcessStep: (step: Omit<RepairProcessStepItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateRepairProcessStep: (id: string, updated: Partial<RepairProcessStepItem>) => void;
   deleteRepairProcessStep: (id: string) => void;
 
   // Enterprise IT & Solutions Grid State & Actions
   enterpriseSolutions: EnterpriseSolutionItem[];
+  setEnterpriseSolutions: (solutions: EnterpriseSolutionItem[]) => void;
   addEnterpriseSolution: (item: Omit<EnterpriseSolutionItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateEnterpriseSolution: (id: string, updated: Partial<EnterpriseSolutionItem>) => void;
   deleteEnterpriseSolution: (id: string) => void;
 
   // Detailed Services & Specifications State & Actions
   detailedServices: DetailedServiceItem[];
+  setDetailedServices: (services: DetailedServiceItem[]) => void;
   addDetailedService: (item: Omit<DetailedServiceItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateDetailedService: (id: string, updated: Partial<DetailedServiceItem>) => void;
   deleteDetailedService: (id: string) => void;
@@ -1644,6 +1695,7 @@ export interface ErpStore {
 
   // Service Highlights & Stats State & Actions
   serviceStats: ServiceStatItem[];
+  setServiceStats: (stats: ServiceStatItem[]) => void;
   addServiceStat: (item: Omit<ServiceStatItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateServiceStat: (id: string, updated: Partial<ServiceStatItem>) => void;
   deleteServiceStat: (id: string) => void;
@@ -1651,6 +1703,7 @@ export interface ErpStore {
 
   // Service Pillars & Rationale State & Actions
   servicePillars: ServicePillarItem[];
+  setServicePillars: (pillars: ServicePillarItem[]) => void;
   addServicePillar: (item: Omit<ServicePillarItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateServicePillar: (id: string, updated: Partial<ServicePillarItem>) => void;
   deleteServicePillar: (id: string) => void;
@@ -1658,6 +1711,7 @@ export interface ErpStore {
 
   // Services Page Frequently Asked Questions (FAQs) State & Actions
   servicesFaqs: ServicesFaqItem[];
+  setServicesFaqs: (faqs: ServicesFaqItem[]) => void;
   addServicesFaq: (item: Omit<ServicesFaqItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateServicesFaq: (id: string, updated: Partial<ServicesFaqItem>) => void;
   deleteServicesFaq: (id: string) => void;
@@ -1672,6 +1726,7 @@ export interface ErpStore {
 
   // Website Top Promotion Bar & Promotion Campaigns State & Actions
   websitePromotions: WebsitePromotionItem[];
+  setWebsitePromotions: (promos: WebsitePromotionItem[]) => void;
   addWebsitePromotion: (item: Omit<WebsitePromotionItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) => void;
   updateWebsitePromotion: (id: string, updated: Partial<WebsitePromotionItem>) => void;
   deleteWebsitePromotion: (id: string) => void;
@@ -2285,6 +2340,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
       return { amcRules: updated };
     }),
 
+  setAccountingVouchers: (vouchers: AccountingVoucher[]) =>
+    set(() => {
+      saveToStorage('accno_erp_accounting_vouchers', vouchers);
+      return { accountingVouchers: vouchers };
+    }),
+
   addAccountingVoucher: (voucherData) =>
     set((state) => {
       const typePrefixes: Record<string, string> = {
@@ -2306,6 +2367,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newVoucher, ...state.accountingVouchers];
       saveToStorage('accno_erp_accounting_vouchers', updated);
+      pushAccountingVoucherToSupabase(newVoucher).catch(() => {});
       return { accountingVouchers: updated };
     }),
 
@@ -2313,6 +2375,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.accountingVouchers.map((v) => (v.id === id ? { ...v, ...updatedData } : v));
       saveToStorage('accno_erp_accounting_vouchers', updated);
+      const target = updated.find((v) => v.id === id);
+      if (target) pushAccountingVoucherToSupabase(target).catch(() => {});
       return { accountingVouchers: updated };
     }),
 
@@ -2320,6 +2384,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state) => {
       const updated = state.accountingVouchers.filter((v) => v.id !== id);
       saveToStorage('accno_erp_accounting_vouchers', updated);
+      deleteAccountingVoucherFromSupabase(id).catch(() => {});
       return { accountingVouchers: updated };
     }),
 
@@ -2843,23 +2908,40 @@ export const useErpStore = create<ErpState>((set, get) => ({
     { hsnCode: '998313', gstRate: 18, description: 'Information Technology Consulting & AMC Services' },
     { hsnCode: '85285200', gstRate: 18, description: 'Computer LED / LCD Monitors & Displays' },
   ]),
+  setHsnCodes: (codes: HsnMasterItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_hsn_codes', codes);
+      return { hsnCodes: codes };
+    }),
+
   addHsnCode: (hsn: HsnMasterItem) =>
     set((state: ErpState) => {
       if (state.hsnCodes.some((h: HsnMasterItem) => h.hsnCode === hsn.hsnCode)) return state;
       const updated = [hsn, ...state.hsnCodes];
       saveToStorage('accno_erp_hsn_codes', updated);
+      pushHsnMasterToSupabase(hsn).catch(() => {});
       return { hsnCodes: updated };
     }),
   updateHsnCode: (hsnCode: string, updated: Partial<HsnMasterItem>) =>
     set((state: ErpState) => {
-      const updatedList = state.hsnCodes.map((h: HsnMasterItem) => (h.hsnCode === hsnCode ? { ...h, ...updated } : h));
+      let updatedItem: HsnMasterItem | null = null;
+      const updatedList = state.hsnCodes.map((h: HsnMasterItem) => {
+        if (h.hsnCode === hsnCode) {
+          const merged = { ...h, ...updated };
+          updatedItem = merged;
+          return merged;
+        }
+        return h;
+      });
       saveToStorage('accno_erp_hsn_codes', updatedList);
+      if (updatedItem) pushHsnMasterToSupabase(updatedItem).catch(() => {});
       return { hsnCodes: updatedList };
     }),
   deleteHsnCode: (hsnCode: string) =>
     set((state: ErpState) => {
       const updated = state.hsnCodes.filter((h: HsnMasterItem) => h.hsnCode !== hsnCode);
       saveToStorage('accno_erp_hsn_codes', updated);
+      deleteHsnMasterFromSupabase(hsnCode).catch(() => {});
       return { hsnCodes: updated };
     }),
 
@@ -3091,6 +3173,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
   // Sales Returns State
   salesReturns: loadFromStorage<SalesReturnItem[]>('accno_erp_sales_returns', []),
 
+  setSalesReturns: (returns: SalesReturnItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_sales_returns', returns);
+      return { salesReturns: returns };
+    }),
+
   addSalesReturn: (ret: Omit<SalesReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
       const newRet: SalesReturnItem = {
@@ -3119,6 +3207,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         saveToStorage('accno_erp_inventory', updatedInventory);
       }
 
+      pushSalesReturnToSupabase(newRet).catch(() => {});
       return { salesReturns: updated, inventory: updatedInventory };
     }),
 
@@ -3126,6 +3215,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.salesReturns.map((r: SalesReturnItem) => (r.id === id ? { ...r, ...updatedData } : r));
       saveToStorage('accno_erp_sales_returns', updated);
+      const target = updated.find((r) => r.id === id);
+      if (target) pushSalesReturnToSupabase(target).catch(() => {});
       return { salesReturns: updated };
     }),
 
@@ -3133,11 +3224,18 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.salesReturns.filter((r: SalesReturnItem) => r.id !== id);
       saveToStorage('accno_erp_sales_returns', updated);
+      deleteSalesReturnFromSupabase(id).catch(() => {});
       return { salesReturns: updated };
     }),
 
   // Purchase Returns State
   purchaseReturns: loadFromStorage<PurchaseReturnItem[]>('accno_erp_purchase_returns', []),
+
+  setPurchaseReturns: (returns: PurchaseReturnItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_purchase_returns', returns);
+      return { purchaseReturns: returns };
+    }),
 
   addPurchaseReturn: (ret: Omit<PurchaseReturnItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3163,6 +3261,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         }
       });
       saveToStorage('accno_erp_inventory', updatedInventory);
+      pushPurchaseReturnToSupabase(newRet).catch(() => {});
 
       return { purchaseReturns: updated, inventory: updatedInventory };
     }),
@@ -3171,6 +3270,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.purchaseReturns.map((r: PurchaseReturnItem) => (r.id === id ? { ...r, ...updatedData } : r));
       saveToStorage('accno_erp_purchase_returns', updated);
+      const target = updated.find((r) => r.id === id);
+      if (target) pushPurchaseReturnToSupabase(target).catch(() => {});
       return { purchaseReturns: updated };
     }),
 
@@ -3178,11 +3279,18 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.purchaseReturns.filter((r: PurchaseReturnItem) => r.id !== id);
       saveToStorage('accno_erp_purchase_returns', updated);
+      deletePurchaseReturnFromSupabase(id).catch(() => {});
       return { purchaseReturns: updated };
     }),
 
   // Quotations State
   quotations: loadFromStorage<QuotationItem[]>('accno_erp_quotations', []),
+
+  setQuotations: (quotations: QuotationItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_quotations', quotations);
+      return { quotations };
+    }),
 
   addQuotation: (q: Omit<QuotationItem, 'id' | 'created_at'> & { id?: string; created_at?: string }) =>
     set((state: ErpState) => {
@@ -3193,6 +3301,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newQtn, ...state.quotations];
       saveToStorage('accno_erp_quotations', updated);
+      pushQuotationToSupabase(newQtn).catch(() => {});
       return { quotations: updated };
     }),
 
@@ -3200,6 +3309,8 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.quotations.map((q: QuotationItem) => (q.id === id ? { ...q, ...updatedData } : q));
       saveToStorage('accno_erp_quotations', updated);
+      const target = updated.find((q) => q.id === id);
+      if (target) pushQuotationToSupabase(target).catch(() => {});
       return { quotations: updated };
     }),
 
@@ -3207,6 +3318,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = state.quotations.filter((q: QuotationItem) => q.id !== id);
       saveToStorage('accno_erp_quotations', updated);
+      deleteQuotationFromSupabase(id).catch(() => {});
       return { quotations: updated };
     }),
 
@@ -3499,6 +3611,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     { id: 'ldg-114', accountName: 'Capital Account', groupType: 'Capital', openingBalance: 500000, balanceType: 'Cr', activeStatus: 'Active', created_at: '2026-01-01' }
   ]),
 
+  setCustomLedgers: (ledgers: AccountLedgerItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_custom_ledgers', ledgers);
+      return { customLedgers: ledgers };
+    }),
+
   addAccountLedger: (ledgerData) =>
     set((state: ErpState) => {
       const newLedger: AccountLedgerItem = {
@@ -3508,13 +3626,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newLedger, ...state.customLedgers];
       saveToStorage('accno_erp_custom_ledgers', updated);
+      pushAccountLedgerToSupabase(newLedger).catch(() => {});
       return { customLedgers: updated };
     }),
 
   updateAccountLedger: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.customLedgers.map((l) => (l.id === id ? { ...l, ...updated } : l));
+      let target: AccountLedgerItem | null = null;
+      const updatedList = state.customLedgers.map((l) => {
+        if (l.id === id) {
+          const merged = { ...l, ...updated };
+          target = merged;
+          return merged;
+        }
+        return l;
+      });
       saveToStorage('accno_erp_custom_ledgers', updatedList);
+      if (target) pushAccountLedgerToSupabase(target).catch(() => {});
       return { customLedgers: updatedList };
     }),
 
@@ -3522,6 +3650,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.customLedgers.filter((l) => l.id !== id);
       saveToStorage('accno_erp_custom_ledgers', updatedList);
+      deleteAccountLedgerFromSupabase(id).catch(() => {});
       return { customLedgers: updatedList };
     }),
 
@@ -3537,18 +3666,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newLead, ...state.supportLeads];
       saveToStorage('accno_erp_support_leads', updated);
-      try {
-        pushSupportLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushSupportLead error:', err));
-      } catch (e) {
-        console.warn('Sync failed:', e);
-      }
+      pushSupportLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushSupportLead error:', err));
       return { supportLeads: updated };
     }),
 
   updateSupportLead: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.supportLeads.map((l) => (l.id === id ? { ...l, ...updated } : l));
+      let target: SupportLeadItem | null = null;
+      const updatedList = state.supportLeads.map((l) => {
+        if (l.id === id) {
+          const merged = { ...l, ...updated };
+          target = merged;
+          return merged;
+        }
+        return l;
+      });
       saveToStorage('accno_erp_support_leads', updatedList);
+      if (target) pushSupportLeadToSupabase(target).catch(() => {});
       return { supportLeads: updatedList };
     }),
 
@@ -3556,6 +3690,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.supportLeads.filter((l) => l.id !== id);
       saveToStorage('accno_erp_support_leads', updatedList);
+      deleteSupportLeadFromSupabase(id).catch(() => {});
       return { supportLeads: updatedList };
     }),
 
@@ -3571,18 +3706,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newLead, ...state.bookRepairLeads];
       saveToStorage('accno_erp_book_repair_leads', updated);
-      try {
-        pushBookRepairLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushBookRepairLead error:', err));
-      } catch (e) {
-        console.warn('Sync failed:', e);
-      }
+      pushBookRepairLeadToSupabase(newLead).catch((err) => console.warn('Supabase pushBookRepairLead error:', err));
       return { bookRepairLeads: updated };
     }),
 
   updateBookRepairLead: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.bookRepairLeads.map((l) => (l.id === id ? { ...l, ...updated } : l));
+      let target: BookRepairLeadItem | null = null;
+      const updatedList = state.bookRepairLeads.map((l) => {
+        if (l.id === id) {
+          const merged = { ...l, ...updated };
+          target = merged;
+          return merged;
+        }
+        return l;
+      });
       saveToStorage('accno_erp_book_repair_leads', updatedList);
+      if (target) pushBookRepairLeadToSupabase(target).catch(() => {});
       return { bookRepairLeads: updatedList };
     }),
 
@@ -3590,6 +3730,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.bookRepairLeads.filter((l) => l.id !== id);
       saveToStorage('accno_erp_book_repair_leads', updatedList);
+      deleteBookRepairLeadFromSupabase(id).catch(() => {});
       return { bookRepairLeads: updatedList };
     }),
 
@@ -3606,13 +3747,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [newPost, ...state.blogPosts];
       saveToStorage('accno_erp_blog_posts', updated);
+      pushBlogPostToSupabase(newPost).catch(() => {});
       return { blogPosts: updated };
     }),
 
   updateBlogPost: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.blogPosts.map((p) => (p.id === id ? { ...p, ...updated } : p));
+      let target: BlogPostItem | null = null;
+      const updatedList = state.blogPosts.map((p) => {
+        if (p.id === id) {
+          const merged = { ...p, ...updated };
+          target = merged;
+          return merged;
+        }
+        return p;
+      });
       saveToStorage('accno_erp_blog_posts', updatedList);
+      if (target) pushBlogPostToSupabase(target).catch(() => {});
       return { blogPosts: updatedList };
     }),
 
@@ -3620,6 +3771,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.blogPosts.filter((p) => p.id !== id);
       saveToStorage('accno_erp_blog_posts', updatedList);
+      deleteBlogPostFromSupabase(id).catch(() => {});
       return { blogPosts: updatedList };
     }),
 
@@ -3635,15 +3787,25 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.milestones, newMilestone].sort((a, b) => a.year.localeCompare(b.year));
       saveToStorage('accno_erp_milestones', updated);
+      pushMilestoneToSupabase(newMilestone).catch(() => {});
       return { milestones: updated };
     }),
 
   updateMilestone: (id, updated) =>
     set((state: ErpState) => {
+      let target: MilestoneItem | null = null;
       const updatedList = state.milestones
-        .map((m) => (m.id === id ? { ...m, ...updated } : m))
+        .map((m) => {
+          if (m.id === id) {
+            const merged = { ...m, ...updated };
+            target = merged;
+            return merged;
+          }
+          return m;
+        })
         .sort((a, b) => a.year.localeCompare(b.year));
       saveToStorage('accno_erp_milestones', updatedList);
+      if (target) pushMilestoneToSupabase(target).catch(() => {});
       return { milestones: updatedList };
     }),
 
@@ -3651,6 +3813,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.milestones.filter((m) => m.id !== id);
       saveToStorage('accno_erp_milestones', updatedList);
+      deleteMilestoneFromSupabase(id).catch(() => {});
       return { milestones: updatedList };
     }),
 
@@ -3690,6 +3853,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setAchievementStats: (stats: AchievementStatItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_achievement_stats', stats);
+      return { achievementStats: stats };
+    }),
+
   addAchievementStat: (stat) =>
     set((state: ErpState) => {
       const newStat: AchievementStatItem = {
@@ -3699,13 +3868,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.achievementStats, newStat];
       saveToStorage('accno_erp_achievement_stats', updated);
+      pushAchievementStatToSupabase(newStat).catch(() => {});
       return { achievementStats: updated };
     }),
 
   updateAchievementStat: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.achievementStats.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: AchievementStatItem | null = null;
+      const updatedList = state.achievementStats.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_achievement_stats', updatedList);
+      if (target) pushAchievementStatToSupabase(target).catch(() => {});
       return { achievementStats: updatedList };
     }),
 
@@ -3713,6 +3892,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.achievementStats.filter((s) => s.id !== id);
       saveToStorage('accno_erp_achievement_stats', updatedList);
+      deleteAchievementStatFromSupabase(id).catch(() => {});
       return { achievementStats: updatedList };
     }),
 
@@ -3747,6 +3927,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setLeadershipMembers: (members: LeadershipTeamMember[]) =>
+    set(() => {
+      saveToStorage('accno_erp_leadership_members', members);
+      return { leadershipMembers: members };
+    }),
+
   addLeadershipMember: (member) =>
     set((state: ErpState) => {
       const newMember: LeadershipTeamMember = {
@@ -3756,13 +3942,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.leadershipMembers, newMember];
       saveToStorage('accno_erp_leadership_members', updated);
+      pushLeadershipTeamToSupabase(newMember).catch(() => {});
       return { leadershipMembers: updated };
     }),
 
   updateLeadershipMember: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.leadershipMembers.map((m) => (m.id === id ? { ...m, ...updated } : m));
+      let target: LeadershipTeamMember | null = null;
+      const updatedList = state.leadershipMembers.map((m) => {
+        if (m.id === id) {
+          const merged = { ...m, ...updated };
+          target = merged;
+          return merged;
+        }
+        return m;
+      });
       saveToStorage('accno_erp_leadership_members', updatedList);
+      if (target) pushLeadershipTeamToSupabase(target).catch(() => {});
       return { leadershipMembers: updatedList };
     }),
 
@@ -3770,6 +3966,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.leadershipMembers.filter((m) => m.id !== id);
       saveToStorage('accno_erp_leadership_members', updatedList);
+      deleteLeadershipTeamFromSupabase(id).catch(() => {});
       return { leadershipMembers: updatedList };
     }),
 
@@ -3837,6 +4034,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setHardwareRepairCatalog: (items: HardwareRepairCatalogItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_hardware_repair_catalog', items);
+      return { hardwareRepairCatalog: items };
+    }),
+
   addHardwareRepairCatalogItem: (item) =>
     set((state: ErpState) => {
       const newItem: HardwareRepairCatalogItem = {
@@ -3846,13 +4049,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.hardwareRepairCatalog, newItem];
       saveToStorage('accno_erp_hardware_repair_catalog', updated);
+      pushHardwareRepairCatalogToSupabase(newItem).catch(() => {});
       return { hardwareRepairCatalog: updated };
     }),
 
   updateHardwareRepairCatalogItem: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.hardwareRepairCatalog.map((i) => (i.id === id ? { ...i, ...updated } : i));
+      let target: HardwareRepairCatalogItem | null = null;
+      const updatedList = state.hardwareRepairCatalog.map((i) => {
+        if (i.id === id) {
+          const merged = { ...i, ...updated };
+          target = merged;
+          return merged;
+        }
+        return i;
+      });
       saveToStorage('accno_erp_hardware_repair_catalog', updatedList);
+      if (target) pushHardwareRepairCatalogToSupabase(target).catch(() => {});
       return { hardwareRepairCatalog: updatedList };
     }),
 
@@ -3860,6 +4073,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.hardwareRepairCatalog.filter((i) => i.id !== id);
       saveToStorage('accno_erp_hardware_repair_catalog', updatedList);
+      deleteHardwareRepairCatalogFromSupabase(id).catch(() => {});
       return { hardwareRepairCatalog: updatedList };
     }),
 
@@ -3899,6 +4113,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setRepairProcessSteps: (steps: RepairProcessStepItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_repair_process_steps', steps);
+      return { repairProcessSteps: steps };
+    }),
+
   addRepairProcessStep: (step) =>
     set((state: ErpState) => {
       const newStep: RepairProcessStepItem = {
@@ -3908,15 +4128,25 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.repairProcessSteps, newStep].sort((a, b) => a.step.localeCompare(b.step));
       saveToStorage('accno_erp_repair_process_steps', updated);
+      pushRepairProcessStepToSupabase(newStep).catch(() => {});
       return { repairProcessSteps: updated };
     }),
 
   updateRepairProcessStep: (id, updated) =>
     set((state: ErpState) => {
+      let target: RepairProcessStepItem | null = null;
       const updatedList = state.repairProcessSteps
-        .map((s) => (s.id === id ? { ...s, ...updated } : s))
+        .map((s) => {
+          if (s.id === id) {
+            const merged = { ...s, ...updated };
+            target = merged;
+            return merged;
+          }
+          return s;
+        })
         .sort((a, b) => a.step.localeCompare(b.step));
       saveToStorage('accno_erp_repair_process_steps', updatedList);
+      if (target) pushRepairProcessStepToSupabase(target).catch(() => {});
       return { repairProcessSteps: updatedList };
     }),
 
@@ -3924,6 +4154,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.repairProcessSteps.filter((s) => s.id !== id);
       saveToStorage('accno_erp_repair_process_steps', updatedList);
+      deleteRepairProcessStepFromSupabase(id).catch(() => {});
       return { repairProcessSteps: updatedList };
     }),
 
@@ -4011,6 +4242,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setEnterpriseSolutions: (solutions: EnterpriseSolutionItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_enterprise_solutions', solutions);
+      return { enterpriseSolutions: solutions };
+    }),
+
   addEnterpriseSolution: (item) =>
     set((state: ErpState) => {
       const newItem: EnterpriseSolutionItem = {
@@ -4020,13 +4257,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.enterpriseSolutions, newItem];
       saveToStorage('accno_erp_enterprise_solutions', updated);
+      pushEnterpriseSolutionToSupabase(newItem).catch(() => {});
       return { enterpriseSolutions: updated };
     }),
 
   updateEnterpriseSolution: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.enterpriseSolutions.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: EnterpriseSolutionItem | null = null;
+      const updatedList = state.enterpriseSolutions.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_enterprise_solutions', updatedList);
+      if (target) pushEnterpriseSolutionToSupabase(target).catch(() => {});
       return { enterpriseSolutions: updatedList };
     }),
 
@@ -4034,6 +4281,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.enterpriseSolutions.filter((s) => s.id !== id);
       saveToStorage('accno_erp_enterprise_solutions', updatedList);
+      deleteEnterpriseSolutionFromSupabase(id).catch(() => {});
       return { enterpriseSolutions: updatedList };
     }),
 
@@ -4233,6 +4481,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setDetailedServices: (services: DetailedServiceItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_detailed_services', services);
+      return { detailedServices: services };
+    }),
+
   addDetailedService: (item) =>
     set((state: ErpState) => {
       const newItem: DetailedServiceItem = {
@@ -4243,13 +4497,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.detailedServices, newItem];
       saveToStorage('accno_erp_detailed_services', updated);
+      pushDetailedServiceToSupabase(newItem).catch(() => {});
       return { detailedServices: updated };
     }),
 
   updateDetailedService: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.detailedServices.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: DetailedServiceItem | null = null;
+      const updatedList = state.detailedServices.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_detailed_services', updatedList);
+      if (target) pushDetailedServiceToSupabase(target).catch(() => {});
       return { detailedServices: updatedList };
     }),
 
@@ -4257,15 +4521,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.detailedServices.filter((s) => s.id !== id);
       saveToStorage('accno_erp_detailed_services', updatedList);
+      deleteDetailedServiceFromSupabase(id).catch(() => {});
       return { detailedServices: updatedList };
     }),
 
   toggleDetailedServiceVisibility: (id) =>
     set((state: ErpState) => {
-      const updatedList = state.detailedServices.map((s) =>
-        s.id === id ? { ...s, isVisible: !s.isVisible } : s
-      );
+      let target: DetailedServiceItem | null = null;
+      const updatedList = state.detailedServices.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, isVisible: !s.isVisible };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_detailed_services', updatedList);
+      if (target) pushDetailedServiceToSupabase(target).catch(() => {});
       return { detailedServices: updatedList };
     }),
 
@@ -4309,6 +4581,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setServiceStats: (stats: ServiceStatItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_service_stats', stats);
+      return { serviceStats: stats };
+    }),
+
   addServiceStat: (item) =>
     set((state: ErpState) => {
       const newItem: ServiceStatItem = {
@@ -4319,13 +4597,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.serviceStats, newItem];
       saveToStorage('accno_erp_service_stats', updated);
+      pushServiceStatToSupabase(newItem).catch(() => {});
       return { serviceStats: updated };
     }),
 
   updateServiceStat: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.serviceStats.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: ServiceStatItem | null = null;
+      const updatedList = state.serviceStats.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_service_stats', updatedList);
+      if (target) pushServiceStatToSupabase(target).catch(() => {});
       return { serviceStats: updatedList };
     }),
 
@@ -4333,15 +4621,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.serviceStats.filter((s) => s.id !== id);
       saveToStorage('accno_erp_service_stats', updatedList);
+      deleteServiceStatFromSupabase(id).catch(() => {});
       return { serviceStats: updatedList };
     }),
 
   toggleServiceStatVisibility: (id) =>
     set((state: ErpState) => {
-      const updatedList = state.serviceStats.map((s) =>
-        s.id === id ? { ...s, isVisible: !s.isVisible } : s
-      );
+      let target: ServiceStatItem | null = null;
+      const updatedList = state.serviceStats.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, isVisible: !s.isVisible };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_service_stats', updatedList);
+      if (target) pushServiceStatToSupabase(target).catch(() => {});
       return { serviceStats: updatedList };
     }),
 
@@ -4389,6 +4685,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setServicePillars: (pillars: ServicePillarItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_service_pillars', pillars);
+      return { servicePillars: pillars };
+    }),
+
   addServicePillar: (item) =>
     set((state: ErpState) => {
       const newItem: ServicePillarItem = {
@@ -4399,13 +4701,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.servicePillars, newItem];
       saveToStorage('accno_erp_service_pillars', updated);
+      pushServicePillarToSupabase(newItem).catch(() => {});
       return { servicePillars: updated };
     }),
 
   updateServicePillar: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.servicePillars.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: ServicePillarItem | null = null;
+      const updatedList = state.servicePillars.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_service_pillars', updatedList);
+      if (target) pushServicePillarToSupabase(target).catch(() => {});
       return { servicePillars: updatedList };
     }),
 
@@ -4413,15 +4725,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.servicePillars.filter((s) => s.id !== id);
       saveToStorage('accno_erp_service_pillars', updatedList);
+      deleteServicePillarFromSupabase(id).catch(() => {});
       return { servicePillars: updatedList };
     }),
 
   toggleServicePillarVisibility: (id) =>
     set((state: ErpState) => {
-      const updatedList = state.servicePillars.map((s) =>
-        s.id === id ? { ...s, isVisible: !s.isVisible } : s
-      );
+      let target: ServicePillarItem | null = null;
+      const updatedList = state.servicePillars.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, isVisible: !s.isVisible };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_service_pillars', updatedList);
+      if (target) pushServicePillarToSupabase(target).catch(() => {});
       return { servicePillars: updatedList };
     }),
 
@@ -4456,6 +4776,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setServicesFaqs: (faqs: ServicesFaqItem[]) =>
+    set(() => {
+      saveToStorage('accno_erp_services_faqs', faqs);
+      return { servicesFaqs: faqs };
+    }),
+
   addServicesFaq: (item) =>
     set((state: ErpState) => {
       const newItem: ServicesFaqItem = {
@@ -4466,13 +4792,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       const updated = [...state.servicesFaqs, newItem];
       saveToStorage('accno_erp_services_faqs', updated);
+      pushServicesFaqToSupabase(newItem).catch(() => {});
       return { servicesFaqs: updated };
     }),
 
   updateServicesFaq: (id, updated) =>
     set((state: ErpState) => {
-      const updatedList = state.servicesFaqs.map((s) => (s.id === id ? { ...s, ...updated } : s));
+      let target: ServicesFaqItem | null = null;
+      const updatedList = state.servicesFaqs.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, ...updated };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_services_faqs', updatedList);
+      if (target) pushServicesFaqToSupabase(target).catch(() => {});
       return { servicesFaqs: updatedList };
     }),
 
@@ -4480,15 +4816,23 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updatedList = state.servicesFaqs.filter((s) => s.id !== id);
       saveToStorage('accno_erp_services_faqs', updatedList);
+      deleteServicesFaqFromSupabase(id).catch(() => {});
       return { servicesFaqs: updatedList };
     }),
 
   toggleServicesFaqVisibility: (id) =>
     set((state: ErpState) => {
-      const updatedList = state.servicesFaqs.map((s) =>
-        s.id === id ? { ...s, isVisible: !s.isVisible } : s
-      );
+      let target: ServicesFaqItem | null = null;
+      const updatedList = state.servicesFaqs.map((s) => {
+        if (s.id === id) {
+          const merged = { ...s, isVisible: !s.isVisible };
+          target = merged;
+          return merged;
+        }
+        return s;
+      });
       saveToStorage('accno_erp_services_faqs', updatedList);
+      if (target) pushServicesFaqToSupabase(target).catch(() => {});
       return { servicesFaqs: updatedList };
     }),
 
@@ -4594,6 +4938,12 @@ export const useErpStore = create<ErpState>((set, get) => ({
     },
   ]),
 
+  setWebsitePromotions: (promos: WebsitePromotionItem[]) =>
+    set(() => {
+      saveToStorage('accno_website_promotions', promos);
+      return { websitePromotions: promos };
+    }),
+
   addWebsitePromotion: (item) =>
     set((state: ErpState) => {
       const newItem: WebsitePromotionItem = {
@@ -4617,19 +4967,24 @@ export const useErpStore = create<ErpState>((set, get) => ({
         };
         saveToStorage('accno_website_promotion_bar', updatedBar);
         saveToStorage('accno_website_promotions', updatedList);
+        pushWebsitePromotionToSupabase(newItem).catch(() => {});
+        pushCompanySettingsToSupabase('website_promotion_bar', updatedBar).catch(() => {});
         return { websitePromotions: updatedList, websitePromotionBar: updatedBar };
       }
       updatedList.push(newItem);
       saveToStorage('accno_website_promotions', updatedList);
+      pushWebsitePromotionToSupabase(newItem).catch(() => {});
       return { websitePromotions: updatedList };
     }),
 
   updateWebsitePromotion: (id, updated) =>
     set((state: ErpState) => {
       let updatedBar = state.websitePromotionBar;
+      let target: WebsitePromotionItem | null = null;
       const updatedList = state.websitePromotions.map((p) => {
         if (p.id === id) {
           const merged = { ...p, ...updated };
+          target = merged;
           if (merged.isActive) {
             updatedBar = {
               isEnabled: state.websitePromotionBar.isEnabled,
@@ -4641,6 +4996,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
               isDismissible: merged.isDismissible,
             };
             saveToStorage('accno_website_promotion_bar', updatedBar);
+            pushCompanySettingsToSupabase('website_promotion_bar', updatedBar).catch(() => {});
           }
           return merged;
         }
@@ -4650,6 +5006,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
         return p;
       });
       saveToStorage('accno_website_promotions', updatedList);
+      if (target) pushWebsitePromotionToSupabase(target).catch(() => {});
       return { websitePromotions: updatedList, websitePromotionBar: updatedBar };
     }),
 
@@ -4671,8 +5028,10 @@ export const useErpStore = create<ErpState>((set, get) => ({
           isDismissible: updatedList[0].isDismissible,
         };
         saveToStorage('accno_website_promotion_bar', updatedBar);
+        pushCompanySettingsToSupabase('website_promotion_bar', updatedBar).catch(() => {});
       }
       saveToStorage('accno_website_promotions', updatedList);
+      deleteWebsitePromotionFromSupabase(id).catch(() => {});
       return { websitePromotions: updatedList, websitePromotionBar: updatedBar };
     }),
 
@@ -4695,6 +5054,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
       };
       saveToStorage('accno_website_promotions', updatedList);
       saveToStorage('accno_website_promotion_bar', updatedBar);
+      pushCompanySettingsToSupabase('website_promotion_bar', updatedBar).catch(() => {});
       return { websitePromotions: updatedList, websitePromotionBar: updatedBar };
     }),
 
@@ -4712,6 +5072,7 @@ export const useErpStore = create<ErpState>((set, get) => ({
     set((state: ErpState) => {
       const updated = { ...state.websitePromotionBar, ...data };
       saveToStorage('accno_website_promotion_bar', updated);
+      pushCompanySettingsToSupabase('website_promotion_bar', updated).catch(() => {});
       return { websitePromotionBar: updated };
     }),
 }));

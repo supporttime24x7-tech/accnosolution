@@ -26,6 +26,27 @@ import {
   fetchAmcContractsFromSupabase,
   fetchSalesInvoicesFromSupabase,
   fetchPurchaseInvoicesFromSupabase,
+  fetchSalesReturnsFromSupabase,
+  fetchPurchaseReturnsFromSupabase,
+  fetchQuotationsFromSupabase,
+  fetchAccountingVouchersFromSupabase,
+  fetchAccountLedgersFromSupabase,
+  fetchHsnMasterFromSupabase,
+  fetchSupportLeadsFromSupabase,
+  fetchBookRepairLeadsFromSupabase,
+  fetchBlogPostsFromSupabase,
+  fetchMilestonesFromSupabase,
+  fetchAchievementStatsFromSupabase,
+  fetchLeadershipTeamFromSupabase,
+  fetchHardwareRepairCatalogFromSupabase,
+  fetchRepairProcessStepsFromSupabase,
+  fetchEnterpriseSolutionsFromSupabase,
+  fetchDetailedServicesFromSupabase,
+  fetchServiceStatsFromSupabase,
+  fetchServicePillarsFromSupabase,
+  fetchServicesFaqsFromSupabase,
+  fetchWebsitePromotionsFromSupabase,
+  fetchCompanySettingsFromSupabase,
 } from '@/lib/supabase-sync';
 
 interface NavItem {
@@ -82,6 +103,27 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     setAmcContracts,
     setSalesInvoices,
     setPurchaseInvoices,
+    setSalesReturns,
+    setPurchaseReturns,
+    setQuotations,
+    setAccountingVouchers,
+    setCustomLedgers,
+    setHsnCodes,
+    setSupportLeads,
+    setBookRepairLeads,
+    setBlogPosts,
+    setMilestones,
+    setAchievementStats,
+    setLeadershipMembers,
+    setHardwareRepairCatalog,
+    setRepairProcessSteps,
+    setEnterpriseSolutions,
+    setDetailedServices,
+    setServiceStats,
+    setServicePillars,
+    setServicesFaqs,
+    setWebsitePromotions,
+    updateCompanyDetails,
   } = useErpStore();
 
   useEffect(() => {
@@ -268,6 +310,237 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
             }
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'sales_returns' },
+          async () => {
+            const fresh = await fetchSalesReturnsFromSupabase();
+            if (fresh && isSubscribed) {
+              setSalesReturns(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'purchase_returns' },
+          async () => {
+            const fresh = await fetchPurchaseReturnsFromSupabase();
+            if (fresh && isSubscribed) {
+              setPurchaseReturns(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'quotations' },
+          async () => {
+            const fresh = await fetchQuotationsFromSupabase();
+            if (fresh && isSubscribed) {
+              setQuotations(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'accounting_vouchers' },
+          async () => {
+            const fresh = await fetchAccountingVouchersFromSupabase();
+            if (fresh && isSubscribed) {
+              setAccountingVouchers(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'account_ledgers' },
+          async () => {
+            const fresh = await fetchAccountLedgersFromSupabase();
+            if (fresh && isSubscribed) {
+              setCustomLedgers(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'hsn_master' },
+          async () => {
+            const fresh = await fetchHsnMasterFromSupabase();
+            if (fresh && isSubscribed) {
+              setHsnCodes(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'support_leads' },
+          async () => {
+            const fresh = await fetchSupportLeadsFromSupabase();
+            if (fresh && isSubscribed) {
+              setSupportLeads(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'book_repair_leads' },
+          async () => {
+            const fresh = await fetchBookRepairLeadsFromSupabase();
+            if (fresh && isSubscribed) {
+              setBookRepairLeads(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'blog_posts' },
+          async () => {
+            const fresh = await fetchBlogPostsFromSupabase();
+            if (fresh && isSubscribed) {
+              setBlogPosts(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'milestones' },
+          async () => {
+            const fresh = await fetchMilestonesFromSupabase();
+            if (fresh && isSubscribed) {
+              setMilestones(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'achievement_stats' },
+          async () => {
+            const fresh = await fetchAchievementStatsFromSupabase();
+            if (fresh && isSubscribed) {
+              setAchievementStats(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'leadership_team' },
+          async () => {
+            const fresh = await fetchLeadershipTeamFromSupabase();
+            if (fresh && isSubscribed) {
+              setLeadershipMembers(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'hardware_repair_catalog' },
+          async () => {
+            const fresh = await fetchHardwareRepairCatalogFromSupabase();
+            if (fresh && isSubscribed) {
+              setHardwareRepairCatalog(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'repair_process_steps' },
+          async () => {
+            const fresh = await fetchRepairProcessStepsFromSupabase();
+            if (fresh && isSubscribed) {
+              setRepairProcessSteps(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'enterprise_solutions' },
+          async () => {
+            const fresh = await fetchEnterpriseSolutionsFromSupabase();
+            if (fresh && isSubscribed) {
+              setEnterpriseSolutions(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'detailed_services' },
+          async () => {
+            const fresh = await fetchDetailedServicesFromSupabase();
+            if (fresh && isSubscribed) {
+              setDetailedServices(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'service_stats' },
+          async () => {
+            const fresh = await fetchServiceStatsFromSupabase();
+            if (fresh && isSubscribed) {
+              setServiceStats(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'service_pillars' },
+          async () => {
+            const fresh = await fetchServicePillarsFromSupabase();
+            if (fresh && isSubscribed) {
+              setServicePillars(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'services_faqs' },
+          async () => {
+            const fresh = await fetchServicesFaqsFromSupabase();
+            if (fresh && isSubscribed) {
+              setServicesFaqs(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'website_promotions' },
+          async () => {
+            const fresh = await fetchWebsitePromotionsFromSupabase();
+            if (fresh && isSubscribed) {
+              setWebsitePromotions(fresh);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'company_settings' },
+          async () => {
+            const fresh = await fetchCompanySettingsFromSupabase();
+            if (fresh && isSubscribed) {
+              if (fresh.companyDetails) updateCompanyDetails(fresh.companyDetails);
+              setCloudSyncStatus('synced');
+            }
+          }
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED' && isSubscribed) {
             setCloudSyncStatus('synced');
@@ -291,6 +564,27 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
     setAmcContracts,
     setSalesInvoices,
     setPurchaseInvoices,
+    setSalesReturns,
+    setPurchaseReturns,
+    setQuotations,
+    setAccountingVouchers,
+    setCustomLedgers,
+    setHsnCodes,
+    setSupportLeads,
+    setBookRepairLeads,
+    setBlogPosts,
+    setMilestones,
+    setAchievementStats,
+    setLeadershipMembers,
+    setHardwareRepairCatalog,
+    setRepairProcessSteps,
+    setEnterpriseSolutions,
+    setDetailedServices,
+    setServiceStats,
+    setServicePillars,
+    setServicesFaqs,
+    setWebsitePromotions,
+    updateCompanyDetails,
   ]);
 
   // Strict Client-Side Defense-in-Depth Auth Check

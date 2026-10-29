@@ -11,10 +11,27 @@ import type {
   AmcContract,
   SalesInvoiceItem,
   PurchaseInvoiceItem,
+  SalesReturnItem,
+  PurchaseReturnItem,
+  QuotationItem,
+  AccountingVoucher,
+  AccountLedgerItem,
+  HsnMasterItem,
   BlogPostItem,
   MilestoneItem,
   EmployeeItem,
   VendorItem,
+  HardwareRepairCatalogItem,
+  RepairProcessStepItem,
+  AchievementStatItem,
+  LeadershipTeamMember,
+  EnterpriseSolutionItem,
+  DetailedServiceItem,
+  ServiceStatItem,
+  ServicePillarItem,
+  ServicesFaqItem,
+  WebsitePromotionItem,
+  CompanyDetailsConfig,
 } from './store';
 import { adminEmployeePermissions } from './store';
 
@@ -1767,8 +1784,1113 @@ export async function deleteEmployeeFromSupabase(id: string, empCode?: string): 
   }
 }
 
+// ============================================================================
+// SALES RETURNS CLOUD SYNC
+// ============================================================================
+export function mapRowToSalesReturn(row: any): SalesReturnItem {
+  return {
+    id: row.id || `sr-${Date.now()}`,
+    returnNo: row.return_no || '',
+    returnDate: row.return_date || new Date().toISOString().split('T')[0],
+    originalInvoiceNo: row.original_invoice_no || '',
+    customerId: row.customer_id || '',
+    customerName: row.customer_name || 'Customer',
+    customerPhone: row.customer_phone || '',
+    customerGst: row.customer_gst || '',
+    customerAddress: row.customer_address || '',
+    items: Array.isArray(row.items) ? row.items : [],
+    subtotal: Number(row.subtotal) || 0,
+    taxAmount: Number(row.tax_amount) || 0,
+    grandTotal: Number(row.grand_total) || 0,
+    returnReason: row.return_reason || '',
+    restockToStock: Boolean(row.restock_to_stock),
+    refundStatus: (row.refund_status || 'Refunded') as any,
+    remarks: row.remarks || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function fetchSalesReturnsFromSupabase(): Promise<SalesReturnItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('sales_returns').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.warn('fetchSalesReturnsFromSupabase error:', error);
+      return null;
+    }
+    return Array.isArray(data) ? data.map(mapRowToSalesReturn) : [];
+  } catch (err) {
+    console.warn('fetchSalesReturnsFromSupabase exception:', err);
+    return null;
+  }
+}
+
+export async function pushSalesReturnToSupabase(ret: SalesReturnItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: ret.id || `sr-${Date.now()}`,
+        return_no: ret.returnNo.trim(),
+        return_date: ret.returnDate || new Date().toISOString().split('T')[0],
+        original_invoice_no: ret.originalInvoiceNo || null,
+        customer_id: ret.customerId || 'walkin',
+        customer_name: ret.customerName.trim(),
+        customer_phone: ret.customerPhone || null,
+        customer_gst: ret.customerGst || null,
+        customer_address: ret.customerAddress || null,
+        items: ret.items || [],
+        subtotal: Number(ret.subtotal) || 0,
+        tax_amount: Number(ret.taxAmount) || 0,
+        grand_total: Number(ret.grandTotal) || 0,
+        return_reason: ret.returnReason || 'Customer Return',
+        restock_to_stock: ret.restockToStock ?? true,
+        refund_status: ret.refundStatus || 'Refunded',
+        remarks: ret.remarks || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('sales_returns').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+      else console.warn('pushSalesReturnToSupabase direct error:', error);
+    } catch {}
+  }
+  return saved;
+}
+
+export async function deleteSalesReturnFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('sales_returns').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// PURCHASE RETURNS CLOUD SYNC
+// ============================================================================
+export function mapRowToPurchaseReturn(row: any): PurchaseReturnItem {
+  return {
+    id: row.id || `pr-${Date.now()}`,
+    returnNo: row.return_no || '',
+    returnDate: row.return_date || new Date().toISOString().split('T')[0],
+    originalBillNo: row.original_bill_no || '',
+    vendorId: row.vendor_id || '',
+    vendorName: row.vendor_name || 'Vendor',
+    vendorPhone: row.vendor_phone || '',
+    vendorGst: row.vendor_gst || '',
+    vendorAddress: row.vendor_address || '',
+    items: Array.isArray(row.items) ? row.items : [],
+    subtotal: Number(row.subtotal) || 0,
+    taxAmount: Number(row.tax_amount) || 0,
+    grandTotal: Number(row.grand_total) || 0,
+    returnReason: row.return_reason || '',
+    deductFromStock: Boolean(row.deduct_from_stock),
+    rmaStatus: (row.rma_status || 'Completed') as any,
+    remarks: row.remarks || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function fetchPurchaseReturnsFromSupabase(): Promise<PurchaseReturnItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('purchase_returns').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.warn('fetchPurchaseReturnsFromSupabase error:', error);
+      return null;
+    }
+    return Array.isArray(data) ? data.map(mapRowToPurchaseReturn) : [];
+  } catch (err) {
+    console.warn('fetchPurchaseReturnsFromSupabase exception:', err);
+    return null;
+  }
+}
+
+export async function pushPurchaseReturnToSupabase(ret: PurchaseReturnItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: ret.id || `pr-${Date.now()}`,
+        return_no: ret.returnNo.trim(),
+        return_date: ret.returnDate || new Date().toISOString().split('T')[0],
+        original_bill_no: ret.originalBillNo || null,
+        vendor_id: ret.vendorId || 'standard-vendor',
+        vendor_name: ret.vendorName.trim(),
+        vendor_phone: ret.vendorPhone || null,
+        vendor_gst: ret.vendorGst || null,
+        vendor_address: ret.vendorAddress || null,
+        items: ret.items || [],
+        subtotal: Number(ret.subtotal) || 0,
+        tax_amount: Number(ret.taxAmount) || 0,
+        grand_total: Number(ret.grandTotal) || 0,
+        return_reason: ret.returnReason || 'Defective Stock Return',
+        deduct_from_stock: ret.deductFromStock ?? true,
+        rma_status: ret.rmaStatus || 'Completed',
+        remarks: ret.remarks || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('purchase_returns').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+      else console.warn('pushPurchaseReturnToSupabase error:', error);
+    } catch {}
+  }
+  return saved;
+}
+
+export async function deletePurchaseReturnFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('purchase_returns').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// QUOTATIONS CLOUD SYNC
+// ============================================================================
+export function mapRowToQuotation(row: any): QuotationItem {
+  return {
+    id: row.id || `qtn-${Date.now()}`,
+    quotationNo: row.quotation_no || '',
+    quotationDate: row.quotation_date || new Date().toISOString().split('T')[0],
+    validUntil: row.valid_until || '',
+    customerId: row.customer_id || '',
+    customerName: row.customer_name || 'Customer',
+    customerPhone: row.customer_phone || '',
+    customerGst: row.customer_gst || '',
+    customerAddress: row.customer_address || '',
+    items: Array.isArray(row.items) ? row.items : [],
+    subtotal: Number(row.subtotal) || 0,
+    discount: Number(row.discount) || 0,
+    taxAmount: Number(row.tax_amount) || 0,
+    grandTotal: Number(row.grand_total) || 0,
+    status: (row.status || 'Draft') as any,
+    termsAndConditions: row.terms_and_conditions || '',
+    notes: row.notes || '',
+    convertedInvoiceNo: row.converted_invoice_no || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function fetchQuotationsFromSupabase(): Promise<QuotationItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('quotations').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.warn('fetchQuotationsFromSupabase error:', error);
+      return null;
+    }
+    return Array.isArray(data) ? data.map(mapRowToQuotation) : [];
+  } catch (err) {
+    console.warn('fetchQuotationsFromSupabase exception:', err);
+    return null;
+  }
+}
+
+export async function pushQuotationToSupabase(q: QuotationItem): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: q.id || `qtn-${Date.now()}`,
+        quotation_no: q.quotationNo.trim(),
+        quotation_date: q.quotationDate || new Date().toISOString().split('T')[0],
+        valid_until: q.validUntil || null,
+        customer_id: q.customerId || 'walkin',
+        customer_name: q.customerName.trim(),
+        customer_phone: q.customerPhone || null,
+        customer_gst: q.customerGst || null,
+        customer_address: q.customerAddress || null,
+        items: q.items || [],
+        subtotal: Number(q.subtotal) || 0,
+        discount: Number(q.discount) || 0,
+        tax_amount: Number(q.taxAmount) || 0,
+        grand_total: Number(q.grandTotal) || 0,
+        status: q.status || 'Draft',
+        terms_and_conditions: q.termsAndConditions || null,
+        notes: q.notes || null,
+        converted_invoice_no: q.convertedInvoiceNo || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('quotations').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+      else console.warn('pushQuotationToSupabase error:', error);
+    } catch {}
+  }
+  return saved;
+}
+
+export async function deleteQuotationFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('quotations').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// ACCOUNTING VOUCHERS CLOUD SYNC
+// ============================================================================
+export function mapRowToAccountingVoucher(row: any): AccountingVoucher {
+  return {
+    id: row.id || `vch-${Date.now()}`,
+    voucherNumber: row.voucher_number || '',
+    voucherType: (row.voucher_type || 'PAYMENT') as any,
+    voucherDate: row.voucher_date || new Date().toISOString().split('T')[0],
+    partyName: row.party_name || '',
+    partyPhone: row.party_phone || '',
+    partyGst: row.party_gst || '',
+    refInvoiceNumber: row.ref_invoice_number || '',
+    paymentMode: (row.payment_mode || 'Cash') as any,
+    instrumentRefNo: row.instrument_ref_no || '',
+    debitLedger: row.debit_ledger || '',
+    creditLedger: row.credit_ledger || '',
+    amount: Number(row.amount) || 0,
+    gstAmount: Number(row.gst_amount) || 0,
+    totalAmount: Number(row.total_amount) || 0,
+    journalLines: Array.isArray(row.journal_lines) ? row.journal_lines : [],
+    narration: row.narration || '',
+    created_at: row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function fetchAccountingVouchersFromSupabase(): Promise<AccountingVoucher[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('accounting_vouchers').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.warn('fetchAccountingVouchersFromSupabase error:', error);
+      return null;
+    }
+    return Array.isArray(data) ? data.map(mapRowToAccountingVoucher) : [];
+  } catch (err) {
+    console.warn('fetchAccountingVouchersFromSupabase exception:', err);
+    return null;
+  }
+}
+
+export async function pushAccountingVoucherToSupabase(v: AccountingVoucher): Promise<boolean> {
+  let saved = false;
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const payload = {
+        id: v.id || `vch-${Date.now()}`,
+        voucher_number: v.voucherNumber.trim(),
+        voucher_type: v.voucherType,
+        voucher_date: v.voucherDate || new Date().toISOString().split('T')[0],
+        party_name: v.partyName || null,
+        party_phone: v.partyPhone || null,
+        party_gst: v.partyGst || null,
+        ref_invoice_number: v.refInvoiceNumber || null,
+        payment_mode: v.paymentMode || 'Cash',
+        instrument_ref_no: v.instrumentRefNo || null,
+        debit_ledger: v.debitLedger || null,
+        credit_ledger: v.creditLedger || null,
+        amount: Number(v.amount) || 0,
+        gst_amount: Number(v.gstAmount) || 0,
+        total_amount: Number(v.totalAmount) || 0,
+        journal_lines: v.journalLines || [],
+        narration: v.narration || '',
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('accounting_vouchers').upsert(payload, { onConflict: 'id' });
+      if (!error) saved = true;
+      else console.warn('pushAccountingVoucherToSupabase error:', error);
+    } catch {}
+  }
+  return saved;
+}
+
+export async function deleteAccountingVoucherFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('accounting_vouchers').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// ACCOUNT LEDGERS CLOUD SYNC
+// ============================================================================
+export function mapRowToAccountLedger(row: any): AccountLedgerItem {
+  return {
+    id: row.id || `ldg-${Date.now()}`,
+    accountName: row.account_name || 'Account Ledger',
+    groupType: (row.group_type || 'Expense') as any,
+    openingBalance: Number(row.opening_balance) || 0,
+    balanceType: (row.balance_type || 'Dr') as any,
+    bankName: row.bank_name || '',
+    accountNumber: row.account_number || '',
+    ifscCode: row.ifsc_code || '',
+    branchName: row.branch_name || '',
+    remarks: row.remarks || '',
+    activeStatus: (row.active_status || 'Active') as any,
+    created_at: row.created_at || new Date().toISOString().split('T')[0],
+  };
+}
+
+export async function fetchAccountLedgersFromSupabase(): Promise<AccountLedgerItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('account_ledgers').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return Array.isArray(data) ? data.map(mapRowToAccountLedger) : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function pushAccountLedgerToSupabase(l: AccountLedgerItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: l.id || `ldg-${Date.now()}`,
+      account_name: l.accountName.trim(),
+      group_type: l.groupType || 'Expense',
+      opening_balance: Number(l.openingBalance) || 0,
+      balance_type: l.balanceType || 'Dr',
+      bank_name: l.bankName || null,
+      account_number: l.accountNumber || null,
+      ifsc_code: l.ifscCode || null,
+      branch_name: l.branchName || null,
+      remarks: l.remarks || null,
+      active_status: l.activeStatus || 'Active',
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('account_ledgers').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteAccountLedgerFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('account_ledgers').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// HSN CODES CLOUD SYNC
+// ============================================================================
+export function mapRowToHsnMaster(row: any): HsnMasterItem {
+  return {
+    hsnCode: row.hsn_code || '',
+    gstRate: Number(row.gst_rate) || 18,
+    description: row.description || '',
+  };
+}
+
+export async function fetchHsnMasterFromSupabase(): Promise<HsnMasterItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('hsn_master').select('*').order('hsn_code', { ascending: true });
+    if (error) return null;
+    return Array.isArray(data) ? data.map(mapRowToHsnMaster) : [];
+  } catch {
+    return null;
+  }
+}
+
+export async function pushHsnMasterToSupabase(h: HsnMasterItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      hsn_code: h.hsnCode.trim(),
+      gst_rate: Number(h.gstRate) || 18,
+      description: h.description || '',
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('hsn_master').upsert(payload, { onConflict: 'hsn_code' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteHsnMasterFromSupabase(hsnCode: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('hsn_master').delete().eq('hsn_code', hsnCode);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// WEBSITE LEADS DELETE ACTIONS
+// ============================================================================
+export async function deleteSupportLeadFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('support_leads').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteBookRepairLeadFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('book_repair_leads').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// BLOG POSTS CLOUD SYNC
+// ============================================================================
+export async function pushBlogPostToSupabase(post: BlogPostItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: post.id || `blog-${Date.now()}`,
+      slug: post.slug.trim(),
+      title: post.title.trim(),
+      category: post.category || 'General',
+      author: post.author || 'Accno Team',
+      date: post.date || new Date().toISOString().split('T')[0],
+      read_time: post.readTime || '5 min read',
+      excerpt: post.excerpt || '',
+      content: post.content || '',
+      cover_image: post.coverImage || '',
+      image_position: post.imagePosition || 'top',
+      status: post.status || 'Published',
+      featured: Boolean(post.featured),
+      views: Number(post.views) || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('blog_posts').upsert(payload, { onConflict: 'slug' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteBlogPostFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// MILESTONES CLOUD SYNC
+// ============================================================================
+export async function pushMilestoneToSupabase(m: MilestoneItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: m.id || `m-${Date.now()}`,
+      year: m.year,
+      title: m.title.trim(),
+      description: m.description,
+      status: m.status || 'Completed',
+      display_order: m.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('milestones').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteMilestoneFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('milestones').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// HARDWARE REPAIR CATALOG CLOUD SYNC
+// ============================================================================
+export async function fetchHardwareRepairCatalogFromSupabase(): Promise<HardwareRepairCatalogItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('hardware_repair_catalog').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      category: row.category,
+      title: row.title,
+      estPrice: row.est_price,
+      desc: row.description || '',
+      warrantyDays: row.warranty_days || 30,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushHardwareRepairCatalogToSupabase(item: HardwareRepairCatalogItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `rep-${Date.now()}`,
+      category: item.category,
+      title: item.title,
+      est_price: item.estPrice,
+      description: item.desc,
+      warranty_days: item.warrantyDays || 30,
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('hardware_repair_catalog').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteHardwareRepairCatalogFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('hardware_repair_catalog').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// REPAIR PROCESS STEPS (SOP) CLOUD SYNC
+// ============================================================================
+export async function fetchRepairProcessStepsFromSupabase(): Promise<RepairProcessStepItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('repair_process_steps').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      step: row.step,
+      title: row.title,
+      desc: row.description,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushRepairProcessStepToSupabase(step: RepairProcessStepItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: step.id || `step-${Date.now()}`,
+      step: step.step,
+      title: step.title,
+      description: step.desc,
+      display_order: step.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('repair_process_steps').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteRepairProcessStepFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('repair_process_steps').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// ACHIEVEMENT COUNTER STATS CLOUD SYNC
+// ============================================================================
+export async function fetchAchievementStatsFromSupabase(): Promise<AchievementStatItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('achievement_stats').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      label: row.label,
+      value: row.value,
+      description: row.description || '',
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushAchievementStatToSupabase(stat: AchievementStatItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: stat.id || `stat-${Date.now()}`,
+      label: stat.label,
+      value: stat.value,
+      description: stat.description || null,
+      display_order: stat.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('achievement_stats').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteAchievementStatFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('achievement_stats').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// LEADERSHIP TEAM CLOUD SYNC
+// ============================================================================
+export async function fetchLeadershipTeamFromSupabase(): Promise<LeadershipTeamMember[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('leadership_team').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      role: row.role,
+      experienceBio: row.experience_bio || '',
+      photoUrl: row.photo_url || '',
+      initials: row.initials || '',
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushLeadershipTeamToSupabase(member: LeadershipTeamMember): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: member.id || `lead-${Date.now()}`,
+      name: member.name,
+      role: member.role,
+      experience_bio: member.experienceBio || '',
+      photo_url: member.photoUrl || '',
+      initials: member.initials || '',
+      display_order: member.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('leadership_team').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteLeadershipTeamFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('leadership_team').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// ENTERPRISE SOLUTIONS CLOUD SYNC
+// ============================================================================
+export async function fetchEnterpriseSolutionsFromSupabase(): Promise<EnterpriseSolutionItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('enterprise_solutions').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      desc: row.description,
+      badge: row.badge || '',
+      link: row.link || '',
+      iconName: row.icon_name || '',
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushEnterpriseSolutionToSupabase(item: EnterpriseSolutionItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `sol-${Date.now()}`,
+      title: item.title,
+      description: item.desc,
+      badge: item.badge || '',
+      link: item.link || '',
+      icon_name: item.iconName || '',
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('enterprise_solutions').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteEnterpriseSolutionFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('enterprise_solutions').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// DETAILED SERVICES CLOUD SYNC
+// ============================================================================
+export async function fetchDetailedServicesFromSupabase(): Promise<DetailedServiceItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('detailed_services').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      category: row.category,
+      badge: row.badge || '',
+      iconName: row.icon_name || '',
+      title: row.title,
+      shortDesc: row.short_desc,
+      whyChoose: row.why_choose || '',
+      features: Array.isArray(row.features) ? row.features : [],
+      idealFor: row.ideal_for || '',
+      turnaround: row.turnaround || '',
+      warranty: row.warranty || '',
+      actionLink: row.action_link || '',
+      actionText: row.action_text || '',
+      isVisible: row.is_visible ?? true,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushDetailedServiceToSupabase(item: DetailedServiceItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `srv-${Date.now()}`,
+      category: item.category,
+      badge: item.badge || '',
+      icon_name: item.iconName || '',
+      title: item.title,
+      short_desc: item.shortDesc,
+      why_choose: item.whyChoose || '',
+      features: item.features || [],
+      ideal_for: item.idealFor || '',
+      turnaround: item.turnaround || '',
+      warranty: item.warranty || '',
+      action_link: item.actionLink || '',
+      action_text: item.actionText || '',
+      is_visible: item.isVisible ?? true,
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('detailed_services').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteDetailedServiceFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('detailed_services').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// SERVICE STATS, PILLARS & FAQS CLOUD SYNC
+// ============================================================================
+export async function fetchServiceStatsFromSupabase(): Promise<ServiceStatItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('service_stats').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      value: row.value,
+      label: row.label,
+      color: row.color || '',
+      isVisible: row.is_visible ?? true,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushServiceStatToSupabase(item: ServiceStatItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `sstat-${Date.now()}`,
+      value: item.value,
+      label: item.label,
+      color: item.color || null,
+      is_visible: item.isVisible ?? true,
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('service_stats').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteServiceStatFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('service_stats').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchServicePillarsFromSupabase(): Promise<ServicePillarItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('service_pillars').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      iconName: row.icon_name || '',
+      title: row.title,
+      desc: row.description,
+      badge: row.badge || '',
+      isVisible: row.is_visible ?? true,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushServicePillarToSupabase(item: ServicePillarItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `pillar-${Date.now()}`,
+      icon_name: item.iconName || '',
+      title: item.title,
+      description: item.desc,
+      badge: item.badge || '',
+      is_visible: item.isVisible ?? true,
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('service_pillars').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteServicePillarFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('service_pillars').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchServicesFaqsFromSupabase(): Promise<ServicesFaqItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('services_faqs').select('*').order('display_order', { ascending: true });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      question: row.question,
+      answer: row.answer,
+      category: row.category || 'General',
+      isVisible: row.is_visible ?? true,
+      order: row.display_order || 0,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushServicesFaqToSupabase(item: ServicesFaqItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `faq-${Date.now()}`,
+      question: item.question,
+      answer: item.answer,
+      category: item.category || 'General',
+      is_visible: item.isVisible ?? true,
+      display_order: item.order || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('services_faqs').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteServicesFaqFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('services_faqs').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// WEBSITE PROMOTIONS CLOUD SYNC
+// ============================================================================
+export async function fetchWebsitePromotionsFromSupabase(): Promise<WebsitePromotionItem[] | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('website_promotions').select('*').order('created_at', { ascending: false });
+    if (error) return null;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category || 'Announcement',
+      text: row.text,
+      badgeText: row.badge_text || '',
+      actionText: row.action_text || '',
+      actionLink: row.action_link || '',
+      theme: (row.theme || 'emerald') as any,
+      isDismissible: row.is_dismissible ?? true,
+      isActive: row.is_active ?? true,
+      created_at: row.created_at || new Date().toISOString(),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function pushWebsitePromotionToSupabase(item: WebsitePromotionItem): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload = {
+      id: item.id || `promo-${Date.now()}`,
+      title: item.title,
+      category: item.category || 'Announcement',
+      text: item.text,
+      badge_text: item.badgeText || '',
+      action_text: item.actionText || '',
+      action_link: item.actionLink || '',
+      theme: item.theme || 'emerald',
+      is_dismissible: item.isDismissible ?? true,
+      is_active: item.isActive ?? true,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('website_promotions').upsert(payload, { onConflict: 'id' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteWebsitePromotionFromSupabase(id: string): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.from('website_promotions').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// COMPANY SETTINGS & MASTER RULES CONFIGURATION CLOUD SYNC
+// ============================================================================
+export async function fetchCompanySettingsFromSupabase(): Promise<any | null> {
+  if (!supabase || !isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase.from('company_settings').select('*').eq('settings_key', 'global_settings').single();
+    if (error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function pushCompanySettingsToSupabase(field: string, data: any): Promise<boolean> {
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const payload: any = {
+      settings_key: 'global_settings',
+      [field]: data,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('company_settings').upsert(payload, { onConflict: 'settings_key' });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Sync entire ERP state exclusively from Supabase Cloud
+ * Sync entire ERP state exclusively from Supabase Cloud across ALL modules
  */
 export async function syncEntireErpWithSupabase(store: any) {
   if (!supabase || !isSupabaseConfigured()) return;
@@ -1778,6 +2900,7 @@ export async function syncEntireErpWithSupabase(store: any) {
       invoices,
       customers,
       inventory,
+      vendors,
       outsource,
       dataRecovery,
       amc,
@@ -1785,14 +2908,32 @@ export async function syncEntireErpWithSupabase(store: any) {
       bookLeads,
       salesInvoices,
       purchaseInvoices,
+      salesReturns,
+      purchaseReturns,
+      quotations,
+      accountingVouchers,
+      customLedgers,
+      hsnCodes,
       blogs,
       milestones,
       employees,
+      hardwareCatalog,
+      repairSteps,
+      achievementStats,
+      leadershipTeam,
+      enterpriseSolutions,
+      detailedServices,
+      serviceStats,
+      servicePillars,
+      servicesFaqs,
+      websitePromotions,
+      companySettings,
     ] = await Promise.all([
       fetchTicketsFromSupabase(),
       fetchInvoicesFromSupabase(),
       fetchCustomersFromSupabase(),
       fetchInventoryFromSupabase(),
+      fetchVendorsFromSupabase(),
       fetchOutsourceVouchersFromSupabase(),
       fetchDataRecoveryFromSupabase(),
       fetchAmcContractsFromSupabase(),
@@ -1800,36 +2941,33 @@ export async function syncEntireErpWithSupabase(store: any) {
       fetchBookRepairLeadsFromSupabase(),
       fetchSalesInvoicesFromSupabase(),
       fetchPurchaseInvoicesFromSupabase(),
+      fetchSalesReturnsFromSupabase(),
+      fetchPurchaseReturnsFromSupabase(),
+      fetchQuotationsFromSupabase(),
+      fetchAccountingVouchersFromSupabase(),
+      fetchAccountLedgersFromSupabase(),
+      fetchHsnMasterFromSupabase(),
       fetchBlogPostsFromSupabase(),
       fetchMilestonesFromSupabase(),
       fetchEmployeesFromSupabase(),
+      fetchHardwareRepairCatalogFromSupabase(),
+      fetchRepairProcessStepsFromSupabase(),
+      fetchAchievementStatsFromSupabase(),
+      fetchLeadershipTeamFromSupabase(),
+      fetchEnterpriseSolutionsFromSupabase(),
+      fetchDetailedServicesFromSupabase(),
+      fetchServiceStatsFromSupabase(),
+      fetchServicePillarsFromSupabase(),
+      fetchServicesFaqsFromSupabase(),
+      fetchWebsitePromotionsFromSupabase(),
+      fetchCompanySettingsFromSupabase(),
     ]);
 
     if (Array.isArray(tickets) && store.setTickets) store.setTickets(tickets);
     if (Array.isArray(invoices) && store.setRepairInvoices) store.setRepairInvoices(invoices);
-    
-    // Customers 2-way cloud synchronization
-    if (Array.isArray(customers)) {
-      if (customers.length > 0) {
-        if (store.setCustomers) store.setCustomers(customers);
-      } else if (Array.isArray(store.customers) && store.customers.length > 0) {
-        for (const c of store.customers) {
-          pushCustomerToSupabase(c).catch(() => {});
-        }
-      }
-    }
-
-    // Inventory 2-way cloud synchronization
-    if (Array.isArray(inventory)) {
-      if (inventory.length > 0) {
-        if (store.setInventory) store.setInventory(inventory);
-      } else if (Array.isArray(store.inventory) && store.inventory.length > 0) {
-        for (const i of store.inventory) {
-          pushInventoryToSupabase(i).catch(() => {});
-        }
-      }
-    }
-
+    if (Array.isArray(customers) && store.setCustomers) store.setCustomers(customers);
+    if (Array.isArray(inventory) && store.setInventory) store.setInventory(inventory);
+    if (Array.isArray(vendors) && store.setVendors) store.setVendors(vendors);
     if (Array.isArray(outsource) && store.setOutsourceVouchers) store.setOutsourceVouchers(outsource);
     if (Array.isArray(dataRecovery) && store.setDataRecoveryCases) store.setDataRecoveryCases(dataRecovery);
     if (Array.isArray(amc) && store.setAmcContracts) store.setAmcContracts(amc);
@@ -1837,9 +2975,44 @@ export async function syncEntireErpWithSupabase(store: any) {
     if (Array.isArray(bookLeads) && store.setBookRepairLeads) store.setBookRepairLeads(bookLeads);
     if (Array.isArray(salesInvoices) && store.setSalesInvoices) store.setSalesInvoices(salesInvoices);
     if (Array.isArray(purchaseInvoices) && store.setPurchaseInvoices) store.setPurchaseInvoices(purchaseInvoices);
+    if (Array.isArray(salesReturns) && store.salesReturns && store.setSalesReturns) store.setSalesReturns(salesReturns);
+    if (Array.isArray(purchaseReturns) && store.purchaseReturns && store.setPurchaseReturns) store.setPurchaseReturns(purchaseReturns);
+    if (Array.isArray(quotations) && store.quotations && store.setQuotations) store.setQuotations(quotations);
+    if (Array.isArray(accountingVouchers) && store.accountingVouchers && store.setAccountingVouchers) store.setAccountingVouchers(accountingVouchers);
+    if (Array.isArray(customLedgers) && store.customLedgers && store.setCustomLedgers) store.setCustomLedgers(customLedgers);
+    if (Array.isArray(hsnCodes) && store.hsnCodes && store.setHsnCodes) store.setHsnCodes(hsnCodes);
     if (Array.isArray(blogs) && store.setBlogPosts) store.setBlogPosts(blogs);
     if (Array.isArray(milestones) && store.setMilestones) store.setMilestones(milestones);
     if (Array.isArray(employees) && store.setEmployees) store.setEmployees(employees);
+    if (Array.isArray(hardwareCatalog) && store.setHardwareRepairCatalog) store.setHardwareRepairCatalog(hardwareCatalog);
+    if (Array.isArray(repairSteps) && store.setRepairProcessSteps) store.setRepairProcessSteps(repairSteps);
+    if (Array.isArray(achievementStats) && store.setAchievementStats) store.setAchievementStats(achievementStats);
+    if (Array.isArray(leadershipTeam) && store.setLeadershipMembers) store.setLeadershipMembers(leadershipTeam);
+    if (Array.isArray(enterpriseSolutions) && store.setEnterpriseSolutions) store.setEnterpriseSolutions(enterpriseSolutions);
+    if (Array.isArray(detailedServices) && store.setDetailedServices) store.setDetailedServices(detailedServices);
+    if (Array.isArray(serviceStats) && store.setServiceStats) store.setServiceStats(serviceStats);
+    if (Array.isArray(servicePillars) && store.setServicePillars) store.setServicePillars(servicePillars);
+    if (Array.isArray(servicesFaqs) && store.setServicesFaqs) store.setServicesFaqs(servicesFaqs);
+    if (Array.isArray(websitePromotions) && store.setWebsitePromotions) store.setWebsitePromotions(websitePromotions);
+
+    if (companySettings) {
+      if (companySettings.company_details && store.updateCompanyDetails) store.updateCompanyDetails(companySettings.company_details);
+      if (companySettings.customer_rules && store.updateCustomerRules) store.updateCustomerRules(companySettings.customer_rules);
+      if (companySettings.vendor_rules && store.updateVendorRules) store.updateVendorRules(companySettings.vendor_rules);
+      if (companySettings.inventory_rules && store.updateInventoryRules) store.updateInventoryRules(companySettings.inventory_rules);
+      if (companySettings.repair_billing_rules && store.updateRepairBillingRules) store.updateRepairBillingRules(companySettings.repair_billing_rules);
+      if (companySettings.outsource_rules && store.updateOutsourceRules) store.updateOutsourceRules(companySettings.outsource_rules);
+      if (companySettings.pos_rules && store.updatePosRules) store.updatePosRules(companySettings.pos_rules);
+      if (companySettings.sale_rules && store.updateSaleRules) store.updateSaleRules(companySettings.sale_rules);
+      if (companySettings.purchase_rules && store.updatePurchaseRules) store.updatePurchaseRules(companySettings.purchase_rules);
+      if (companySettings.sales_return_rules && store.updateSalesReturnRules) store.updateSalesReturnRules(companySettings.sales_return_rules);
+      if (companySettings.purchase_return_rules && store.updatePurchaseReturnRules) store.updatePurchaseReturnRules(companySettings.purchase_return_rules);
+      if (companySettings.quotation_rules && store.updateQuotationRules) store.updateQuotationRules(companySettings.quotation_rules);
+      if (companySettings.voucher_rules && store.updateVoucherRules) store.updateVoucherRules(companySettings.voucher_rules);
+      if (companySettings.amc_rules && store.updateAmcRules) store.updateAmcRules(companySettings.amc_rules);
+      if (companySettings.employee_rules && store.updateEmployeeRules) store.updateEmployeeRules(companySettings.employee_rules);
+      if (companySettings.website_promotion_bar && store.updateWebsitePromotionBar) store.updateWebsitePromotionBar(companySettings.website_promotion_bar);
+    }
   } catch (err) {
     console.warn('Sync entire ERP with Supabase failed:', err);
   }
