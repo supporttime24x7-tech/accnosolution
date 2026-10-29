@@ -38,11 +38,16 @@ export async function POST(req: NextRequest) {
     if (supabaseAdmin && isSupabaseConfigured()) {
       const payload: Record<string, any> = {
         id: body.id || `c-${Date.now()}`,
+        code: body.code || '',
         customer_code: body.code || '',
         name: body.name || 'Customer',
         phone: body.mobile || body.phone || '',
         alternate_phone: body.alternateContact || null,
         email: body.email || null,
+        website: body.website || null,
+        dob: body.dob || null,
+        wedding_anniversary: body.weddingAnniversary || null,
+        referred_by: body.referredBy || null,
         customer_type: (body.accountGroup || '').includes('Corporate') ? 'CORPORATE' : 'RETAIL',
         company_name: body.companyName || null,
         gstin: body.gstin || null,

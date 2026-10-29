@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
     if (supabaseAdmin && isSupabaseConfigured()) {
       const payload: Record<string, any> = {
         id: body.id || `i-${Date.now()}`,
+        code: body.code || '',
         sku: body.code || '',
         name: body.name || 'Inventory Item',
         category: body.category || 'General Hardware',
@@ -48,7 +49,11 @@ export async function POST(req: NextRequest) {
         selling_price: Number(body.sellingPrice) || 0,
         mrp: Number(body.mrp) || 0,
         stock_quantity: Number(body.currentStock) || 0,
+        current_stock: Number(body.currentStock) || 0,
+        quantity_in_stock: Number(body.currentStock) || 0,
         min_stock_alert: Number(body.lowStockAlert) || 2,
+        low_stock_alert: Number(body.lowStockAlert) || 2,
+        min_stock_level: Number(body.lowStockAlert) || 2,
         hsn_code: body.hsnCode || '84733020',
         gst_rate: Number(body.gstRate) || 18,
         location: body.storageLocation || body.location || 'Shop Shelf',

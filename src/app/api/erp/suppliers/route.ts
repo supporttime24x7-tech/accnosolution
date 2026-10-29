@@ -36,9 +36,12 @@ export async function POST(req: NextRequest) {
     if (supabaseAdmin && isSupabaseConfigured()) {
       const payload: Record<string, any> = {
         id: body.id || `v-${Date.now()}`,
+        code: body.code || null,
         vendor_type: body.vendorType || 'Standard Vendor',
         vendor_code: body.code || null,
         vendor_name: vendorName,
+        company_name: vendorName,
+        name: vendorName,
         contact_person: body.contactPerson || null,
         account_group: body.accountGroup || 'Sundry Creditor',
         designation: body.designation || null,
