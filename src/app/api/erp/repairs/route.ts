@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const createdTicket: RepairTicket = {
+      ...body,
       id: body.id || `t-${Date.now()}`,
       ticket_number: body.ticket_number || `ACC-2025-${Math.floor(8800 + Math.random() * 1000)}`,
       barcode_data: body.barcode_data || body.ticket_number || `ACC${Math.floor(8800 + Math.random() * 1000)}`,
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
       estimated_cost: Number(body.estimated_cost) || 0,
       advance_paid: Number(body.advance_paid) || 0,
       technician_name: body.technician_name || session.name || 'Unassigned',
-      created_at: new Date().toISOString(),
+      created_at: body.created_at || new Date().toISOString(),
       customerType: body.customerType || 'RETAIL',
       lineItems: body.lineItems || [],
       outsourceCharges: Number(body.outsourceCharges) || 0,
@@ -122,6 +123,11 @@ export async function POST(req: NextRequest) {
       deliveredTo: body.deliveredTo || '',
       entryDate: body.entryDate || new Date().toISOString().split('T')[0],
       estimatedDeliveryDate: body.estimatedDeliveryDate || '',
+      hwChecklist: body.hwChecklist || {},
+      conditionChecklist: body.conditionChecklist || {},
+      accessoriesChecklist: body.accessoriesChecklist || {},
+      chassisColor: body.chassisColor || body.deviceColor || '',
+      customerCompanyName: body.customerCompanyName || '',
     };
 
     if (supabaseAdmin && isSupabaseConfigured()) {

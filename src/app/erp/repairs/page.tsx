@@ -737,6 +737,7 @@ export default function ErpRepairsPage() {
       customer_name: newTicket.customer_name,
       customer_phone: newTicket.customer_phone,
       customerAlternatePhone: newTicket.customerAlternatePhone,
+      customerCompanyName: newTicket.customerCompanyName,
       customerEmail: newTicket.customerEmail,
       customerGstin: newTicket.customerGstin,
       customerAddress: newTicket.customerAddress,
@@ -747,7 +748,12 @@ export default function ErpRepairsPage() {
       model: newTicket.model,
       serial_or_imei: newTicket.serial_or_imei,
       deviceColor: newTicket.deviceColor,
+      chassisColor: (newTicket as any).chassisColor || newTicket.deviceColor,
       receivedQty: Number(newTicket.receivedQty),
+      receivedQuantity: Number(newTicket.receivedQty),
+      hwChecklist: selectedHwChecklist as any,
+      conditionChecklist: selectedConditionChecklist as any,
+      accessoriesChecklist: selectedAccessoriesChecklist as any,
       passwordLock: newTicket.passwordLock,
       patternLockSequence: newTicket.patternLockSequence,
       rackLocation: newTicket.rackLocation,
@@ -790,9 +796,10 @@ export default function ErpRepairsPage() {
       paymentStatus: newTicket.advance_paid > 0 ? 'PARTIAL' : 'UNPAID',
       warrantyStatement: newTicket.warrantyStatus || '30 Days Parts & Labor Warranty',
       deliveryStatus: newTicket.deliveryStatus,
-
+      deliveredTo: newTicket.deliveredTo,
       technician_name: newTicket.assignedTechnician,
       estimatedDeliveryDate: newTicket.estimatedDeliveryDate,
+      actualDeliveryDate: newTicket.actualDeliveryDate,
     });
 
     setShowCreateModal(false);
@@ -809,7 +816,7 @@ export default function ErpRepairsPage() {
       customerAlternatePhone: ticket.customerAlternatePhone || '',
       customerEmail: ticket.customerEmail || '',
       customerGstin: ticket.customerGstin || '',
-      customerCompanyName: '',
+      customerCompanyName: ticket.customerCompanyName || '',
       customerAddress: ticket.customerAddress || '',
       customerType: ticket.customerType || 'RETAIL',
 
@@ -852,6 +859,16 @@ export default function ErpRepairsPage() {
       setIntakeRetailParts(ticket.lineItems.filter((i) => i.itemType === 'part'));
     }
 
+    if (ticket.hwChecklist && Object.keys(ticket.hwChecklist).length > 0) {
+      setSelectedHwChecklist(ticket.hwChecklist as any);
+    }
+    if (ticket.conditionChecklist && Object.keys(ticket.conditionChecklist).length > 0) {
+      setSelectedConditionChecklist(ticket.conditionChecklist as any);
+    }
+    if (ticket.accessoriesChecklist && Object.keys(ticket.accessoriesChecklist).length > 0) {
+      setSelectedAccessoriesChecklist(ticket.accessoriesChecklist as any);
+    }
+
     setShowEditModal(true);
   };
 
@@ -869,6 +886,7 @@ export default function ErpRepairsPage() {
       customer_name: newTicket.customer_name,
       customer_phone: newTicket.customer_phone,
       customerAlternatePhone: newTicket.customerAlternatePhone,
+      customerCompanyName: newTicket.customerCompanyName,
       customerEmail: newTicket.customerEmail,
       customerGstin: newTicket.customerGstin,
       customerAddress: newTicket.customerAddress,
@@ -879,7 +897,12 @@ export default function ErpRepairsPage() {
       model: newTicket.model,
       serial_or_imei: newTicket.serial_or_imei,
       deviceColor: newTicket.deviceColor,
+      chassisColor: (newTicket as any).chassisColor || newTicket.deviceColor,
       receivedQty: Number(newTicket.receivedQty),
+      receivedQuantity: Number(newTicket.receivedQty),
+      hwChecklist: selectedHwChecklist as any,
+      conditionChecklist: selectedConditionChecklist as any,
+      accessoriesChecklist: selectedAccessoriesChecklist as any,
       passwordLock: newTicket.passwordLock,
       patternLockSequence: newTicket.patternLockSequence,
       rackLocation: newTicket.rackLocation,
@@ -906,9 +929,12 @@ export default function ErpRepairsPage() {
       progressPercentage: Number((newTicket as any).progressPercentage) ?? 50,
       estimated_cost: totalEst,
       advance_paid: Number(newTicket.advance_paid),
+      freightCharges: Number(newTicket.freightCharges) || 0,
       deliveryStatus: newTicket.deliveryStatus,
+      deliveredTo: newTicket.deliveredTo,
       technician_name: newTicket.assignedTechnician,
       estimatedDeliveryDate: newTicket.estimatedDeliveryDate,
+      actualDeliveryDate: newTicket.actualDeliveryDate,
     });
 
     setShowEditModal(false);

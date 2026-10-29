@@ -15,6 +15,7 @@ import { AccnoLogo } from '@/components/common/AccnoLogo';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   syncEntireErpWithSupabase,
+  pushAllStoreDataToSupabase,
   fetchTicketsFromSupabase,
   fetchInvoicesFromSupabase,
   fetchEmployeesFromSupabase,
@@ -82,7 +83,30 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('syncing');
+  const [isPushingAll, setIsPushingAll] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  const handleForcePushAllToCloud = async () => {
+    if (isPushingAll) return;
+    setIsPushingAll(true);
+    setCloudSyncStatus('syncing');
+    try {
+      const store = useErpStore.getState();
+      const res = await pushAllStoreDataToSupabase(store);
+      if (res.success) {
+        setCloudSyncStatus('synced');
+        alert(`Successfully pushed all field data to Supabase!\n\n` +
+          Object.entries(res.pushedCounts)
+            .map(([k, v]) => `${k}: ${v} records`)
+            .join('\n'));
+      }
+    } catch (err: any) {
+      alert(`Push to Supabase failed: ${err.message || 'Unknown error'}`);
+      setCloudSyncStatus('offline');
+    } finally {
+      setIsPushingAll(false);
+    }
+  };
 
   const {
     currentUser,
@@ -1017,21 +1041,17 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center space-x-3">
-            <span
-              className={`hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+            <button
+              onClick={handleForcePushAllToCloud}
+              disabled={isPushingAll}
+              className={`hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                 cloudSyncStatus === 'synced'
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
                   : cloudSyncStatus === 'syncing'
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                  : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                  : 'bg-slate-500/10 text-slate-400 border-slate-500/20 hover:bg-slate-500/20'
               }`}
-              title={
-                cloudSyncStatus === 'synced'
-                  ? 'Supabase Cloud Sync Active — Real-time bidirectional database synchronization'
-                  : cloudSyncStatus === 'syncing'
-                  ? 'Connecting to Supabase Cloud...'
-                  : 'Local Storage Mode'
-              }
+              title="Click to push all local data and fields directly into Supabase Cloud"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -1043,13 +1063,15 @@ export default function ErpLayout({ children }: { children: React.ReactNode }) {
                 }`}
               />
               <span>
-                {cloudSyncStatus === 'synced'
-                  ? 'Cloud Sync Active'
+                {isPushingAll
+                  ? 'Pushing All Data...'
+                  : cloudSyncStatus === 'synced'
+                  ? 'Cloud Sync Active (Click to Push All)'
                   : cloudSyncStatus === 'syncing'
                   ? 'Syncing Cloud...'
-                  : 'Local Storage'}
+                  : 'Push All to Cloud'}
               </span>
-            </span>
+            </button>
 
             <Link
               href="/erp/pos"

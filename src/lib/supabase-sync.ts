@@ -3067,3 +3067,240 @@ export async function syncEntireErpWithSupabase(store: any) {
     console.warn('Sync entire ERP with Supabase failed:', err);
   }
 }
+
+
+/**
+ * Push all local store data for all 30 modules into Supabase tables
+ */
+export async function pushAllStoreDataToSupabase(store: any): Promise<{ success: boolean; pushedCounts: Record<string, number> }> {
+  const counts: Record<string, number> = {};
+
+  try {
+    if (Array.isArray(store.tickets)) {
+      counts.tickets = 0;
+      for (const t of store.tickets) {
+        const ok = await pushTicketToSupabase(t);
+        if (ok) counts.tickets++;
+      }
+    }
+    if (Array.isArray(store.repairInvoices)) {
+      counts.repairInvoices = 0;
+      for (const inv of store.repairInvoices) {
+        const ok = await pushInvoiceToSupabase(inv);
+        if (ok) counts.repairInvoices++;
+      }
+    }
+    if (Array.isArray(store.customers)) {
+      counts.customers = 0;
+      for (const c of store.customers) {
+        const ok = await pushCustomerToSupabase(c);
+        if (ok) counts.customers++;
+      }
+    }
+    if (Array.isArray(store.employees)) {
+      counts.employees = 0;
+      for (const e of store.employees) {
+        const ok = await pushEmployeeToSupabase(e);
+        if (ok) counts.employees++;
+      }
+    }
+    if (Array.isArray(store.inventory)) {
+      counts.inventory = 0;
+      for (const i of store.inventory) {
+        const ok = await pushInventoryToSupabase(i);
+        if (ok) counts.inventory++;
+      }
+    }
+    if (Array.isArray(store.vendors)) {
+      counts.vendors = 0;
+      for (const v of store.vendors) {
+        const ok = await pushVendorToSupabase(v);
+        if (ok) counts.vendors++;
+      }
+    }
+    if (Array.isArray(store.outsourceVouchers)) {
+      counts.outsourceVouchers = 0;
+      for (const o of store.outsourceVouchers) {
+        const ok = await pushOutsourceVoucherToSupabase(o);
+        if (ok) counts.outsourceVouchers++;
+      }
+    }
+    if (Array.isArray(store.dataRecoveryCases)) {
+      counts.dataRecoveryCases = 0;
+      for (const dr of store.dataRecoveryCases) {
+        const ok = await pushDataRecoveryToSupabase(dr);
+        if (ok) counts.dataRecoveryCases++;
+      }
+    }
+    if (Array.isArray(store.amcContracts)) {
+      counts.amcContracts = 0;
+      for (const a of store.amcContracts) {
+        const ok = await pushAmcContractToSupabase(a);
+        if (ok) counts.amcContracts++;
+      }
+    }
+    if (Array.isArray(store.salesInvoices)) {
+      counts.salesInvoices = 0;
+      for (const s of store.salesInvoices) {
+        const ok = await pushSalesInvoiceToSupabase(s);
+        if (ok) counts.salesInvoices++;
+      }
+    }
+    if (Array.isArray(store.purchaseInvoices)) {
+      counts.purchaseInvoices = 0;
+      for (const p of store.purchaseInvoices) {
+        const ok = await pushPurchaseInvoiceToSupabase(p);
+        if (ok) counts.purchaseInvoices++;
+      }
+    }
+    if (Array.isArray(store.salesReturns)) {
+      counts.salesReturns = 0;
+      for (const sr of store.salesReturns) {
+        const ok = await pushSalesReturnToSupabase(sr);
+        if (ok) counts.salesReturns++;
+      }
+    }
+    if (Array.isArray(store.purchaseReturns)) {
+      counts.purchaseReturns = 0;
+      for (const pr of store.purchaseReturns) {
+        const ok = await pushPurchaseReturnToSupabase(pr);
+        if (ok) counts.purchaseReturns++;
+      }
+    }
+    if (Array.isArray(store.quotations)) {
+      counts.quotations = 0;
+      for (const q of store.quotations) {
+        const ok = await pushQuotationToSupabase(q);
+        if (ok) counts.quotations++;
+      }
+    }
+    if (Array.isArray(store.accountingVouchers)) {
+      counts.accountingVouchers = 0;
+      for (const av of store.accountingVouchers) {
+        const ok = await pushAccountingVoucherToSupabase(av);
+        if (ok) counts.accountingVouchers++;
+      }
+    }
+    if (Array.isArray(store.customLedgers)) {
+      counts.customLedgers = 0;
+      for (const cl of store.customLedgers) {
+        const ok = await pushAccountLedgerToSupabase(cl);
+        if (ok) counts.customLedgers++;
+      }
+    }
+    if (Array.isArray(store.hsnCodes)) {
+      counts.hsnCodes = 0;
+      for (const h of store.hsnCodes) {
+        const ok = await pushHsnMasterToSupabase(h);
+        if (ok) counts.hsnCodes++;
+      }
+    }
+    if (Array.isArray(store.supportLeads)) {
+      counts.supportLeads = 0;
+      for (const sl of store.supportLeads) {
+        const ok = await pushSupportLeadToSupabase(sl);
+        if (ok) counts.supportLeads++;
+      }
+    }
+    if (Array.isArray(store.bookRepairLeads)) {
+      counts.bookRepairLeads = 0;
+      for (const br of store.bookRepairLeads) {
+        const ok = await pushBookRepairLeadToSupabase(br);
+        if (ok) counts.bookRepairLeads++;
+      }
+    }
+    if (Array.isArray(store.blogPosts)) {
+      counts.blogPosts = 0;
+      for (const bp of store.blogPosts) {
+        const ok = await pushBlogPostToSupabase(bp);
+        if (ok) counts.blogPosts++;
+      }
+    }
+    if (Array.isArray(store.milestones)) {
+      counts.milestones = 0;
+      for (const m of store.milestones) {
+        const ok = await pushMilestoneToSupabase(m);
+        if (ok) counts.milestones++;
+      }
+    }
+    if (Array.isArray(store.achievementStats)) {
+      counts.achievementStats = 0;
+      for (const ast of store.achievementStats) {
+        const ok = await pushAchievementStatToSupabase(ast);
+        if (ok) counts.achievementStats++;
+      }
+    }
+    if (Array.isArray(store.leadershipMembers)) {
+      counts.leadershipMembers = 0;
+      for (const lm of store.leadershipMembers) {
+        const ok = await pushLeadershipTeamToSupabase(lm);
+        if (ok) counts.leadershipMembers++;
+      }
+    }
+    if (Array.isArray(store.hardwareRepairCatalog)) {
+      counts.hardwareRepairCatalog = 0;
+      for (const hc of store.hardwareRepairCatalog) {
+        const ok = await pushHardwareRepairCatalogToSupabase(hc);
+        if (ok) counts.hardwareRepairCatalog++;
+      }
+    }
+    if (Array.isArray(store.repairProcessSteps)) {
+      counts.repairProcessSteps = 0;
+      for (const rp of store.repairProcessSteps) {
+        const ok = await pushRepairProcessStepToSupabase(rp);
+        if (ok) counts.repairProcessSteps++;
+      }
+    }
+    if (Array.isArray(store.enterpriseSolutions)) {
+      counts.enterpriseSolutions = 0;
+      for (const es of store.enterpriseSolutions) {
+        const ok = await pushEnterpriseSolutionToSupabase(es);
+        if (ok) counts.enterpriseSolutions++;
+      }
+    }
+    if (Array.isArray(store.detailedServices)) {
+      counts.detailedServices = 0;
+      for (const ds of store.detailedServices) {
+        const ok = await pushDetailedServiceToSupabase(ds);
+        if (ok) counts.detailedServices++;
+      }
+    }
+    if (Array.isArray(store.serviceStats)) {
+      counts.serviceStats = 0;
+      for (const ss of store.serviceStats) {
+        const ok = await pushServiceStatToSupabase(ss);
+        if (ok) counts.serviceStats++;
+      }
+    }
+    if (Array.isArray(store.servicePillars)) {
+      counts.servicePillars = 0;
+      for (const sp of store.servicePillars) {
+        const ok = await pushServicePillarToSupabase(sp);
+        if (ok) counts.servicePillars++;
+      }
+    }
+    if (Array.isArray(store.servicesFaqs)) {
+      counts.servicesFaqs = 0;
+      for (const sf of store.servicesFaqs) {
+        const ok = await pushServicesFaqToSupabase(sf);
+        if (ok) counts.servicesFaqs++;
+      }
+    }
+    if (Array.isArray(store.websitePromotions)) {
+      counts.websitePromotions = 0;
+      for (const wp of store.websitePromotions) {
+        const ok = await pushWebsitePromotionToSupabase(wp);
+        if (ok) counts.websitePromotions++;
+      }
+    }
+    if (store.companyDetails) {
+      await pushCompanySettingsToSupabase('company_details', store.companyDetails);
+      counts.companyDetails = 1;
+    }
+
+    return { success: true, pushedCounts: counts };
+  } catch (e) {
+    console.warn('pushAllStoreDataToSupabase error:', e);
+    return { success: false, pushedCounts: counts };
+  }
+}
