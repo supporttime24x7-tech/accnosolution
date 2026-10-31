@@ -13,6 +13,7 @@ import {
   pushQuotationToSupabase,
   deleteQuotationFromSupabase,
 } from '@/lib/supabase-sync';
+import { getSyncQrDataUri } from '@/lib/qr-utils';
 
 // Searchable Product Combobox Component for Quotation Line Items
 interface SearchableLineItemSelectProps {
@@ -590,7 +591,7 @@ export default function QuotationsPage() {
     const upiVpa = companyDetails.merchantUpiId || 'support.time24x7-1@okhdfcbank';
     const upiPayee = companyDetails.companyLegalName || 'ACCNO SOLUTION';
     const upiString = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(upiPayee)}&am=${qtn.grandTotal}&cu=INR&tn=Quotation_${qtn.quotationNo}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=2&data=${encodeURIComponent(upiString)}`;
+    const qrCodeUrl = getSyncQrDataUri(upiString, 2);
 
     const padding = paper === 'A5' ? '4px 6px' : '6px 8px';
     const fontSz = paper === 'A5' ? '9.5px' : '11px';

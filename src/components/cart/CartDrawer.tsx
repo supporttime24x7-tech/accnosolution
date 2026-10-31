@@ -5,6 +5,7 @@ import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, CheckCirc
 import { motion, AnimatePresence } from 'framer-motion';
 import { useErpStore, CartItem } from '@/lib/store';
 import Link from 'next/link';
+import { UpiPaymentQRCode } from '@/lib/qr-utils';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -447,13 +448,10 @@ ${notes.trim() || 'No special delivery instructions.'}`;
                 {paymentTab === 'qr' ? (
                   /* UPI QR Code View */
                   <div className="space-y-4 text-center bg-white/5 border border-white/10 p-5 rounded-2xl">
-                    <div className="w-44 h-44 mx-auto rounded-2xl bg-white p-2.5 shadow-xl flex items-center justify-center border-2 border-[#16FFC6]/50">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                          `upi://pay?pa=${officialUpiId}&pn=${encodeURIComponent(bankDetails.accountName)}&am=${subtotal}&cu=INR`
-                        )}`}
-                        alt="UPI QR Code"
-                        className="w-full h-full object-contain"
+                    <div className="w-44 h-44 mx-auto rounded-2xl bg-white p-2 shadow-xl flex items-center justify-center border-2 border-[#16FFC6]/50 overflow-hidden">
+                      <UpiPaymentQRCode
+                        upiUri={`upi://pay?pa=${officialUpiId}&pn=${encodeURIComponent(bankDetails.accountName)}&am=${subtotal}&cu=INR`}
+                        size={155}
                       />
                     </div>
 

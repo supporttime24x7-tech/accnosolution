@@ -15,6 +15,7 @@ import {
   pushCustomerToSupabase,
   pushInventoryToSupabase,
 } from '@/lib/supabase-sync';
+import { getSyncQrDataUri, UpiPaymentQRCode } from '@/lib/qr-utils';
 
 export default function ErpPosPage() {
   const {
@@ -562,7 +563,7 @@ export default function ErpPosPage() {
       const upiVpa = companyDetails.merchantUpiId || 'support.time24x7-1@okhdfcbank';
       const upiPayee = companyDetails.companyLegalName || 'ACCNO SOLUTION';
       const posUpiString = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(upiPayee)}&am=${grandTotal}&cu=INR&tn=Invoice_${invoiceNo}`;
-      const posQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=2&data=${encodeURIComponent(posUpiString)}`;
+      const posQrCodeUrl = getSyncQrDataUri(posUpiString, 2);
 
       // Full A4 Tax Invoice Layout (Matching Repair Bills & Professional GST Standards)
       const custAddress = (selectedCustomer as any)?.billingAddress || (selectedCustomer as any)?.address || '';
@@ -1687,9 +1688,12 @@ export default function ErpPosPage() {
             <h3 className="text-base font-extrabold uppercase text-white">SCAN MERCHANT UPI QR</h3>
             <p className="text-xs text-white/60">Scan with PhonePe, Google Pay, Paytm, or BHIM</p>
             
-            <div className="w-48 h-48 bg-white mx-auto rounded-2xl border-4 border-emerald-500 p-3 flex flex-col items-center justify-center text-gray-900 font-bold font-mono text-xs shadow-inner">
-              <QrCode className="w-28 h-28 text-slate-900" />
-              <span className="text-[9px] text-slate-600 mt-1">{companyDetails.merchantUpiId || 'support.time24x7-3@okhdfcbank'}</span>
+            <div className="w-48 h-48 bg-white mx-auto rounded-2xl border-4 border-emerald-500 p-2 flex flex-col items-center justify-center text-gray-900 font-bold font-mono text-xs shadow-inner">
+              <UpiPaymentQRCode
+                upiUri={`upi://pay?pa=${encodeURIComponent(companyDetails.merchantUpiId || 'support.time24x7-1@okhdfcbank')}&pn=${encodeURIComponent(companyDetails.companyLegalName || 'ACCNO SOLUTION')}&am=${grandTotal}&cu=INR`}
+                size={130}
+              />
+              <span className="text-[9px] text-slate-700 mt-1 font-bold">{companyDetails.merchantUpiId || 'support.time24x7-1@okhdfcbank'}</span>
             </div>
 
             <div className="text-2xl font-extrabold text-[#16FFC6] font-mono">₹{grandTotal.toLocaleString()}</div>

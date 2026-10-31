@@ -12,6 +12,7 @@ import {
   pushPurchaseInvoiceToSupabase,
   deletePurchaseInvoiceFromSupabase,
 } from '@/lib/supabase-sync';
+import { getSyncQrDataUri } from '@/lib/qr-utils';
 
 // Searchable Product Combobox Component for Purchase Line Items
 interface SearchableLineItemSelectProps {
@@ -656,7 +657,7 @@ export default function PurchasesPage() {
     const upiPayee = companyDetails.companyLegalName || 'ACCNO SOLUTION';
     const payableAmount = bill.balanceDue > 0 ? bill.balanceDue : bill.grandTotal;
     const upiString = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(upiPayee)}&am=${payableAmount}&cu=INR&tn=Bill_${bill.billNo}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=2&data=${encodeURIComponent(upiString)}`;
+    const qrCodeUrl = getSyncQrDataUri(upiString, 2);
 
     const padding = paper === 'A5' ? '4px 6px' : '6px 8px';
     const fontSz = paper === 'A5' ? '9.5px' : '11px';

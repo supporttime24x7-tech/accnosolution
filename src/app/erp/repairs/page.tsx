@@ -19,6 +19,7 @@ import {
   deleteInvoiceFromSupabase,
 } from '@/lib/supabase-sync';
 import QRCode from 'qrcode';
+import { getSyncQrSvg, getSyncQrDataUri, UpiPaymentQRCode } from '@/lib/qr-utils';
 
 // Interactive 3x3 Smartphone Pattern Lock Picker Component
 const PatternLockPicker: React.FC<{
@@ -175,49 +176,6 @@ const generateBarcodeSVG = (codeText: string) => {
   );
 };
 
-// Authentic ISO/IEC Standard 2D QR Code SVG Generator Component for UPI Deep-Links
-const UpiPaymentQRCode: React.FC<{ upiUri: string; size?: number }> = ({ upiUri, size = 60 }) => {
-  const [svgMarkup, setSvgMarkup] = useState<string>('');
-
-  useEffect(() => {
-    if (!upiUri) return;
-    QRCode.toString(upiUri, {
-      type: 'svg',
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-    })
-      .then((svg) => {
-        setSvgMarkup(svg);
-      })
-      .catch((err) => {
-        console.error('Error generating QR SVG:', err);
-      });
-  }, [upiUri]);
-
-  if (!svgMarkup) {
-    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUri)}`;
-    return (
-      <img
-        src={fallbackUrl}
-        alt="UPI Payment QR Code"
-        style={{ width: size, height: size }}
-        className="shrink-0 object-contain"
-      />
-    );
-  }
-
-  return (
-    <div
-      style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: svgMarkup }}
-      className="flex items-center justify-center shrink-0 [&_svg]:w-full [&_svg]:h-full"
-    />
-  );
-};
 
 const getTicketProgress = (t: Partial<RepairTicket>): number => {
   if (typeof t.progressPercentage === 'number' && !isNaN(t.progressPercentage)) {
@@ -1192,7 +1150,7 @@ export default function ErpRepairsPage() {
 
     const merchantUpi = (companyDetails.merchantUpiId || 'support.time24x7-3@okhdfcbank').trim();
     const upiPayUri = `upi://pay?pa=${merchantUpi}&pn=${encodeURIComponent(companyDetails.companyLegalName || 'Accno Solution')}&am=${inv.netDueBalance}&cu=INR&tn=${encodeURIComponent(`Bill ${inv.invoiceNumber}`)}`;
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(upiPayUri)}`;
+    const qrSvgMarkup = getSyncQrSvg(upiPayUri, 1);
 
     const renderSingleSheet = (copyLabel: string) => `
       <div class="bill-wrapper">
@@ -1334,7 +1292,9 @@ export default function ErpRepairsPage() {
         <div class="bottom-section" style="margin-top: auto; padding-top: 12px;">
           <div class="footer-grid">
             <div class="qr-box">
-              <img src="${qrApiUrl}" style="width: 64px; height: 64px; border: 1px solid #000;" />
+              <div style="width: 64px; height: 64px; border: 1px solid #000; background: #ffffff; padding: 2px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; overflow: hidden;">
+                ${qrSvgMarkup}
+              </div>
               <div>
                 <div style="font-size: 8.5px; font-weight: 900; text-transform: uppercase;">PAY VIA BHIM UPI</div>
                 <div style="font-size: 8px; font-family: monospace; color: #047857; font-weight: 700;">${merchantUpi}</div>
@@ -1429,6 +1389,7 @@ export default function ErpRepairsPage() {
             
             .footer-grid { display: grid; grid-template-columns: 1.2fr 1.5fr 1fr; gap: 8px; margin-top: 10px; }
             .qr-box { border: 1px solid #000000; border-radius: 6px; padding: 6px; display: flex; align-items: center; gap: 8px; background: #f8fafc; }
+            .qr-box svg { width: 100% !important; height: 100% !important; display: block !important; }
             .terms-box { border: 1px solid #000000; border-radius: 6px; padding: 6px; font-size: 8px; color: #334155; background: #f8fafc; }
             .totals-box { border: 1px solid #000000; border-radius: 6px; font-family: monospace; font-size: 10px; overflow: hidden; }
             .totals-row { display: flex; justify-content: space-between; padding: 3px 8px; border-bottom: 1px solid #e2e8f0; }

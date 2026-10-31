@@ -14,37 +14,7 @@ import {
   deleteDataRecoveryFromSupabase,
 } from '@/lib/supabase-sync';
 import { AccnoLogo } from '@/components/common/AccnoLogo';
-import QRCode from 'qrcode';
-
-// Inline UPI Payment QR Code Component
-const UpiPaymentQRCode: React.FC<{ upiUri: string; size?: number }> = ({ upiUri, size = 60 }) => {
-  const [svgMarkup, setSvgMarkup] = useState<string>('');
-
-  useEffect(() => {
-    if (!upiUri) return;
-    QRCode.toString(upiUri, {
-      type: 'svg',
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      color: { dark: '#000000', light: '#ffffff' },
-    })
-      .then((svg) => setSvgMarkup(svg))
-      .catch((err) => console.error('Error generating QR SVG:', err));
-  }, [upiUri]);
-
-  if (!svgMarkup) {
-    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUri)}`;
-    return <img src={fallbackUrl} alt="UPI Payment QR Code" style={{ width: size, height: size }} className="shrink-0 object-contain" />;
-  }
-
-  return (
-    <div
-      style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: svgMarkup }}
-      className="flex items-center justify-center shrink-0 [&_svg]:w-full [&_svg]:h-full"
-    />
-  );
-};
+import { getSyncQrDataUri, UpiPaymentQRCode } from '@/lib/qr-utils';
 
 // Reusable Dynamic Option Selector Component with Inline +Add and Delete
 const DynamicOptionSelect: React.FC<{
@@ -995,7 +965,7 @@ export default function ErpDataRecoveryPage() {
             <div style="font-size: 7.5px; font-weight: 900; color: #0f766e; text-transform: uppercase; margin-bottom: 3px;">SCAN TO PAY VIA BHIM UPI</div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <div style="width: 55px; height: 55px; background: #fff; border: 1px solid #cbd5e1; padding: 2px; text-align: center;">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(upiPayUri)}" style="width: 100%; height: 100%; object-fit: contain;" />
+                <img src="${getSyncQrDataUri(upiPayUri, 1)}" style="width: 100%; height: 100%; object-fit: contain;" alt="UPI QR" />
               </div>
               <div style="font-size: 7px; color: #334155;">
                 <strong>UPI ID:</strong> ${merchantUpi}<br/>

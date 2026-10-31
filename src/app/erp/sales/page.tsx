@@ -12,6 +12,7 @@ import {
   pushSalesInvoiceToSupabase,
   deleteSalesInvoiceFromSupabase,
 } from '@/lib/supabase-sync';
+import { getSyncQrDataUri } from '@/lib/qr-utils';
 
 // Searchable Product Combobox Component for Line Items
 interface SearchableLineItemSelectProps {
@@ -699,7 +700,7 @@ export default function SalesPage() {
       const upiPayee = companyDetails.companyLegalName || 'ACCNO SOLUTION';
       const payableAmount = inv.balanceDue > 0 ? inv.balanceDue : inv.grandTotal;
       const upiString = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(upiPayee)}&am=${payableAmount}&cu=INR&tn=Invoice_${inv.invoiceNo}`;
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&margin=1&data=${encodeURIComponent(upiString)}`;
+      const qrCodeUrl = getSyncQrDataUri(upiString, 1);
       const isInterState = inv.customerGst && companyDetails.gstin && inv.customerGst.substring(0, 2) !== companyDetails.gstin.substring(0, 2);
 
       return `
@@ -895,7 +896,7 @@ export default function SalesPage() {
       const upiPayee = companyDetails.companyLegalName || 'ACCNO SOLUTION';
       const payableAmount = inv.balanceDue > 0 ? inv.balanceDue : inv.grandTotal;
       const upiString = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(upiPayee)}&am=${payableAmount}&cu=INR&tn=Invoice_${inv.invoiceNo}`;
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=2&data=${encodeURIComponent(upiString)}`;
+      const qrCodeUrl = getSyncQrDataUri(upiString, 2);
       const isInterState = inv.customerGst && companyDetails.gstin && inv.customerGst.substring(0, 2) !== companyDetails.gstin.substring(0, 2);
 
       if (paper === 'THERMAL') {
