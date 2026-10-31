@@ -231,6 +231,8 @@ export function mapRowToInvoice(row: any): RepairInvoice {
     deliveredTo: row.delivered_to || '',
     deliveryStatus: row.delivery_status || 'DELIVERED TO CUSTOMER',
     afterServiceRemarks: row.after_service_remarks || '',
+    problem_reported: row.problem_reported || row.ticket_details?.problem_reported || '',
+    requestedWork: row.requested_work || row.ticket_details?.requestedWork || '',
     ticketDetails: row.ticket_details || undefined,
   };
 }
@@ -241,6 +243,8 @@ export function mapInvoiceToRow(inv: RepairInvoice): Record<string, any> {
     invoice_number: inv.invoiceNumber,
     ticket_id: inv.ticketId || null,
     ticket_number: inv.ticketNumber || null,
+    problem_reported: inv.problem_reported || inv.ticketDetails?.problem_reported || null,
+    requested_work: inv.requestedWork || inv.ticketDetails?.requestedWork || null,
     invoice_date: inv.invoiceDate || new Date().toISOString().split('T')[0],
     customer_name: inv.customerName,
     customer_phone: inv.customerPhone,

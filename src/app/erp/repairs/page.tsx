@@ -1108,6 +1108,8 @@ export default function ErpRepairsPage() {
       deliveredTo: billingDeliveredTo,
       deliveryStatus: billingDeliveryStatus,
       afterServiceRemarks: billingAfterServiceRemark,
+      problem_reported: selectedTicket.problem_reported,
+      requestedWork: selectedTicket.requestedWork,
       ticketDetails: selectedTicket,
     };
 
@@ -1147,6 +1149,10 @@ export default function ErpRepairsPage() {
 
     const serviceRows = (inv.lineItems || []).filter((i) => i.itemType === 'service');
     const retailRows = (inv.lineItems || []).filter((i) => i.itemType === 'part');
+
+    const linkedTicket = tickets.find((t) => t.id === inv.ticketId || t.ticket_number === inv.ticketNumber) || inv.ticketDetails;
+    const problemText = (inv.problem_reported || linkedTicket?.problem_reported || (inv as any).problemReported || 'Hardware Diagnostics & Repair').trim();
+    const requestedWorkText = (inv.requestedWork || linkedTicket?.requestedWork || '').trim();
 
     const merchantUpi = (companyDetails.merchantUpiId || 'support.time24x7-3@okhdfcbank').trim();
     const upiPayUri = `upi://pay?pa=${merchantUpi}&pn=${encodeURIComponent(companyDetails.companyLegalName || 'Accno Solution')}&am=${inv.netDueBalance}&cu=INR&tn=${encodeURIComponent(`Bill ${inv.invoiceNumber}`)}`;
@@ -1197,7 +1203,8 @@ export default function ErpRepairsPage() {
                   <div><strong>Ticket #:</strong> ${inv.ticketNumber} (Ticket Date: ${inv.invoiceDate})</div>
                   <div><strong>Device:</strong> ${inv.brand} ${inv.model || inv.deviceType}</div>
                   <div><strong>IMEI / Serial:</strong> ${inv.serial_or_imei || 'N/A'}</div>
-                  <div><strong>Problem / Complaint:</strong> Hardware Repair &amp; Service Diagnostics</div>
+                  <div><strong>Problem / Complaint:</strong> ${problemText}</div>
+                  ${requestedWorkText && requestedWorkText.toLowerCase() !== problemText.toLowerCase() ? `<div><strong>Requested Work:</strong> ${requestedWorkText}</div>` : ''}
                 </td>
               </tr>
             </table>
@@ -5378,13 +5385,24 @@ export default function ErpRepairsPage() {
                         <div><strong className="text-slate-700">Address:</strong> {selectedInvoice.customerGstin ? `GSTIN: ${selectedInvoice.customerGstin} | ` : ''}Sanchore, Rajasthan</div>
                       </div>
 
-                      <div className="p-2.5 space-y-0.5">
-                        <div className="font-extrabold text-[8.5px] uppercase text-slate-500 pb-0.5 border-b border-slate-200">REPAIR TICKET &amp; DEVICE DETAILS</div>
-                        <div><strong className="text-slate-700">Ticket #:</strong> <span className="font-mono font-bold text-slate-900">{selectedInvoice.ticketNumber}</span> (Ticket Date: {selectedInvoice.invoiceDate})</div>
-                        <div><strong className="text-slate-700">Device:</strong> <span className="font-bold text-slate-900">{selectedInvoice.brand} {selectedInvoice.model || selectedInvoice.deviceType}</span></div>
-                        <div><strong className="text-slate-700">IMEI / Serial:</strong> <span className="font-mono text-slate-900">{selectedInvoice.serial_or_imei || 'N/A'}</span></div>
-                        <div><strong className="text-slate-700">Problem / Complaint:</strong> Hardware Repair &amp; Service Diagnostics</div>
-                      </div>
+                      {(() => {
+                        const linkedTicket = tickets.find((t) => t.id === selectedInvoice.ticketId || t.ticket_number === selectedInvoice.ticketNumber) || selectedInvoice.ticketDetails;
+                        const problemText = (selectedInvoice.problem_reported || linkedTicket?.problem_reported || (selectedInvoice as any).problemReported || 'Hardware Diagnostics & Repair').trim();
+                        const requestedWorkText = (selectedInvoice.requestedWork || linkedTicket?.requestedWork || '').trim();
+
+                        return (
+                          <div className="p-2.5 space-y-0.5">
+                            <div className="font-extrabold text-[8.5px] uppercase text-slate-500 pb-0.5 border-b border-slate-200">REPAIR TICKET &amp; DEVICE DETAILS</div>
+                            <div><strong className="text-slate-700">Ticket #:</strong> <span className="font-mono font-bold text-slate-900">{selectedInvoice.ticketNumber}</span> (Ticket Date: {selectedInvoice.invoiceDate})</div>
+                            <div><strong className="text-slate-700">Device:</strong> <span className="font-bold text-slate-900">{selectedInvoice.brand} {selectedInvoice.model || selectedInvoice.deviceType}</span></div>
+                            <div><strong className="text-slate-700">IMEI / Serial:</strong> <span className="font-mono text-slate-900">{selectedInvoice.serial_or_imei || 'N/A'}</span></div>
+                            <div><strong className="text-slate-700">Problem / Complaint:</strong> <span className="text-slate-900">{problemText}</span></div>
+                            {requestedWorkText && requestedWorkText.toLowerCase() !== problemText.toLowerCase() && (
+                              <div><strong className="text-slate-700">Requested Work:</strong> <span className="text-slate-900">{requestedWorkText}</span></div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 

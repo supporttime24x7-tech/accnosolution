@@ -212,6 +212,8 @@ export interface RepairInvoice {
   deliveredTo?: string;
   deliveryStatus?: string;
   afterServiceRemarks?: string;
+  problem_reported?: string;
+  requestedWork?: string;
   invoiceDate: string;
   ticketDetails?: RepairTicket;
 }
