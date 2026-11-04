@@ -475,6 +475,8 @@ export interface InventoryItem {
   itemType: 'Retail Part' | 'Service Part';
   code: string; // PRT-1001 or SRV-1001
   name: string;
+  brand?: string;
+  model?: string;
   category: string;
   uom: string;
   defaultQuantity: number;
