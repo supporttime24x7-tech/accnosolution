@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ThemeInitializer } from '@/components/common/ThemeInitializer';
 
 export const metadata: Metadata = {
   title: 'ACCNO SOLUTION | Computer Repair, Apple Mac, Data Recovery & ERP',
@@ -50,7 +51,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('accno_website_theme');if(s){var p=JSON.parse(s);var id=typeof p==='string'?p:p?.activeTheme;if(id){document.documentElement.setAttribute('data-theme',id);}}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="bg-[#070B0A] text-white antialiased selection:bg-[#5ED29C] selection:text-[#070B0A]">
+        <ThemeInitializer />
         {children}
       </body>
     </html>

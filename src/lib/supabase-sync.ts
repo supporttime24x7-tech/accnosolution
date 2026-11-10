@@ -3069,6 +3069,7 @@ export async function syncEntireErpWithSupabase(store: any) {
       if (companySettings.amc_rules && store.updateAmcRules) store.updateAmcRules(companySettings.amc_rules);
       if (companySettings.employee_rules && store.updateEmployeeRules) store.updateEmployeeRules(companySettings.employee_rules);
       if (companySettings.website_promotion_bar && store.updateWebsitePromotionBar) store.updateWebsitePromotionBar(companySettings.website_promotion_bar);
+      if (companySettings.website_theme && store.updateWebsiteTheme) store.updateWebsiteTheme(companySettings.website_theme);
     }
   } catch (err) {
     console.warn('Sync entire ERP with Supabase failed:', err);

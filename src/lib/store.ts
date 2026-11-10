@@ -1214,6 +1214,14 @@ export interface ServicesFaqItem {
   created_at?: string;
 }
 
+export interface WebsiteThemeConfig {
+  activeTheme: string;
+  glowIntensity: 'subtle' | 'vibrant' | 'neon';
+  cardGlassmorphism: boolean;
+  contrastMode: 'standard' | 'high-contrast';
+  updatedAt?: string;
+}
+
 export interface WebsitePromotionBar {
   isEnabled: boolean;
   text: string;
@@ -1735,6 +1743,8 @@ export interface ErpStore {
   updateWebsitePromotion: (id: string, updated: Partial<WebsitePromotionItem>) => void;
   deleteWebsitePromotion: (id: string) => void;
   selectActivePromotion: (id: string) => void;
+    websiteTheme: WebsiteThemeConfig;
+  updateWebsiteTheme: (theme: Partial<WebsiteThemeConfig>) => void;
   websitePromotionBar: WebsitePromotionBar;
   updateWebsitePromotionBar: (data: Partial<WebsitePromotionBar>) => void;
 }
@@ -5079,5 +5089,26 @@ export const useErpStore = create<ErpState>((set, get) => ({
       saveToStorage('accno_website_promotion_bar', updated);
       pushCompanySettingsToSupabase('website_promotion_bar', updated).catch(() => {});
       return { websitePromotionBar: updated };
+    }),
+  websiteTheme: loadFromStorage<WebsiteThemeConfig>('accno_website_theme', {
+    activeTheme: 'emerald',
+    glowIntensity: 'vibrant',
+    cardGlassmorphism: true,
+    contrastMode: 'standard',
+    updatedAt: new Date().toISOString(),
+  }),
+
+  updateWebsiteTheme: (themeData: Partial<WebsiteThemeConfig>) =>
+    set((state: ErpState) => {
+      const updated = { ...state.websiteTheme, ...themeData, updatedAt: new Date().toISOString() };
+      saveToStorage('accno_website_theme', updated);
+      if (typeof window !== 'undefined') {
+        if (themeData.activeTheme) {
+          document.documentElement.setAttribute('data-theme', themeData.activeTheme);
+          window.dispatchEvent(new CustomEvent('accno-theme-changed', { detail: { theme: themeData.activeTheme } }));
+        }
+      }
+      pushCompanySettingsToSupabase('website_theme', updated).catch(() => {});
+      return { websiteTheme: updated };
     }),
 }));

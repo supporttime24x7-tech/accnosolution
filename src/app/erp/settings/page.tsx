@@ -5,8 +5,9 @@ import {
   Settings, Building2, Key, ShieldCheck, Save, Users, Hash, LayoutGrid, List,
   DollarSign, AlertOctagon, Calendar, CheckSquare, Gift, Eye, CheckCircle2, Sparkles, Award, LandPlot, RefreshCw, Sliders,
   Percent, BellRing, FileText, Lock, Landmark, Truck, Wrench, ShieldAlert, Plus, Trash2, Edit3, MessageSquare, Package, Tag, Layers, AlertTriangle,
-  Upload, Image as ImageIcon, CreditCard, MapPin, Globe, Mail, Phone, UserCheck, Briefcase, FileCheck, Landmark as BankIcon, FileCode, Printer, Boxes, Flame, X, Shield, ShoppingCart, BookOpen
+  Upload, Image as ImageIcon, CreditCard, MapPin, Globe, Mail, Phone, UserCheck, Briefcase, FileCheck, Landmark as BankIcon, FileCode, Printer, Boxes, Flame, X, Shield, ShoppingCart, BookOpen, Palette
 } from 'lucide-react';
+import { WebsiteThemeSettingsTab } from '@/components/erp/settings/WebsiteThemeSettingsTab';
 import {
   useErpStore, VendorRulesConfig, HsnMasterItem, SaleRulesConfig, PurchaseRulesConfig,
   SalesReturnRulesConfig, PurchaseReturnRulesConfig, QuotationRulesConfig, VoucherRulesConfig,
@@ -36,7 +37,7 @@ export default function ErpSettingsPage() {
     vendors
   } = useErpStore();
 
-  const [activeTab, setActiveTab] = useState<'customer_rules' | 'vendor_rules' | 'inventory_rules' | 'employee_rules' | 'repair_billing_rules' | 'outsource_rules' | 'pos_rules' | 'sale_rules' | 'purchase_rules' | 'sales_return_rules' | 'purchase_return_rules' | 'quotation_rules' | 'voucher_rules' | 'hsn_settings' | 'general'>('customer_rules');
+  const [activeTab, setActiveTab] = useState<'customer_rules' | 'vendor_rules' | 'inventory_rules' | 'employee_rules' | 'repair_billing_rules' | 'outsource_rules' | 'pos_rules' | 'sale_rules' | 'purchase_rules' | 'sales_return_rules' | 'purchase_return_rules' | 'quotation_rules' | 'voucher_rules' | 'hsn_settings' | 'general' | 'website_themes'>('customer_rules');
   
   const [localCustomerRules, setLocalCustomerRules] = useState(customerRules);
   const [localVendorRules, setLocalVendorRules] = useState(vendorRules);
@@ -114,6 +115,8 @@ export default function ErpSettingsPage() {
       const tab = params.get('tab');
       if (tab === 'employee_rules') {
         setActiveTab('employee_rules');
+      } else if (tab === 'website_themes' || tab === 'themes') {
+        setActiveTab('website_themes');
       }
     }
   }, []);
@@ -1022,6 +1025,20 @@ export default function ErpSettingsPage() {
           }`}
         >
           <Building2 className="w-4 h-4" /> Company Details
+        </button>
+
+        <button
+          onClick={() => setActiveTab('website_themes')}
+          className={`px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-2 ${
+            activeTab === 'website_themes'
+              ? 'bg-[#16FFC6] text-[#070B0A] shadow-lg shadow-[#16FFC6]/20 font-black ring-1 ring-[#16FFC6]'
+              : 'bg-white/5 text-white/70 hover:text-white border border-white/10 hover:border-[#16FFC6]/40'
+          }`}
+        >
+          <Palette className="w-4 h-4 text-[#16FFC6]" /> Website Themes
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/40 text-white/80 font-mono">
+            8 Themes
+          </span>
         </button>
       </div>
 
@@ -5713,6 +5730,11 @@ export default function ErpSettingsPage() {
             </div>
           </form>
         </div>
+      )}
+
+      {/* TAB 16: WEBSITE & ERP MULTI-THEME ENGINE */}
+      {activeTab === 'website_themes' && (
+        <WebsiteThemeSettingsTab />
       )}
     </div>
   );
