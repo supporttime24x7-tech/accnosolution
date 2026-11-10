@@ -13,9 +13,9 @@ export function ThemeInitializer() {
     applyThemeToDocument(initialId);
 
     const handleCustomChange = (e: Event) => {
-      const customEvent = e as CustomEvent<{ theme: string }>;
+      const customEvent = e as CustomEvent<{ theme: string; mode?: string }>;
       if (customEvent.detail?.theme) {
-        document.documentElement.setAttribute('data-theme', customEvent.detail.theme);
+        applyThemeToDocument(customEvent.detail.theme);
       }
     };
 

@@ -1037,7 +1037,7 @@ export default function ErpSettingsPage() {
         >
           <Palette className="w-4 h-4 text-[#16FFC6]" /> Website Themes
           <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/40 text-white/80 font-mono">
-            8 Themes
+            12 Themes
           </span>
         </button>
       </div>

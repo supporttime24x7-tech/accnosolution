@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Palette, Check, CheckCircle2, Sparkles, Laptop, Eye, Save,
-  RefreshCw, Sliders, Layers, ShieldCheck, ShoppingBag, Wrench,
-  ExternalLink, Zap, Monitor, Smartphone, CheckSquare
+  Palette, Check, CheckCircle2, Sparkles, Eye, Save,
+  RefreshCw, Sliders, Layers, Monitor, Smartphone, CheckSquare,
+  Sun, Moon, Shield, Zap
 } from 'lucide-react';
 import { useErpStore } from '@/lib/store';
 import { WEBSITE_THEMES, WebsiteThemeItem, getThemeById, applyThemeToDocument } from '@/lib/theme-config';
@@ -15,6 +15,7 @@ export function WebsiteThemeSettingsTab() {
   const [selectedThemeId, setSelectedThemeId] = useState<string>(
     websiteTheme?.activeTheme || 'emerald'
   );
+  const [filterMode, setFilterMode] = useState<'all' | 'white' | 'dark'>('all');
   const [glowIntensity, setGlowIntensity] = useState<'subtle' | 'vibrant' | 'neon'>(
     websiteTheme?.glowIntensity || 'vibrant'
   );
@@ -45,9 +46,15 @@ export function WebsiteThemeSettingsTab() {
   const activeThemeObj = getThemeById(selectedThemeId);
   const currentSavedThemeObj = getThemeById(websiteTheme?.activeTheme || 'emerald');
 
+  const filteredThemes = WEBSITE_THEMES.filter((t) => {
+    if (filterMode === 'white') return t.themeMode === 'light';
+    if (filterMode === 'dark') return t.themeMode === 'dark';
+    return true;
+  });
+
   const handleSelectAndPreview = (themeId: string) => {
     setSelectedThemeId(themeId);
-    // Instant live preview across the current document
+    // Live preview across the entire application immediately
     applyThemeToDocument(themeId);
   };
 
@@ -80,6 +87,8 @@ export function WebsiteThemeSettingsTab() {
     setTimeout(() => setSavedSuccess(false), 3500);
   };
 
+  const isLight = activeThemeObj.themeMode === 'light';
+
   return (
     <div className="space-y-8">
       {/* HEADER BANNER */}
@@ -88,12 +97,12 @@ export function WebsiteThemeSettingsTab() {
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#16FFC6]/15 text-[#16FFC6] border border-[#16FFC6]/30 flex items-center gap-1.5 font-mono">
-                <Sparkles className="w-3 h-3 text-[#16FFC6]" /> 8 Handcrafted Cybernetic Themes
+                <Sparkles className="w-3 h-3 text-[#16FFC6]" /> 12 Full Themes: 4 White Background + 8 Dark Cyber
               </span>
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest font-mono">
-                Website &amp; ERP Engine
+                Universal Theme Switcher
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
@@ -101,7 +110,7 @@ export function WebsiteThemeSettingsTab() {
               Website &amp; ERP Global Theme Studio
             </h2>
             <p className="text-xs text-white/60 leading-relaxed">
-              Select and apply an immersive visual theme across the entire public website, online hardware shop, client booking portal, and ERP management workspace. Changes take effect immediately in real-time.
+              Transform the website and ERP interface with 12 distinct colorways. Includes 4 bright, high-contrast <strong>white background themes</strong> alongside 8 dark cybernetic palettes. Changes synchronize instantly across public pages, online store, customer portal, and ERP desks.
             </p>
           </div>
 
@@ -109,16 +118,20 @@ export function WebsiteThemeSettingsTab() {
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-3">
               <div
-                className="w-4 h-4 rounded-full shadow-lg ring-2 ring-white/20 animate-pulse"
+                className="w-4 h-4 rounded-full shadow-lg ring-2 ring-white/20 animate-pulse shrink-0"
                 style={{ backgroundColor: currentSavedThemeObj.colors.accent }}
               />
               <div className="text-left">
                 <div className="text-[9px] uppercase font-mono text-white/40 font-bold">Active Theme</div>
-                <div className="text-xs font-black text-white flex items-center gap-1.5">
+                <div className="text-xs font-black text-white flex items-center gap-1.5 truncate">
                   {currentSavedThemeObj.name}
-                  {currentSavedThemeObj.id === 'emerald' && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#5ED29C]/20 text-[#5ED29C] font-mono">
-                      DEFAULT
+                  {currentSavedThemeObj.themeMode === 'light' ? (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-mono flex items-center gap-0.5">
+                      <Sun className="w-2.5 h-2.5" /> WHITE
+                    </span>
+                  ) : (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-300 font-mono flex items-center gap-0.5">
+                      <Moon className="w-2.5 h-2.5" /> DARK
                     </span>
                   )}
                 </div>
@@ -147,7 +160,7 @@ export function WebsiteThemeSettingsTab() {
         {savedSuccess && (
           <div className="mt-4 p-3 rounded-xl bg-[#16FFC6]/15 border border-[#16FFC6]/40 text-[#16FFC6] text-xs font-bold flex items-center gap-2 animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Theme applied and synchronized globally! Stored in local cache and pushed to Supabase Cloud.</span>
+            <span>Theme updated and applied across all website and ERP routes! Stored in browser and synchronized with Supabase Cloud.</span>
           </div>
         )}
       </div>
@@ -161,7 +174,7 @@ export function WebsiteThemeSettingsTab() {
               Live Interactive Sandbox Mockup
             </h3>
             <p className="text-[11px] text-white/50">
-              Previewing: <strong className="text-white">{activeThemeObj.name}</strong> ({activeThemeObj.tagline})
+              Previewing: <strong className="text-white">{activeThemeObj.name}</strong> ({activeThemeObj.tagline}) • Mode: {activeThemeObj.themeMode.toUpperCase()} BACKGROUND
             </p>
           </div>
 
@@ -198,35 +211,62 @@ export function WebsiteThemeSettingsTab() {
           }}
         >
           {/* Top Mock Window Bar */}
-          <div className="px-4 py-2.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
+          <div
+            className="px-4 py-2.5 border-b flex items-center justify-between"
+            style={{
+              backgroundColor: isLight ? '#F1F5F9' : '#040706',
+              borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.1)',
+            }}
+          >
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
               <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
             </div>
-            <div className="text-[10px] font-mono text-white/40 px-3 py-0.5 rounded-md bg-white/5 border border-white/5 flex items-center gap-1">
+            <div
+              className="text-[10px] font-mono px-3 py-0.5 rounded-md border flex items-center gap-1"
+              style={{
+                backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)',
+                borderColor: isLight ? '#CBD5E1' : 'rgba(255, 255, 255, 0.05)',
+                color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.4)',
+              }}
+            >
               <span>https://accnosolution.com</span>
             </div>
             <div className="w-10" />
           </div>
 
           {/* Mock Website Navbar */}
-          <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between bg-black/30 backdrop-blur-md">
+          <div
+            className="px-5 py-3 border-b flex items-center justify-between backdrop-blur-md"
+            style={{
+              backgroundColor: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.3)',
+              borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.1)',
+            }}
+          >
             <div className="flex items-center gap-2">
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shadow-md"
                 style={{
-                  backgroundColor: activeThemeObj.colors.accent,
+                  backgroundColor: activeThemeObj.colors.primary,
                   color: activeThemeObj.colors.selectionText,
                 }}
               >
                 A
               </div>
-              <span className="text-xs font-extrabold tracking-wider text-white">ACCNO SOLUTION</span>
+              <span
+                className="text-xs font-extrabold tracking-wider"
+                style={{ color: isLight ? '#0F172A' : '#FFFFFF' }}
+              >
+                ACCNO SOLUTION
+              </span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold text-white/60">
-              <span style={{ color: activeThemeObj.colors.accent }}>HOME</span>
+            <div
+              className="hidden sm:flex items-center gap-4 text-[11px] font-bold"
+              style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.6)' }}
+            >
+              <span style={{ color: activeThemeObj.colors.primary }}>HOME</span>
               <span>REPAIRS</span>
               <span>SERVICES</span>
               <span>SHOP</span>
@@ -236,7 +276,7 @@ export function WebsiteThemeSettingsTab() {
             <div
               className="text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm"
               style={{
-                backgroundColor: activeThemeObj.colors.accent,
+                backgroundColor: activeThemeObj.colors.primary,
                 color: activeThemeObj.colors.selectionText,
               }}
             >
@@ -248,25 +288,35 @@ export function WebsiteThemeSettingsTab() {
           <div className="p-6 sm:p-8 space-y-5 text-center relative overflow-hidden">
             {/* Glow backdrop */}
             <div
-              className="absolute left-1/2 -top-12 -translate-x-1/2 w-72 h-44 rounded-full blur-3xl opacity-30 pointer-events-none"
-              style={{ backgroundColor: activeThemeObj.colors.accent }}
+              className="absolute left-1/2 -top-12 -translate-x-1/2 w-72 h-44 rounded-full blur-3xl pointer-events-none"
+              style={{
+                backgroundColor: activeThemeObj.colors.primary,
+                opacity: isLight ? 0.12 : 0.3,
+              }}
             />
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider font-mono border"
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider font-mono border"
               style={{
-                backgroundColor: `${activeThemeObj.colors.accent}15`,
-                borderColor: `${activeThemeObj.colors.accent}40`,
-                color: activeThemeObj.colors.accent,
+                backgroundColor: `${activeThemeObj.colors.primary}15`,
+                borderColor: `${activeThemeObj.colors.primary}40`,
+                color: activeThemeObj.colors.primary,
               }}
             >
               <Zap className="w-3 h-3" /> Certified Computer &amp; Mac Repair Desk
             </div>
 
-            <h4 className="text-lg sm:text-2xl font-black text-white tracking-tight uppercase max-w-lg mx-auto">
-              Expert Computer &amp; <span style={{ color: activeThemeObj.colors.accent }}>Apple Mac Repair.</span>
+            <h4
+              className="text-lg sm:text-2xl font-black tracking-tight uppercase max-w-lg mx-auto"
+              style={{ color: isLight ? '#0F172A' : '#FFFFFF' }}
+            >
+              Expert Computer &amp; <span style={{ color: activeThemeObj.colors.primary }}>Apple Mac Repair.</span>
             </h4>
 
-            <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
+            <p
+              className="text-xs max-w-md mx-auto leading-relaxed"
+              style={{ color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.6)' }}
+            >
               Chip-level logic board diagnostics, cleanroom data recovery, and custom enterprise repair shop ERP solutions.
             </p>
 
@@ -283,10 +333,11 @@ export function WebsiteThemeSettingsTab() {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border text-white/80"
+                className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border"
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  borderColor: activeThemeObj.colors.cardBorder,
+                  backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.05)',
+                  borderColor: isLight ? '#CBD5E1' : activeThemeObj.colors.cardBorder,
+                  color: isLight ? '#334155' : 'rgba(255, 255, 255, 0.8)',
                 }}
               >
                 Track Ticket Status
@@ -297,33 +348,43 @@ export function WebsiteThemeSettingsTab() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 text-left">
               {/* Product Card */}
               <div
-                className="p-3.5 rounded-xl border relative space-y-2"
+                className="p-3.5 rounded-xl border relative space-y-2 shadow-sm"
                 style={{
-                  backgroundColor: activeThemeObj.colors.card,
-                  borderColor: activeThemeObj.colors.cardBorder,
+                  backgroundColor: isLight ? '#FFFFFF' : activeThemeObj.colors.card,
+                  borderColor: isLight ? '#E2E8F0' : activeThemeObj.colors.cardBorder,
                 }}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded"
                     style={{
-                      backgroundColor: `${activeThemeObj.colors.accent}20`,
-                      color: activeThemeObj.colors.accent,
+                      backgroundColor: `${activeThemeObj.colors.primary}18`,
+                      color: activeThemeObj.colors.primary,
                     }}
                   >
                     Hardware Shop
                   </span>
-                  <span className="text-[10px] text-white/40 font-mono">PRT-1007</span>
+                  <span
+                    className="text-[10px] font-mono"
+                    style={{ color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.4)' }}
+                  >
+                    PRT-1007
+                  </span>
                 </div>
-                <div className="text-xs font-bold text-white truncate">PowerX 128GB M.2 NVMe SSD</div>
+                <div
+                  className="text-xs font-bold truncate"
+                  style={{ color: isLight ? '#0F172A' : '#FFFFFF' }}
+                >
+                  PowerX 128GB M.2 NVMe SSD
+                </div>
                 <div className="flex items-baseline justify-between pt-1">
-                  <div className="text-sm font-black font-mono" style={{ color: activeThemeObj.colors.accent }}>
+                  <div className="text-sm font-black font-mono" style={{ color: activeThemeObj.colors.primary }}>
                     ₹1,400
                   </div>
                   <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer shadow-sm"
                     style={{
-                      backgroundColor: activeThemeObj.colors.accent,
+                      backgroundColor: activeThemeObj.colors.primary,
                       color: activeThemeObj.colors.selectionText,
                     }}
                   >
@@ -334,21 +395,38 @@ export function WebsiteThemeSettingsTab() {
 
               {/* ERP Metric Card */}
               <div
-                className="p-3.5 rounded-xl border relative space-y-2"
+                className="p-3.5 rounded-xl border relative space-y-2 shadow-sm"
                 style={{
-                  backgroundColor: activeThemeObj.colors.card,
-                  borderColor: activeThemeObj.colors.cardBorder,
+                  backgroundColor: isLight ? '#FFFFFF' : activeThemeObj.colors.card,
+                  borderColor: isLight ? '#E2E8F0' : activeThemeObj.colors.cardBorder,
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded bg-white/10 text-white/70">
+                  <span
+                    className="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.1)',
+                      color: isLight ? '#475569' : 'rgba(255, 255, 255, 0.7)',
+                    }}
+                  >
                     Live ERP Service Desk
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-400">● 100% Ready</span>
+                  <span className="text-[10px] font-bold text-emerald-600">● 100% Ready</span>
                 </div>
-                <div className="text-xs font-bold text-white truncate">Dell Latitude E5420 Repair</div>
-                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: '85%', backgroundColor: activeThemeObj.colors.primary }} />
+                <div
+                  className="text-xs font-bold truncate"
+                  style={{ color: isLight ? '#0F172A' : '#FFFFFF' }}
+                >
+                  Dell Latitude E5420 Repair
+                </div>
+                <div
+                  className="w-full h-1.5 rounded-full overflow-hidden"
+                  style={{ backgroundColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.1)' }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: '85%', backgroundColor: activeThemeObj.colors.primary }}
+                  />
                 </div>
               </div>
             </div>
@@ -356,25 +434,62 @@ export function WebsiteThemeSettingsTab() {
         </div>
       </div>
 
-      {/* THEME SELECTION GALLERY (8 HANDCRAFTED THEMES) */}
+      {/* FILTER TABS & THEME GALLERY */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-3">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
               <Layers className="w-4 h-4 text-[#16FFC6]" />
-              Select From 8 Complete Theme Colorways
+              Select From 12 Fully Operational Themes
             </h3>
             <p className="text-[11px] text-white/50">
-              Click any card to preview instantly on this page, or click &quot;Apply Theme&quot; to make it your active global theme.
+              Click any card to preview live across the site, or click &quot;Apply This Theme&quot; to save globally.
             </p>
           </div>
-          <span className="text-xs text-white/40 font-mono">1 Default + 7 Handcrafted</span>
+
+          {/* White vs Dark Filter Buttons */}
+          <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 shrink-0">
+            <button
+              type="button"
+              onClick={() => setFilterMode('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                filterMode === 'all'
+                  ? 'bg-white/20 text-white shadow-sm'
+                  : 'text-white/50 hover:text-white'
+              }`}
+            >
+              All Themes (12)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('white')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                filterMode === 'white'
+                  ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30 shadow-sm'
+                  : 'text-white/50 hover:text-white'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5 text-amber-400" /> White Background (4)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('dark')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                filterMode === 'dark'
+                  ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 shadow-sm'
+                  : 'text-white/50 hover:text-white'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5 text-cyan-400" /> Dark Cyber (8)
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {WEBSITE_THEMES.map((theme) => {
+          {filteredThemes.map((theme) => {
             const isCurrentlyActive = (websiteTheme?.activeTheme || 'emerald') === theme.id;
             const isPreviewing = selectedThemeId === theme.id;
+            const isThemeWhite = theme.themeMode === 'light';
 
             return (
               <div
@@ -382,33 +497,40 @@ export function WebsiteThemeSettingsTab() {
                 onClick={() => handleSelectAndPreview(theme.id)}
                 className={`p-5 rounded-2xl border transition-all cursor-pointer relative flex flex-col justify-between space-y-4 group hover:scale-[1.02] ${
                   isPreviewing
-                    ? 'ring-2 shadow-2xl bg-white/[0.06]'
-                    : 'bg-white/[0.02] hover:bg-white/[0.04] border-white/10'
+                    ? 'ring-2 shadow-2xl bg-white/[0.08]'
+                    : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10'
                 }`}
                 style={{
-                  borderColor: isPreviewing ? theme.colors.accent : 'rgba(255, 255, 255, 0.10)',
+                  borderColor: isPreviewing ? theme.colors.primary : 'rgba(255, 255, 255, 0.10)',
                   boxShadow: isPreviewing ? `0 10px 30px -10px ${theme.colors.glow}` : undefined,
                 }}
               >
                 {/* Top Badges */}
                 <div className="flex items-center justify-between gap-1">
-                  <span
-                    className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full font-mono border"
-                    style={{
-                      backgroundColor: `${theme.colors.accent}15`,
-                      borderColor: `${theme.colors.accent}40`,
-                      color: theme.colors.accent,
-                    }}
-                  >
-                    {theme.badge}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full font-mono border"
+                      style={{
+                        backgroundColor: `${theme.colors.primary}18`,
+                        borderColor: `${theme.colors.primary}40`,
+                        color: isThemeWhite ? theme.colors.primary : theme.colors.accent,
+                      }}
+                    >
+                      {theme.badge}
+                    </span>
+                    {isThemeWhite && (
+                      <span className="text-[8.5px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono flex items-center gap-0.5">
+                        <Sun className="w-2.5 h-2.5" /> White
+                      </span>
+                    )}
+                  </div>
 
                   {isCurrentlyActive ? (
-                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-mono">
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-mono shrink-0">
                       <Check className="w-2.5 h-2.5" /> Active
                     </span>
                   ) : isPreviewing ? (
-                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1 font-mono">
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1 font-mono shrink-0">
                       Previewing
                     </span>
                   ) : null}
@@ -418,8 +540,8 @@ export function WebsiteThemeSettingsTab() {
                 <div>
                   <h4 className="text-sm font-black text-white group-hover:text-white transition-colors flex items-center gap-1.5">
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: theme.colors.accent }}
+                      className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20"
+                      style={{ backgroundColor: theme.colors.primary }}
                     />
                     {theme.name}
                   </h4>
@@ -437,52 +559,55 @@ export function WebsiteThemeSettingsTab() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Accent Swatch */}
-                    <div
-                      className="w-6 h-6 rounded-lg shadow-sm border border-white/20 relative group/swatch"
-                      style={{ backgroundColor: theme.colors.accent }}
-                      title={`Accent: ${theme.colors.accent}`}
-                    />
                     {/* Primary Swatch */}
                     <div
-                      className="w-6 h-6 rounded-lg shadow-sm border border-white/20 relative group/swatch"
+                      className="w-6 h-6 rounded-lg shadow-sm border border-white/30 relative"
                       style={{ backgroundColor: theme.colors.primary }}
                       title={`Primary: ${theme.colors.primary}`}
                     />
+                    {/* Accent Swatch */}
+                    <div
+                      className="w-6 h-6 rounded-lg shadow-sm border border-white/30 relative"
+                      style={{ backgroundColor: theme.colors.accent }}
+                      title={`Accent: ${theme.colors.accent}`}
+                    />
                     {/* Background Canvas Swatch */}
                     <div
-                      className="w-6 h-6 rounded-lg shadow-sm border border-white/20 relative group/swatch"
+                      className="w-6 h-6 rounded-lg shadow-sm border border-white/30 relative"
                       style={{ backgroundColor: theme.colors.background }}
                       title={`Background Canvas: ${theme.colors.background}`}
                     />
                     {/* Surface Card Swatch */}
                     <div
-                      className="w-6 h-6 rounded-lg shadow-sm border border-white/20 relative group/swatch"
+                      className="w-6 h-6 rounded-lg shadow-sm border border-white/30 relative"
                       style={{ backgroundColor: theme.colors.card }}
                       title={`Surface Card: ${theme.colors.card}`}
                     />
-                    {/* Border Swatch */}
+                    {/* Text Contrast Swatch */}
                     <div
-                      className="w-6 h-6 rounded-lg shadow-sm border border-white/20 relative group/swatch"
-                      style={{ backgroundColor: theme.colors.cardBorder }}
-                      title={`Border Highlight`}
+                      className="w-6 h-6 rounded-lg shadow-sm border border-white/30 relative"
+                      style={{ backgroundColor: theme.colors.text }}
+                      title={`Text: ${theme.colors.text}`}
                     />
                   </div>
                 </div>
 
                 {/* Mini UI Strip Preview */}
                 <div
-                  className="p-2.5 rounded-xl border flex items-center justify-between text-[10px] font-mono"
+                  className="p-2.5 rounded-xl border flex items-center justify-between text-[10px] font-mono shadow-sm"
                   style={{
                     backgroundColor: theme.colors.background,
                     borderColor: theme.colors.cardBorder,
                   }}
                 >
-                  <span style={{ color: theme.colors.accent }} className="font-bold">
+                  <span
+                    style={{ color: isThemeWhite ? theme.colors.primary : theme.colors.accent }}
+                    className="font-bold"
+                  >
                     ₹9,000 INR
                   </span>
                   <div
-                    className="px-2 py-0.5 rounded text-[9px] font-bold"
+                    className="px-2 py-0.5 rounded text-[9px] font-bold shadow-sm"
                     style={{
                       backgroundColor: theme.colors.primary,
                       color: theme.colors.selectionText,
@@ -525,12 +650,12 @@ export function WebsiteThemeSettingsTab() {
         </div>
       </div>
 
-      {/* ADVANCED THEME CONTROLS & GLOW ENGINE */}
+      {/* ADVANCED THEME CONTROLS */}
       <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-6">
         <div className="flex items-center gap-2 border-b border-white/10 pb-3">
           <Sliders className="w-4 h-4 text-[#16FFC6]" />
           <h3 className="text-sm font-black uppercase tracking-wider text-white">
-            Theme Engine Preferences &amp; Cyber Radiance Controls
+            Theme Engine Preferences &amp; Radiance Controls
           </h3>
         </div>
 
@@ -538,7 +663,7 @@ export function WebsiteThemeSettingsTab() {
           {/* Glow Intensity */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-white flex items-center gap-1.5">
-              <span>Cyber Glow Intensity</span>
+              <span>Glow &amp; Bloom Radiance</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
               {(['subtle', 'vibrant', 'neon'] as const).map((intensity) => (
@@ -557,31 +682,29 @@ export function WebsiteThemeSettingsTab() {
               ))}
             </div>
             <p className="text-[10px] text-white/40">
-              Controls shadow bloom and neon backlight on interactive cards and buttons.
+              Adjusts shadow depth and ambient glow across cards, buttons, and navigation.
             </p>
           </div>
 
           {/* Liquid Glassmorphism */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-white flex items-center gap-1.5">
-              <span>Liquid Glassmorphism Blur</span>
+              <span>Card Glassmorphism Blur</span>
             </label>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setCardGlassmorphism(!cardGlassmorphism)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all flex items-center justify-center gap-2 ${
-                  cardGlassmorphism
-                    ? 'bg-[#5ED29C]/20 border-[#5ED29C] text-[#5ED29C]'
-                    : 'bg-white/5 border-white/10 text-white/50'
-                }`}
-              >
-                <CheckSquare className="w-4 h-4" />
-                {cardGlassmorphism ? 'Enabled (Frosted Glass)' : 'Disabled (Flat Dark)'}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setCardGlassmorphism(!cardGlassmorphism)}
+              className={`w-full py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all flex items-center justify-center gap-2 ${
+                cardGlassmorphism
+                  ? 'bg-[#5ED29C]/20 border-[#5ED29C] text-[#5ED29C]'
+                  : 'bg-white/5 border-white/10 text-white/50'
+              }`}
+            >
+              <CheckSquare className="w-4 h-4" />
+              {cardGlassmorphism ? 'Enabled (Frosted Glass)' : 'Disabled (Flat Surface)'}
+            </button>
             <p className="text-[10px] text-white/40">
-              Renders translucent backdrop blur for modern cyber cards and modals.
+              Renders frosted glass backdrop blur for modern cards and dialogs.
             </p>
           </div>
 
@@ -607,7 +730,7 @@ export function WebsiteThemeSettingsTab() {
               ))}
             </div>
             <p className="text-[10px] text-white/40">
-              Adjusts border intensity and text vibrancy for outdoor sunlight visibility.
+              Boosts border definition and typography contrast for intense outdoor lighting.
             </p>
           </div>
         </div>
@@ -615,7 +738,7 @@ export function WebsiteThemeSettingsTab() {
         {/* Save Bar */}
         <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="text-xs text-white/50">
-            Current configuration will be saved to your browser and pushed to Supabase Cloud for all visitors.
+            Current configuration is saved locally and synchronized with Supabase Cloud.
           </div>
           <button
             type="button"

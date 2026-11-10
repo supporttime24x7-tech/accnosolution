@@ -20,7 +20,8 @@ export interface WebsiteThemeItem {
   tagline: string;
   badge: string;
   description: string;
-  category: 'Cyber Matrix' | 'Sci-Fi Blue' | 'Hardware Gaming' | 'Warm Luxury' | 'Synthwave' | 'Minimalist' | 'Oceanic Aqua' | 'Tokyo Dusk';
+  themeMode: 'dark' | 'light';
+  category: 'Cyber Matrix' | 'Sci-Fi Blue' | 'Hardware Gaming' | 'Warm Luxury' | 'Synthwave' | 'Minimalist' | 'Oceanic Aqua' | 'Tokyo Dusk' | 'White Background';
   isDefault?: boolean;
   colors: ThemeColors;
   preview: {
@@ -34,11 +35,15 @@ export interface WebsiteThemeItem {
 }
 
 export const WEBSITE_THEMES: WebsiteThemeItem[] = [
+  // ==========================================
+  // 1. DEFAULT SIGNATURE DARK THEME
+  // ==========================================
   {
     id: 'emerald',
     name: 'Cyber Emerald',
     tagline: 'Deep Obsidian Matrix & Cyber Mint',
     badge: 'Current Default',
+    themeMode: 'dark',
     isDefault: true,
     description: 'The signature ACCNO SOLUTION aesthetic: deep obsidian black canvas with neon cyber emerald and mint highlights, engineered for high-tech precision.',
     category: 'Cyber Matrix',
@@ -66,11 +71,148 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
       chipText: 'text-[#16FFC6]',
     },
   },
+
+  // ==========================================
+  // 2–5. FOUR BRAND NEW WHITE BACKGROUND THEMES
+  // ==========================================
+  {
+    id: 'pearl-emerald',
+    name: 'Pearl Emerald',
+    tagline: 'Crisp White Studio & High-Contrast Emerald',
+    badge: 'White Corporate',
+    themeMode: 'light',
+    description: 'Clean bright white canvas with high-contrast emerald and marine teal accents. Deep slate typography engineered for corporate clarity and readability.',
+    category: 'White Background',
+    colors: {
+      primary: '#059669',
+      primaryRgb: '5, 150, 105',
+      accent: '#0D9488',
+      accentRgb: '13, 148, 136',
+      background: '#FFFFFF',
+      backgroundRgb: '255, 255, 255',
+      card: '#FFFFFF',
+      cardBorder: 'rgba(5, 150, 105, 0.25)',
+      glow: 'rgba(5, 150, 105, 0.15)',
+      text: '#0F172A',
+      textMuted: '#475569',
+      selectionBg: '#059669',
+      selectionText: '#FFFFFF',
+    },
+    preview: {
+      badgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
+      accentGradient: 'from-white via-slate-50 to-emerald-600',
+      dotClass: 'bg-emerald-600',
+      chipBg: 'bg-emerald-50',
+      chipBorder: 'border-emerald-300',
+      chipText: 'text-emerald-700',
+    },
+  },
+  {
+    id: 'arctic-sapphire',
+    name: 'Arctic Ice Sapphire',
+    tagline: 'Glacial White & High-Tech Cobalt Blue',
+    badge: 'Enterprise White',
+    themeMode: 'light',
+    description: 'Bright glacial white background with sharp cobalt blue and sky sapphire accents. Clean, authoritative, and trusted for enterprise IT and diagnostics.',
+    category: 'White Background',
+    colors: {
+      primary: '#2563EB',
+      primaryRgb: '37, 99, 235',
+      accent: '#0284C7',
+      accentRgb: '2, 132, 199',
+      background: '#FFFFFF',
+      backgroundRgb: '255, 255, 255',
+      card: '#FFFFFF',
+      cardBorder: 'rgba(37, 99, 235, 0.25)',
+      glow: 'rgba(37, 99, 235, 0.15)',
+      text: '#0F172A',
+      textMuted: '#475569',
+      selectionBg: '#2563EB',
+      selectionText: '#FFFFFF',
+    },
+    preview: {
+      badgeClass: 'bg-blue-500/15 text-blue-700 border-blue-500/30',
+      accentGradient: 'from-white via-blue-50 to-blue-600',
+      dotClass: 'bg-blue-600',
+      chipBg: 'bg-blue-50',
+      chipBorder: 'border-blue-300',
+      chipText: 'text-blue-700',
+    },
+  },
+  {
+    id: 'ivory-mono',
+    name: 'Obsidian Ivory',
+    tagline: 'Pure Stark White & Pitch Slate Monochrome',
+    badge: 'Studio Minimal',
+    themeMode: 'light',
+    description: 'Ultra-clean gallery white canvas with pitch dark obsidian slate accents. Minimalist Swiss architecture typography with maximum contrast and zero visual noise.',
+    category: 'White Background',
+    colors: {
+      primary: '#0F172A',
+      primaryRgb: '15, 23, 42',
+      accent: '#1E293B',
+      accentRgb: '30, 41, 59',
+      background: '#FFFFFF',
+      backgroundRgb: '255, 255, 255',
+      card: '#FFFFFF',
+      cardBorder: 'rgba(15, 23, 42, 0.20)',
+      glow: 'rgba(15, 23, 42, 0.10)',
+      text: '#0F172A',
+      textMuted: '#475569',
+      selectionBg: '#0F172A',
+      selectionText: '#FFFFFF',
+    },
+    preview: {
+      badgeClass: 'bg-slate-900/10 text-slate-900 border-slate-900/30',
+      accentGradient: 'from-white via-slate-100 to-slate-900',
+      dotClass: 'bg-slate-900',
+      chipBg: 'bg-slate-100',
+      chipBorder: 'border-slate-300',
+      chipText: 'text-slate-900',
+    },
+  },
+  {
+    id: 'sunlight-amber',
+    name: 'Sunlight Amber',
+    tagline: 'Warm Pearl White & Honey Cyber Bronze',
+    badge: 'Warm Executive',
+    themeMode: 'light',
+    description: 'Warm radiant ivory white canvas accented with honey amber and burnished bronze. Friendly, approachable, and luxury executive certified.',
+    category: 'White Background',
+    colors: {
+      primary: '#D97706',
+      primaryRgb: '217, 119, 6',
+      accent: '#B45309',
+      accentRgb: '180, 83, 9',
+      background: '#FFFFFF',
+      backgroundRgb: '255, 255, 255',
+      card: '#FFFFFF',
+      cardBorder: 'rgba(217, 119, 6, 0.25)',
+      glow: 'rgba(217, 119, 6, 0.15)',
+      text: '#1C1917',
+      textMuted: '#57534E',
+      selectionBg: '#D97706',
+      selectionText: '#FFFFFF',
+    },
+    preview: {
+      badgeClass: 'bg-amber-500/15 text-amber-700 border-amber-500/30',
+      accentGradient: 'from-white via-amber-50 to-amber-600',
+      dotClass: 'bg-amber-600',
+      chipBg: 'bg-amber-50',
+      chipBorder: 'border-amber-300',
+      chipText: 'text-amber-700',
+    },
+  },
+
+  // ==========================================
+  // 6–12. REMAINING DARK CYBER THEMES
+  // ==========================================
   {
     id: 'electric-indigo',
     name: 'Electric Indigo',
     tagline: 'Deep Space Navy & Neon Cyan',
     badge: 'Cyber Sapphire',
+    themeMode: 'dark',
     description: 'Cosmic deep space navy background illuminated by piercing electric indigo and neon cyan accents. Inspired by enterprise cloud infrastructure.',
     category: 'Sci-Fi Blue',
     colors: {
@@ -102,6 +244,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Crimson Apex',
     tagline: 'Dark Carbon & Aggressive Scarlet Flame',
     badge: 'Hyper Red',
+    themeMode: 'dark',
     description: 'Pitch-dark carbon chassis accented with vivid crimson scarlet and hyper-coral energy. Built for extreme overclocking and gaming hardware gear.',
     category: 'Hardware Gaming',
     colors: {
@@ -133,6 +276,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Solar Amber',
     tagline: 'Warm Espresso & Radiant Cyber Gold',
     badge: 'Gold Flux',
+    themeMode: 'dark',
     description: 'Warm dark espresso onyx canvas infused with rich cyber amber and metallic liquid gold. Radiates premium corporate prestige, warmth, and luxury.',
     category: 'Warm Luxury',
     colors: {
@@ -164,6 +308,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Ultra Violet',
     tagline: 'Midnight Cosmic & Luminous Lilac',
     badge: 'Neon Synthwave',
+    themeMode: 'dark',
     description: 'Abyssal dark cosmos background radiating with vivid ultraviolet and neon electric lilac luminescence. Bold, futuristic, and creatively inspiring.',
     category: 'Synthwave',
     colors: {
@@ -195,6 +340,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Titanium Frost',
     tagline: 'Zero Saturation & Platinum Ice Slate',
     badge: 'Monochrome Minimal',
+    themeMode: 'dark',
     description: 'Ultra-clean zero-saturation dark titanium with pristine icy silver and platinum highlights. Offers the crispest readability and distraction-free clarity.',
     category: 'Minimalist',
     colors: {
@@ -226,6 +372,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Oceanic Teal',
     tagline: 'Mariana Abyssal & Electric Turquoise',
     badge: 'Deep Aqua',
+    themeMode: 'dark',
     description: 'Abyssal deep marine navy paired with electric turquoise and glowing tropical aqua. Cooling, refreshing, and remarkably easy on prolonged eye focus.',
     category: 'Oceanic Aqua',
     colors: {
@@ -257,6 +404,7 @@ export const WEBSITE_THEMES: WebsiteThemeItem[] = [
     name: 'Sunset Coral',
     tagline: 'Twilight Charcoal & Radiant Peach Sunset',
     badge: 'Tokyo Neon',
+    themeMode: 'dark',
     description: 'Velvety dark twilight charcoal highlighted with warm tangerine dusk and glowing Tokyo neon coral. Sophisticated, energetic, and visually stunning.',
     category: 'Tokyo Dusk',
     colors: {
@@ -289,10 +437,28 @@ export function getThemeById(id: string): WebsiteThemeItem {
   return WEBSITE_THEMES.find((t) => t.id === id) || WEBSITE_THEMES[0];
 }
 
+export function isLightTheme(id: string): boolean {
+  const theme = getThemeById(id);
+  return theme.themeMode === 'light';
+}
+
 export function applyThemeToDocument(themeId: string): void {
   if (typeof document === 'undefined') return;
   const validTheme = WEBSITE_THEMES.some((t) => t.id === themeId) ? themeId : 'emerald';
+  const themeObj = getThemeById(validTheme);
+  const isLight = themeObj.themeMode === 'light';
+
   document.documentElement.setAttribute('data-theme', validTheme);
+  document.documentElement.setAttribute('data-theme-mode', isLight ? 'light' : 'dark');
+
+  if (isLight) {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+  } else {
+    document.documentElement.classList.remove('light');
+    document.documentElement.classList.add('dark');
+  }
+
   try {
     const raw = localStorage.getItem('accno_website_theme');
     let current = { activeTheme: validTheme, glowIntensity: 'vibrant', cardGlassmorphism: true, contrastMode: 'standard', updatedAt: new Date().toISOString() };
@@ -308,7 +474,7 @@ export function applyThemeToDocument(themeId: string): void {
   } catch {}
 
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('accno-theme-changed', { detail: { theme: validTheme } }));
+    window.dispatchEvent(new CustomEvent('accno-theme-changed', { detail: { theme: validTheme, mode: isLight ? 'light' : 'dark' } }));
   }
 }
 

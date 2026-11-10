@@ -438,3 +438,261 @@ html[data-theme]:not([data-theme="emerald"]) .hero-overlay {
 html[data-theme]:not([data-theme="emerald"]) .bottom-glow {
   background-image: linear-gradient(180deg, transparent 0%, var(--theme-bg) 100%) !important;
 }
+
+
+/* ==========================================================================
+   4 WHITE BACKGROUND LIGHT THEMES & ENGINE OVERRIDES
+   ========================================================================== */
+
+html[data-theme="pearl-emerald"] {
+  --theme-primary: #059669;
+  --theme-primary-rgb: 5, 150, 105;
+  --theme-accent: #0D9488;
+  --theme-accent-rgb: 13, 148, 136;
+  --theme-bg: #FFFFFF;
+  --theme-bg-rgb: 255, 255, 255;
+  --theme-card: #FFFFFF;
+  --theme-card-border: rgba(5, 150, 105, 0.25);
+  --theme-glow: rgba(5, 150, 105, 0.15);
+  --theme-selection-bg: #059669;
+  --theme-selection-text: #FFFFFF;
+}
+
+html[data-theme="arctic-sapphire"] {
+  --theme-primary: #2563EB;
+  --theme-primary-rgb: 37, 99, 235;
+  --theme-accent: #0284C7;
+  --theme-accent-rgb: 2, 132, 199;
+  --theme-bg: #FFFFFF;
+  --theme-bg-rgb: 255, 255, 255;
+  --theme-card: #FFFFFF;
+  --theme-card-border: rgba(37, 99, 235, 0.25);
+  --theme-glow: rgba(37, 99, 235, 0.15);
+  --theme-selection-bg: #2563EB;
+  --theme-selection-text: #FFFFFF;
+}
+
+html[data-theme="ivory-mono"] {
+  --theme-primary: #0F172A;
+  --theme-primary-rgb: 15, 23, 42;
+  --theme-accent: #1E293B;
+  --theme-accent-rgb: 30, 41, 59;
+  --theme-bg: #FFFFFF;
+  --theme-bg-rgb: 255, 255, 255;
+  --theme-card: #FFFFFF;
+  --theme-card-border: rgba(15, 23, 42, 0.20);
+  --theme-glow: rgba(15, 23, 42, 0.10);
+  --theme-selection-bg: #0F172A;
+  --theme-selection-text: #FFFFFF;
+}
+
+html[data-theme="sunlight-amber"] {
+  --theme-primary: #D97706;
+  --theme-primary-rgb: 217, 119, 6;
+  --theme-accent: #B45309;
+  --theme-accent-rgb: 180, 83, 9;
+  --theme-bg: #FFFFFF;
+  --theme-bg-rgb: 255, 255, 255;
+  --theme-card: #FFFFFF;
+  --theme-card-border: rgba(217, 119, 6, 0.25);
+  --theme-glow: rgba(217, 119, 6, 0.15);
+  --theme-selection-bg: #D97706;
+  --theme-selection-text: #FFFFFF;
+}
+
+/* Global Light Mode Canvas & Container Overrides */
+html[data-theme-mode="light"] body {
+  background-color: var(--theme-bg, #FFFFFF) !important;
+  color: #0F172A !important;
+}
+
+html[data-theme-mode="light"] .bg-\[\#070B0A\],
+html[data-theme-mode="light"] .bg-dark,
+html[data-theme-mode="light"] .bg-\[\#060C0A\],
+html[data-theme-mode="light"] .bg-\[\#050807\] {
+  background-color: var(--theme-bg, #FFFFFF) !important;
+}
+
+html[data-theme-mode="light"] .bg-black,
+html[data-theme-mode="light"] .bg-black\/30,
+html[data-theme-mode="light"] .bg-black\/40,
+html[data-theme-mode="light"] .bg-black\/50,
+html[data-theme-mode="light"] .bg-black\/60,
+html[data-theme-mode="light"] .bg-black\/70,
+html[data-theme-mode="light"] .bg-black\/80,
+html[data-theme-mode="light"] .bg-black\/90 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+}
+
+/* Glass Panels & Cards in Light Mode */
+html[data-theme-mode="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06) !important;
+}
+
+html[data-theme-mode="light"] .bg-white\/5,
+html[data-theme-mode="light"] .bg-white\/\[0\.02\],
+html[data-theme-mode="light"] .bg-white\/\[0\.03\],
+html[data-theme-mode="light"] .bg-white\/\[0\.04\],
+html[data-theme-mode="light"] .bg-white\/\[0\.06\] {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme-mode="light"] .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme-mode="light"] .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Typography on White Background */
+html[data-theme-mode="light"] .text-white {
+  color: #0F172A !important;
+}
+
+html[data-theme-mode="light"] .text-white\/90,
+html[data-theme-mode="light"] .text-white\/80,
+html[data-theme-mode="light"] .text-white\/70 {
+  color: #334155 !important;
+}
+
+html[data-theme-mode="light"] .text-white\/60,
+html[data-theme-mode="light"] .text-white\/50 {
+  color: #475569 !important;
+}
+
+html[data-theme-mode="light"] .text-white\/40,
+html[data-theme-mode="light"] .text-white\/30 {
+  color: #64748B !important;
+}
+
+/* Accent & Primary Colors on White Background */
+html[data-theme-mode="light"] .text-\[\#16FFC6\],
+html[data-theme-mode="light"] .text-accent,
+html[data-theme-mode="light"] .text-primary-glow {
+  color: var(--theme-accent) !important;
+}
+
+html[data-theme-mode="light"] .text-\[\#5ED29C\],
+html[data-theme-mode="light"] .text-primary {
+  color: var(--theme-primary) !important;
+}
+
+html[data-theme-mode="light"] .bg-\[\#16FFC6\],
+html[data-theme-mode="light"] .bg-\[\#5ED29C\],
+html[data-theme-mode="light"] .bg-accent,
+html[data-theme-mode="light"] .bg-primary {
+  background-color: var(--theme-primary) !important;
+  color: #FFFFFF !important;
+}
+
+html[data-theme-mode="light"] .bg-\[\#16FFC6\] *,
+html[data-theme-mode="light"] .bg-\[\#5ED29C\] *,
+html[data-theme-mode="light"] .bg-accent *,
+html[data-theme-mode="light"] .bg-primary * {
+  color: #FFFFFF !important;
+}
+
+/* Translucent Highlights */
+html[data-theme-mode="light"] .bg-\[\#16FFC6\]\/10,
+html[data-theme-mode="light"] .bg-\[\#5ED29C\]\/10 {
+  background-color: rgba(var(--theme-primary-rgb), 0.10) !important;
+}
+
+html[data-theme-mode="light"] .bg-\[\#16FFC6\]\/20,
+html[data-theme-mode="light"] .bg-\[\#5ED29C\]\/20 {
+  background-color: rgba(var(--theme-primary-rgb), 0.16) !important;
+}
+
+html[data-theme-mode="light"] .bg-\[\#16FFC6\]\/30,
+html[data-theme-mode="light"] .bg-\[\#5ED29C\]\/30 {
+  background-color: rgba(var(--theme-primary-rgb), 0.22) !important;
+}
+
+/* Borders in Light Mode */
+html[data-theme-mode="light"] .border-white\/10,
+html[data-theme-mode="light"] .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme-mode="light"] .border-white\/20,
+html[data-theme-mode="light"] .border-white\/30,
+html[data-theme-mode="light"] .border-white\/40 {
+  border-color: rgba(0, 0, 0, 0.14) !important;
+}
+
+html[data-theme-mode="light"] .border-\[\#16FFC6\],
+html[data-theme-mode="light"] .border-\[\#5ED29C\],
+html[data-theme-mode="light"] .border-accent,
+html[data-theme-mode="light"] .border-primary {
+  border-color: var(--theme-primary) !important;
+}
+
+html[data-theme-mode="light"] .border-\[\#16FFC6\]\/20,
+html[data-theme-mode="light"] .border-\[\#5ED29C\]\/20 {
+  border-color: rgba(var(--theme-primary-rgb), 0.25) !important;
+}
+
+html[data-theme-mode="light"] .border-\[\#16FFC6\]\/30,
+html[data-theme-mode="light"] .border-\[\#5ED29C\]\/30 {
+  border-color: rgba(var(--theme-primary-rgb), 0.35) !important;
+}
+
+/* Inputs, Textareas & Selects */
+html[data-theme-mode="light"] input,
+html[data-theme-mode="light"] textarea,
+html[data-theme-mode="light"] select {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Hovers */
+html[data-theme-mode="light"] .hover\:text-\[\#16FFC6\]:hover,
+html[data-theme-mode="light"] .group:hover .group-hover\:text-\[\#16FFC6\],
+html[data-theme-mode="light"] .hover\:text-\[\#5ED29C\]:hover,
+html[data-theme-mode="light"] .group:hover .group-hover\:text-\[\#5ED29C\] {
+  color: var(--theme-primary) !important;
+}
+
+html[data-theme-mode="light"] .hover\:bg-\[\#16FFC6\]:hover,
+html[data-theme-mode="light"] .hover\:bg-\[\#5ED29C\]:hover {
+  background-color: var(--theme-accent) !important;
+  color: #FFFFFF !important;
+}
+
+/* Scrollbars & Selections */
+html[data-theme-mode="light"] ::-webkit-scrollbar-track {
+  background: #F8FAFC !important;
+}
+
+html[data-theme-mode="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.20) !important;
+}
+
+html[data-theme-mode="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary) !important;
+}
+
+html[data-theme-mode="light"] *::selection {
+  background: var(--theme-selection-bg) !important;
+  color: var(--theme-selection-text) !important;
+}
+
+/* Overlays & Glows in Light Mode */
+html[data-theme-mode="light"] .hero-overlay {
+  background-image: linear-gradient(90deg, #FFFFFF 0%, rgba(255, 255, 255, 0.85) 40%, transparent 100%) !important;
+}
+
+html[data-theme-mode="light"] .bottom-glow {
+  background-image: linear-gradient(180deg, transparent 0%, #FFFFFF 100%) !important;
+}
+
+html[data-theme-mode="light"] .glass-panel-hover:hover {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 8px 24px -4px rgba(var(--theme-primary-rgb), 0.20) !important;
+}

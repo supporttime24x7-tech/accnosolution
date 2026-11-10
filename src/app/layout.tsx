@@ -54,7 +54,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('accno_website_theme');if(s){var p=JSON.parse(s);var id=typeof p==='string'?p:p?.activeTheme;if(id){document.documentElement.setAttribute('data-theme',id);}}}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem('accno_website_theme');if(s){var p=JSON.parse(s);var id=typeof p==='string'?p:p?.activeTheme;if(id){document.documentElement.setAttribute('data-theme',id);if(['pearl-emerald','arctic-sapphire','ivory-mono','sunlight-amber'].indexOf(id)!==-1){document.documentElement.setAttribute('data-theme-mode','light');document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');}}}}catch(e){}})();`,
           }}
         />
       </head>
